@@ -13,32 +13,86 @@ CREATE TABLE IF NOT EXISTS students (
 );
 
 -- 2. TUTORS TABLE (Enhanced with all required fields)
-CREATE TABLE IF NOT EXISTS tutors (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    photo_url TEXT,
-    country TEXT NOT NULL DEFAULT 'India',
-    country_flag TEXT DEFAULT '🇮🇳',
-    native_language TEXT NOT NULL,
-    languages_spoken JSONB DEFAULT '[]'::jsonb, -- Array of {language: "Hindi", proficiency: "Native"}
-    bio TEXT,
-    bio_headline TEXT, -- Short 1-line summary
-    rate DECIMAL(10,2) NOT NULL, -- Price per lesson
-    rating DECIMAL(3,2) DEFAULT 0.0,
-    total_students INTEGER DEFAULT 0,
-    total_lessons INTEGER DEFAULT 0,
-    video_url TEXT, -- YouTube video URL
-    teaching_style TEXT,
-    resume TEXT,
-    about_me TEXT,
-    me_as_teacher TEXT,
-    tags JSONB DEFAULT '[]'::jsonb, -- Array of tags like ["Test Prep", "Business"]
-    is_professional BOOLEAN DEFAULT false,
-    is_active BOOLEAN DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- First, let's check what columns exist and add missing ones
+DO $$
+BEGIN
+    -- Add missing columns to existing tutors table
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'country') THEN
+        ALTER TABLE tutors ADD COLUMN country TEXT DEFAULT 'India';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'country_flag') THEN
+        ALTER TABLE tutors ADD COLUMN country_flag TEXT DEFAULT '🇮🇳';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'native_language') THEN
+        ALTER TABLE tutors ADD COLUMN native_language TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'languages_spoken') THEN
+        ALTER TABLE tutors ADD COLUMN languages_spoken JSONB DEFAULT '[]'::jsonb;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'bio_headline') THEN
+        ALTER TABLE tutors ADD COLUMN bio_headline TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'total_students') THEN
+        ALTER TABLE tutors ADD COLUMN total_students INTEGER DEFAULT 0;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'total_lessons') THEN
+        ALTER TABLE tutors ADD COLUMN total_lessons INTEGER DEFAULT 0;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'video_url') THEN
+        ALTER TABLE tutors ADD COLUMN video_url TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'teaching_style') THEN
+        ALTER TABLE tutors ADD COLUMN teaching_style TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'resume') THEN
+        ALTER TABLE tutors ADD COLUMN resume TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'about_me') THEN
+        ALTER TABLE tutors ADD COLUMN about_me TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'me_as_teacher') THEN
+        ALTER TABLE tutors ADD COLUMN me_as_teacher TEXT;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'tags') THEN
+        ALTER TABLE tutors ADD COLUMN tags JSONB DEFAULT '[]'::jsonb;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'is_professional') THEN
+        ALTER TABLE tutors ADD COLUMN is_professional BOOLEAN DEFAULT false;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'is_active') THEN
+        ALTER TABLE tutors ADD COLUMN is_active BOOLEAN DEFAULT true;
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'created_at') THEN
+        ALTER TABLE tutors ADD COLUMN created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'updated_at') THEN
+        ALTER TABLE tutors ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+    END IF;
+END $$;
+
+-- Update existing tutors to have native_language based on language column if it exists
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'language') THEN
+        UPDATE tutors SET native_language = language WHERE native_language IS NULL;
+    END IF;
+END $$;
 
 -- 3. TUTOR AVAILABILITY TABLE
 CREATE TABLE IF NOT EXISTS tutor_availability (
@@ -82,7 +136,15 @@ CREATE TABLE IF NOT EXISTS lessons (
 -- INDEXES FOR PERFORMANCE
 -- =============================================
 
-CREATE INDEX IF NOT EXISTS idx_tutors_language ON tutors(native_language);
+-- Create index on native_language if column exists, otherwise on language
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'native_language') THEN
+        CREATE INDEX IF NOT EXISTS idx_tutors_native_language ON tutors(native_language);
+    ELSIF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tutors' AND column_name = 'language') THEN
+        CREATE INDEX IF NOT EXISTS idx_tutors_language ON tutors(language);
+    END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_tutors_rating ON tutors(rating DESC);
 CREATE INDEX IF NOT EXISTS idx_tutors_rate ON tutors(rate);
 CREATE INDEX IF NOT EXISTS idx_tutors_active ON tutors(is_active);
