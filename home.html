@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - IndianTutors</title>
+    <meta name="description" content="Your personalized language learning dashboard">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="home-styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>IndianTutors</h2>
+            </div>
+            <div class="nav-links">
+                <a href="home.html" class="nav-link active">Home</a>
+                <a href="#teachers" class="nav-link">Find a Teacher</a>
+                <div class="nav-dropdown">
+                    <button class="nav-dropdown-btn">
+                        More
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6,9 12,15 18,9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="nav-dropdown-content">
+                        <a href="#lessons">My Lessons</a>
+                        <a href="#teachers">My Teachers</a>
+                        <a href="#tests">My Tests</a>
+                        <a href="#quizzes">My Quizzes</a>
+                        <a href="#calendar">My Calendar</a>
+                        <a href="#wallet">My Wallet</a>
+                    </div>
+                </div>
+                <div class="profile-dropdown">
+                    <button class="profile-btn" id="profileBtn">
+                        <img src="" alt="Profile" class="profile-avatar" id="profileAvatar">
+                        <span class="profile-name" id="profileName">Loading...</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6,9 12,15 18,9"></polyline>
+                        </svg>
+                    </button>
+                    <div class="profile-dropdown-content">
+                        <div class="profile-info">
+                            <img src="" alt="Profile" class="dropdown-avatar" id="dropdownAvatar">
+                            <div class="dropdown-user-info">
+                                <span class="dropdown-name" id="dropdownName">Loading...</span>
+                                <span class="dropdown-email" id="dropdownEmail">Loading...</span>
+                            </div>
+                        </div>
+                        <hr class="dropdown-divider">
+                        <a href="#profile">My Profile</a>
+                        <a href="#settings">Settings</a>
+                        <button class="logout-btn" onclick="handleLogout()">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="dashboard-container">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <h1 class="welcome-title">Welcome back, <span id="welcomeName">Student</span>!</h1>
+                <p class="welcome-subtitle">Continue your language learning journey</p>
+            </section>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Profile Card -->
+                <div class="dashboard-card profile-card">
+                    <div class="card-header">
+                        <h3>Your Progress</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="profile-info-card">
+                            <img src="" alt="Profile" class="card-avatar" id="cardAvatar">
+                            <div class="profile-details">
+                                <h4 id="cardName">Loading...</h4>
+                                <div class="profile-stats">
+                                    <div class="stat">
+                                        <span class="stat-value">7</span>
+                                        <span class="stat-label">Week streak</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-value">24</span>
+                                        <span class="stat-label">Total hours</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-value">85</span>
+                                        <span class="stat-label">Knowledge score</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Lessons Card -->
+                <div class="dashboard-card lessons-card">
+                    <div class="card-header">
+                        <h3>Upcoming Lessons</h3>
+                        <a href="#lessons" class="view-all-link">View all</a>
+                    </div>
+                    <div class="card-content">
+                        <div class="lesson-item">
+                            <div class="lesson-time">
+                                <span class="lesson-date">June 12</span>
+                                <span class="lesson-hour">16:30</span>
+                            </div>
+                            <div class="lesson-details">
+                                <span class="lesson-language">Hindi</span>
+                                <span class="lesson-duration">60 min</span>
+                            </div>
+                            <button class="lesson-join-btn">Join</button>
+                        </div>
+                        <div class="lesson-item">
+                            <div class="lesson-time">
+                                <span class="lesson-date">June 14</span>
+                                <span class="lesson-hour">18:00</span>
+                            </div>
+                            <div class="lesson-details">
+                                <span class="lesson-language">Tamil</span>
+                                <span class="lesson-duration">45 min</span>
+                            </div>
+                            <button class="lesson-join-btn">Join</button>
+                        </div>
+                        <div class="no-lessons" style="display: none;">
+                            <p>No upcoming lessons</p>
+                            <a href="#teachers" class="book-lesson-btn">Book a lesson</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Teachers Section -->
+            <section class="teachers-section">
+                <div class="section-header">
+                    <h2>My Teachers</h2>
+                    <a href="#teachers" class="view-all-link">View all</a>
+                </div>
+                <div class="teachers-grid">
+                    <div class="teacher-card">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" alt="Teacher" class="teacher-avatar">
+                        <div class="teacher-info">
+                            <h4 class="teacher-name">Rajesh Kumar</h4>
+                            <p class="teacher-language">Hindi Teacher</p>
+                            <div class="teacher-rating">
+                                <span class="rating">4.9</span>
+                                <div class="stars">★★★★★</div>
+                            </div>
+                            <p class="teacher-rate">₹500/hour</p>
+                        </div>
+                        <button class="book-btn">Book</button>
+                    </div>
+                    
+                    <div class="teacher-card">
+                        <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face" alt="Teacher" class="teacher-avatar">
+                        <div class="teacher-info">
+                            <h4 class="teacher-name">Priya Sharma</h4>
+                            <p class="teacher-language">Tamil Teacher</p>
+                            <div class="teacher-rating">
+                                <span class="rating">4.8</span>
+                                <div class="stars">★★★★★</div>
+                            </div>
+                            <p class="teacher-rate">₹450/hour</p>
+                        </div>
+                        <button class="book-btn">Book</button>
+                    </div>
+                    
+                    <div class="teacher-card">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" alt="Teacher" class="teacher-avatar">
+                        <div class="teacher-info">
+                            <h4 class="teacher-name">Amit Patel</h4>
+                            <p class="teacher-language">Bengali Teacher</p>
+                            <div class="teacher-rating">
+                                <span class="rating">4.7</span>
+                                <div class="stars">★★★★★</div>
+                            </div>
+                            <p class="teacher-rate">₹400/hour</p>
+                        </div>
+                        <button class="book-btn">Book</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Supabase Authentication -->
+    <script type="module" src="supabaseClient.js"></script>
+    <script type="module" src="authService.js"></script>
+    <script src="home-script.js"></script>
+</body>
+</html>
