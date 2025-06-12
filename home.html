@@ -265,14 +265,51 @@
             console.log('User authenticated:', session.user.email);
         }
 
-        function displayUserInfo(user) {
+        async function displayUserInfo(user) {
             console.log('Displaying user info:', user);
 
-            // Extract user information
+            try {
+                // Fetch user data from students table
+                const { data: studentData, error } = await supabase
+                    .from('students')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error) {
+                    console.error('Error fetching student data:', error);
+                    // Fallback to auth metadata
+                    displayUserInfoFallback(user);
+                    return;
+                }
+
+                console.log('Student data from database:', studentData);
+
+                // Extract user information from database
+                const userName = studentData.name || user.email.split('@')[0];
+                const userEmail = studentData.email || user.email;
+                const avatarUrl = studentData.profile_picture || '';
+
+                updateUserInterface(userName, userEmail, avatarUrl);
+
+            } catch (error) {
+                console.error('Error in displayUserInfo:', error);
+                displayUserInfoFallback(user);
+            }
+        }
+
+        function displayUserInfoFallback(user) {
+            console.log('Using fallback user info display');
+
+            // Extract user information from auth metadata
             const userName = user.user_metadata?.full_name || user.email.split('@')[0];
             const userEmail = user.email;
             const avatarUrl = user.user_metadata?.avatar_url || '';
 
+            updateUserInterface(userName, userEmail, avatarUrl);
+        }
+
+        function updateUserInterface(userName, userEmail, avatarUrl) {
             // Update welcome message
             const welcomeNameElement = document.getElementById('welcomeName');
             if (welcomeNameElement) {
@@ -329,8 +366,7 @@
                 }
             }
 
-            // Show user info in console for debugging
-            console.log('User metadata:', user.user_metadata);
+            console.log('UI updated with:', { userName, userEmail, avatarUrl });
         }
 
         async function logout() {
