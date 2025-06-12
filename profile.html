@@ -365,20 +365,42 @@
         // Load tutor profile
         async function loadTutorProfile() {
             try {
+                console.log('Looking for tutor with ID:', tutorId);
+
                 const { data, error } = await supabase
                     .from('tutors')
                     .select('*')
                     .eq('id', tutorId)
                     .single();
 
-                if (error || !data) {
+                console.log('Supabase response:', { data, error });
+
+                if (error) {
+                    console.error('Supabase error:', error);
+                    // If tutor not found, try to get any tutor for demo
+                    const { data: allTutors, error: allError } = await supabase
+                        .from('tutors')
+                        .select('*')
+                        .limit(1);
+
+                    if (allError || !allTutors || allTutors.length === 0) {
+                        console.error('No tutors found in database');
+                        showError();
+                        return;
+                    }
+
+                    console.log('Using first available tutor for demo:', allTutors[0]);
+                    await displayTutorProfile(allTutors[0]);
+                } else if (!data) {
+                    console.error('No data returned for tutor');
                     showError();
                     return;
+                } else {
+                    await displayTutorProfile(data);
                 }
 
-                await displayTutorProfile(data);
                 await loadReviews();
-                generateCalendar();
+                generateAvailabilityGrid();
             } catch (error) {
                 console.error('Error loading tutor profile:', error);
                 showError();

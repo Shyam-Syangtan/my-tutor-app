@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Database Connection</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Database Test</h1>
+    <div id="results"></div>
+
+    <script>
+        // Initialize Supabase
+        const supabaseUrl = 'https://qbyyutebrgpxngvwenkd.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFieXl1dGVicmdweG5ndndlbmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MTA1NTMsImV4cCI6MjA2NTI4NjU1M30.eO8Wd0ZOqtXgvQ3BuedmSPmYVpbG3V-AXvgufLns6yY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function testDatabase() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                // Test connection and get all tutors
+                const { data, error } = await supabase
+                    .from('tutors')
+                    .select('*');
+
+                if (error) {
+                    resultsDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                    return;
+                }
+
+                resultsDiv.innerHTML = `
+                    <h2>Found ${data.length} tutors:</h2>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+
+                // Log to console for easier copying
+                console.log('Tutors data:', data);
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<p style="color: red;">Connection Error: ${error.message}</p>`;
+            }
+        }
+
+        // Run test when page loads
+        testDatabase();
+    </script>
+</body>
+</html>
