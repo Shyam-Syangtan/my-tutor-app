@@ -411,18 +411,23 @@ document.addEventListener('keydown', function(event) {
 async function checkAuthStatus() {
     // Only run on landing page
     const currentPath = window.location.pathname
-    const basePath = import.meta.env.BASE_URL || '/'
+    const basePath = '/my-tutor-app/'
 
     if (currentPath !== basePath && currentPath !== basePath + 'index.html') {
         return
     }
 
     if (window.authService) {
-        const { session } = await window.authService.auth.getSession()
+        try {
+            const { auth } = await import('./supabaseClient.js')
+            const { session } = await auth.getSession()
 
-        if (session) {
-            // User is already logged in, redirect to home
-            window.location.href = basePath + 'home.html'
+            if (session) {
+                // User is already logged in, redirect to home
+                window.location.href = basePath + 'home.html'
+            }
+        } catch (error) {
+            console.error('Error checking auth status:', error)
         }
     }
 }

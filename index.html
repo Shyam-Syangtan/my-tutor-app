@@ -24,6 +24,7 @@
             <div class="nav-links">
                 <a href="#teachers" class="nav-link">Find a Teacher</a>
                 <button class="nav-btn login-btn" onclick="window.openLoginModal()">Log in</button>
+                <button class="nav-btn" onclick="testModal()" style="background: red; margin-left: 10px;">Test Modal</button>
             </div>
         </div>
     </nav>
@@ -167,6 +168,56 @@
     </div>
 
     <!-- Authentication handled by Supabase -->
+
+    <!-- Debug Script -->
+    <script>
+        // Debug function to test modal
+        function testModal() {
+            console.log('Testing modal...');
+            const modal = document.getElementById('loginModal');
+            console.log('Modal element:', modal);
+            if (modal) {
+                modal.classList.add('active');
+                console.log('Modal should be visible now');
+            } else {
+                console.error('Modal element not found!');
+            }
+        }
+
+        // Fallback modal functions (in case modules don't load)
+        window.openLoginModal = window.openLoginModal || function() {
+            console.log('Using fallback openLoginModal');
+            const modal = document.getElementById('loginModal');
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        };
+
+        window.closeLoginModal = window.closeLoginModal || function(event) {
+            console.log('Using fallback closeLoginModal');
+            if (event && event.target !== event.currentTarget) {
+                return;
+            }
+            const modal = document.getElementById('loginModal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        };
+
+        window.handleGoogleLogin = window.handleGoogleLogin || function() {
+            console.log('Using fallback handleGoogleLogin');
+            alert('Google login functionality will be available once Supabase is configured.');
+        };
+
+        // Test modal function availability
+        window.addEventListener('load', function() {
+            console.log('Page loaded');
+            console.log('openLoginModal function:', typeof window.openLoginModal);
+            console.log('Modal element:', document.getElementById('loginModal'));
+        });
+    </script>
 
     <!-- Supabase Authentication -->
     <script type="module" src="supabaseClient.js"></script>
