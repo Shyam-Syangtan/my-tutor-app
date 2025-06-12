@@ -315,7 +315,7 @@
                                         <span class="text-lg">${countryFlag}</span>
                                         ${isProfessional ? '<span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Professional</span>' : ''}
                                     </div>
-                                    <p class="text-sm text-gray-600">${tutor.bio_headline || `${tutor.native_language} Teacher`}</p>
+                                    <p class="text-sm text-gray-600">${tutor.bio_headline || `${tutor.native_language || tutor.language} Teacher`}</p>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-xl font-bold text-indigo-600">₹${tutor.rate}</div>
@@ -325,7 +325,7 @@
 
                             <!-- Language Badges -->
                             <div class="flex flex-wrap gap-1 mb-3">
-                                <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full font-medium">${tutor.native_language}</span>
+                                <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full font-medium">${tutor.native_language || tutor.language}</span>
                                 ${languages.slice(0, 2).map(lang =>
                                     `<span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">${lang.language}</span>`
                                 ).join('')}
@@ -395,8 +395,8 @@
             const searchTerm = searchInput.value.toLowerCase();
 
             filteredTutors = allTutors.filter(tutor => {
-                // Language filter - check native_language field
-                if (language && tutor.native_language !== language) return false;
+                // Language filter - check native_language or language field
+                if (language && (tutor.native_language || tutor.language) !== language) return false;
 
                 // Price filter
                 if (priceRange) {

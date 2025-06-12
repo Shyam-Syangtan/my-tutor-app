@@ -295,7 +295,7 @@
             document.getElementById('tutorAvatar').src = avatarUrl;
             document.getElementById('tutorName').textContent = tutor.name;
             document.getElementById('tutorFlag').textContent = tutor.country_flag || '🇮🇳';
-            document.getElementById('tutorTitle').textContent = tutor.bio_headline || `${tutor.native_language} Teacher`;
+            document.getElementById('tutorTitle').textContent = tutor.bio_headline || `${tutor.native_language || tutor.language} Teacher`;
             document.getElementById('tutorRating').textContent = ratingStars;
             document.getElementById('tutorRatingText').textContent = `${rating.toFixed(1)} (${tutor.total_students || 0} reviews)`;
             document.getElementById('totalStudents').textContent = `${tutor.total_students || 0} students`;
@@ -311,7 +311,7 @@
             // Update language badges
             const languageBadges = document.getElementById('languageBadges');
             languageBadges.innerHTML = `
-                <span class="bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full font-medium">${tutor.native_language}</span>
+                <span class="bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full font-medium">${tutor.native_language || tutor.language}</span>
                 ${languages.map(lang =>
                     `<span class="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">${lang.language} (${lang.proficiency})</span>`
                 ).join('')}
