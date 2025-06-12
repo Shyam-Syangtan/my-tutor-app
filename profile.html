@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor Profile - IndianTutors</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="home.html" class="text-2xl font-bold text-indigo-600">IndianTutors</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="home.html" class="text-gray-600 hover:text-gray-900">Home</a>
+                    <a href="findteacher.html" class="text-gray-600 hover:text-gray-900">Find a Teacher</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <p class="text-gray-600 mt-4">Loading tutor profile...</p>
+        </div>
+
+        <!-- Profile Content -->
+        <div id="profileContent" class="hidden">
+            <!-- Tutor Header -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-8">
+                <div class="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
+                    <img id="tutorAvatar" src="" alt="Tutor" class="w-24 h-24 rounded-full object-cover">
+                    <div class="flex-1">
+                        <h1 id="tutorName" class="text-3xl font-bold text-gray-900 mb-2"></h1>
+                        <p id="tutorLanguage" class="text-lg text-gray-600 mb-2"></p>
+                        <div class="flex items-center mb-4">
+                            <span id="tutorRating" class="text-yellow-500 mr-2"></span>
+                            <span id="tutorRatingText" class="text-gray-600"></span>
+                        </div>
+                        <div class="text-2xl font-bold text-indigo-600">
+                            ₹<span id="tutorRate"></span>/hour
+                        </div>
+                    </div>
+                    <div class="flex flex-col space-y-3">
+                        <button class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                            Book a Lesson
+                        </button>
+                        <button class="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors">
+                            Send Message
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Section -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">About</h2>
+                <p id="tutorBio" class="text-gray-600 leading-relaxed"></p>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="text-center py-12 hidden">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">Tutor not found</h3>
+            <p class="mt-1 text-sm text-gray-500">The tutor you're looking for doesn't exist.</p>
+            <div class="mt-6">
+                <a href="findteacher.html" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                    Find Other Tutors
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Initialize Supabase
+        const supabaseUrl = 'https://akxharstudio.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFreGhhcnN0dWRpbyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzMzOTc5NTU0LCJleHAiOjIwNDk1NTU1NTR9.Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Get tutor ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const tutorId = urlParams.get('id');
+
+        // DOM Elements
+        const loadingState = document.getElementById('loadingState');
+        const profileContent = document.getElementById('profileContent');
+        const errorState = document.getElementById('errorState');
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!tutorId) {
+                showError();
+                return;
+            }
+            await loadTutorProfile();
+        });
+
+        // Load tutor profile
+        async function loadTutorProfile() {
+            try {
+                const { data, error } = await supabase
+                    .from('tutors')
+                    .select('*')
+                    .eq('id', tutorId)
+                    .single();
+
+                if (error || !data) {
+                    showError();
+                    return;
+                }
+
+                displayTutorProfile(data);
+            } catch (error) {
+                console.error('Error loading tutor profile:', error);
+                showError();
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Display tutor profile
+        function displayTutorProfile(tutor) {
+            const avatarUrl = tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff&size=96`;
+            const rating = tutor.rating || 0;
+            const ratingStars = '⭐'.repeat(Math.floor(rating));
+
+            document.getElementById('tutorAvatar').src = avatarUrl;
+            document.getElementById('tutorName').textContent = tutor.name;
+            document.getElementById('tutorLanguage').textContent = `${tutor.language} Teacher`;
+            document.getElementById('tutorRating').textContent = ratingStars;
+            document.getElementById('tutorRatingText').textContent = `${rating.toFixed(1)} rating`;
+            document.getElementById('tutorRate').textContent = tutor.rate;
+            document.getElementById('tutorBio').textContent = tutor.bio || 'This tutor hasn\'t added a bio yet.';
+
+            document.title = `${tutor.name} - ${tutor.language} Teacher - IndianTutors`;
+
+            profileContent.classList.remove('hidden');
+        }
+
+        // Utility functions
+        function hideLoading() {
+            loadingState.classList.add('hidden');
+        }
+
+        function showError() {
+            loadingState.classList.add('hidden');
+            errorState.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

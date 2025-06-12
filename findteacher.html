@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find a Teacher - IndianTutors</title>
+    <meta name="description" content="Find the perfect Indian language tutor for your learning journey">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="home.html" class="text-2xl font-bold text-indigo-600">IndianTutors</a>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="home.html" class="text-gray-600 hover:text-gray-900 transition-colors">Home</a>
+                    <a href="findteacher.html" class="text-indigo-600 font-medium">Find a Teacher</a>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="hidden md:flex flex-1 max-w-md mx-8">
+                    <div class="relative w-full">
+                        <input type="text" id="navSearch" placeholder="Search tutors..." 
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Language Dropdown & User Menu -->
+                <div class="flex items-center space-x-4">
+                    <!-- Language Dropdown -->
+                    <div class="relative">
+                        <select class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option>English</option>
+                            <option>हिंदी</option>
+                            <option>தமிழ்</option>
+                        </select>
+                    </div>
+                    
+                    <!-- User Dropdown -->
+                    <div class="relative" id="userDropdown">
+                        <button class="flex items-center space-x-2 bg-white border border-gray-300 rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors" id="userMenuButton">
+                            <img src="" alt="Profile" class="w-8 h-8 rounded-full" id="navUserAvatar">
+                            <span class="text-sm font-medium text-gray-700" id="navUserName">Loading...</span>
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 hidden" id="userDropdownMenu">
+                            <div class="py-1">
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Profile</a>
+                                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
+                                <hr class="my-1">
+                                <button onclick="handleLogout()" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Find Your Perfect Language Tutor</h1>
+            <p class="text-gray-600">Choose from <span id="tutorCount" class="font-semibold text-indigo-600">0</span> experienced tutors</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <div class="flex flex-wrap gap-4 items-center">
+                <!-- Language Filter -->
+                <div class="flex flex-col">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Language</label>
+                    <select id="languageFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">All Languages</option>
+                        <option value="Hindi">Hindi</option>
+                        <option value="Tamil">Tamil</option>
+                        <option value="Bengali">Bengali</option>
+                        <option value="Telugu">Telugu</option>
+                        <option value="Marathi">Marathi</option>
+                        <option value="Gujarati">Gujarati</option>
+                        <option value="Kannada">Kannada</option>
+                        <option value="Malayalam">Malayalam</option>
+                        <option value="Punjabi">Punjabi</option>
+                        <option value="Urdu">Urdu</option>
+                    </select>
+                </div>
+
+                <!-- Price Range -->
+                <div class="flex flex-col">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Price Range</label>
+                    <select id="priceFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="">Any Price</option>
+                        <option value="0-300">₹0 - ₹300</option>
+                        <option value="300-500">₹300 - ₹500</option>
+                        <option value="500-800">₹500 - ₹800</option>
+                        <option value="800-1200">₹800 - ₹1200</option>
+                        <option value="1200+">₹1200+</option>
+                    </select>
+                </div>
+
+                <!-- Search -->
+                <div class="flex flex-col flex-1 min-w-[200px]">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Search Tutors</label>
+                    <input type="text" id="searchInput" placeholder="Search by name..." 
+                           class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Clear Filters -->
+                <div class="flex flex-col justify-end">
+                    <button id="clearFilters" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                        Clear All
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <p class="text-gray-600 mt-4">Loading tutors...</p>
+        </div>
+
+        <!-- Tutors Grid -->
+        <div id="tutorsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 hidden">
+            <!-- Tutor cards will be dynamically inserted here -->
+        </div>
+
+        <!-- No Results -->
+        <div id="noResults" class="text-center py-12 hidden">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No tutors found</h3>
+            <p class="mt-1 text-sm text-gray-500">Try adjusting your filters or search terms.</p>
+        </div>
+    </main>
+
+    <script>
+        // Initialize Supabase
+        const supabaseUrl = 'https://akxharstudio.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFreGhhcnN0dWRpbyIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzMzOTc5NTU0LCJleHAiOjIwNDk1NTU1NTR9.Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8Ej8';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let allTutors = [];
+        let filteredTutors = [];
+
+        // DOM Elements
+        const tutorsGrid = document.getElementById('tutorsGrid');
+        const loadingState = document.getElementById('loadingState');
+        const noResults = document.getElementById('noResults');
+        const tutorCount = document.getElementById('tutorCount');
+        const languageFilter = document.getElementById('languageFilter');
+        const priceFilter = document.getElementById('priceFilter');
+        const searchInput = document.getElementById('searchInput');
+        const navSearch = document.getElementById('navSearch');
+        const clearFilters = document.getElementById('clearFilters');
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            await loadTutors();
+            setupEventListeners();
+        });
+
+        // Check authentication
+        async function checkAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                window.location.href = 'index.html';
+                return;
+            }
+            displayUserInfo(session.user);
+        }
+
+        // Display user info in navigation
+        async function displayUserInfo(user) {
+            try {
+                const { data: studentData } = await supabase
+                    .from('students')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                const userName = studentData?.name || user.email.split('@')[0];
+                const avatarUrl = studentData?.profile_picture || user.user_metadata?.avatar_url;
+
+                document.getElementById('navUserName').textContent = userName;
+                
+                if (avatarUrl) {
+                    document.getElementById('navUserAvatar').src = avatarUrl;
+                } else {
+                    const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=32`;
+                    document.getElementById('navUserAvatar').src = defaultAvatar;
+                }
+            } catch (error) {
+                console.error('Error loading user info:', error);
+            }
+        }
+
+        // Load tutors from Supabase
+        async function loadTutors() {
+            try {
+                const { data, error } = await supabase
+                    .from('tutors')
+                    .select('*')
+                    .order('rating', { ascending: false });
+
+                if (error) throw error;
+
+                allTutors = data || [];
+                filteredTutors = [...allTutors];
+                renderTutors();
+                updateTutorCount();
+            } catch (error) {
+                console.error('Error loading tutors:', error);
+                showError('Failed to load tutors. Please try again.');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Render tutors
+        function renderTutors() {
+            if (filteredTutors.length === 0) {
+                showNoResults();
+                return;
+            }
+
+            hideNoResults();
+            tutorsGrid.innerHTML = '';
+
+            filteredTutors.forEach(tutor => {
+                const tutorCard = createTutorCard(tutor);
+                tutorsGrid.appendChild(tutorCard);
+            });
+
+            tutorsGrid.classList.remove('hidden');
+        }
+
+        // Create tutor card
+        function createTutorCard(tutor) {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer';
+            card.onclick = () => window.open(`profile.html?id=${tutor.id}`, '_blank');
+
+            const avatarUrl = tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff&size=80`;
+            const rating = tutor.rating || 0;
+            const ratingStars = '⭐'.repeat(Math.floor(rating));
+
+            card.innerHTML = `
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <img src="${avatarUrl}" alt="${tutor.name}" class="w-16 h-16 rounded-full object-cover mr-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">${tutor.name}</h3>
+                            <p class="text-sm text-gray-600">${tutor.language} Teacher</p>
+                            <div class="flex items-center mt-1">
+                                <span class="text-sm text-yellow-500">${ratingStars}</span>
+                                <span class="text-sm text-gray-600 ml-1">${rating.toFixed(1)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-gray-600 text-sm mb-4 line-clamp-2">${tutor.bio || 'Experienced language tutor ready to help you learn.'}</p>
+
+                    <div class="flex items-center justify-between">
+                        <div class="text-lg font-bold text-indigo-600">₹${tutor.rate}/hour</div>
+                        <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                            Book
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Filter tutors
+        function filterTutors() {
+            const language = languageFilter.value;
+            const priceRange = priceFilter.value;
+            const searchTerm = searchInput.value.toLowerCase();
+
+            filteredTutors = allTutors.filter(tutor => {
+                // Language filter
+                if (language && tutor.language !== language) return false;
+
+                // Price filter
+                if (priceRange) {
+                    const rate = tutor.rate;
+                    if (priceRange === '0-300' && (rate < 0 || rate > 300)) return false;
+                    if (priceRange === '300-500' && (rate < 300 || rate > 500)) return false;
+                    if (priceRange === '500-800' && (rate < 500 || rate > 800)) return false;
+                    if (priceRange === '800-1200' && (rate < 800 || rate > 1200)) return false;
+                    if (priceRange === '1200+' && rate < 1200) return false;
+                }
+
+                // Search filter
+                if (searchTerm && !tutor.name.toLowerCase().includes(searchTerm)) return false;
+
+                return true;
+            });
+
+            renderTutors();
+            updateTutorCount();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Filter change events
+            languageFilter.addEventListener('change', filterTutors);
+            priceFilter.addEventListener('change', filterTutors);
+
+            // Search with debounce
+            let searchTimeout;
+            const handleSearch = () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(filterTutors, 300);
+            };
+
+            searchInput.addEventListener('input', handleSearch);
+            navSearch.addEventListener('input', (e) => {
+                searchInput.value = e.target.value;
+                handleSearch();
+            });
+
+            // Clear filters
+            clearFilters.addEventListener('click', () => {
+                languageFilter.value = '';
+                priceFilter.value = '';
+                searchInput.value = '';
+                navSearch.value = '';
+                filteredTutors = [...allTutors];
+                renderTutors();
+                updateTutorCount();
+            });
+
+            // User dropdown toggle
+            const userMenuButton = document.getElementById('userMenuButton');
+            const userDropdownMenu = document.getElementById('userDropdownMenu');
+
+            userMenuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdownMenu.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', () => {
+                userDropdownMenu.classList.add('hidden');
+            });
+        }
+
+        // Utility functions
+        function updateTutorCount() {
+            tutorCount.textContent = filteredTutors.length;
+        }
+
+        function hideLoading() {
+            loadingState.classList.add('hidden');
+        }
+
+        function showNoResults() {
+            tutorsGrid.classList.add('hidden');
+            noResults.classList.remove('hidden');
+        }
+
+        function hideNoResults() {
+            noResults.classList.add('hidden');
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+
+            setTimeout(() => {
+                document.body.removeChild(errorDiv);
+            }, 5000);
+        }
+
+        // Logout function
+        async function handleLogout() {
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                showError('Failed to logout. Please try again.');
+            }
+        }
+
+        // Make logout function globally available
+        window.handleLogout = handleLogout;
+    </script>
+</body>
+</html>
