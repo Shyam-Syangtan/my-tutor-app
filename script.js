@@ -1,3 +1,6 @@
+// Import auth service
+import './authService.js';
+
 // Google Sign-In Configuration
 const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID'; // Replace with your actual Google Client ID
 
@@ -60,7 +63,7 @@ function parseJwt(token) {
 }
 
 // Modal Functions
-function openLoginModal() {
+window.openLoginModal = function() {
     const modal = document.getElementById('loginModal');
     if (modal) {
         modal.classList.add('active');
@@ -72,9 +75,9 @@ function openLoginModal() {
             closeButton.focus();
         }
     }
-}
+};
 
-function closeLoginModal(event) {
+window.closeLoginModal = function(event) {
     // If event is provided and it's not a click on the overlay, don't close
     if (event && event.target !== event.currentTarget) {
         return;
@@ -85,10 +88,10 @@ function closeLoginModal(event) {
         modal.classList.remove('active');
         document.body.style.overflow = ''; // Restore scrolling
     }
-}
+};
 
 // Handle Google login button click
-async function handleGoogleLogin() {
+window.handleGoogleLogin = async function() {
     // Use Supabase auth service if available
     if (window.authService) {
         await window.authService.signInWithGoogle();
@@ -116,7 +119,7 @@ async function handleGoogleLogin() {
         showNotification('Google Sign-In is not available. Please try again later.', 'error');
         console.error('Google Sign-In library not loaded');
     }
-}
+};
 
 // Display user information after successful login
 function displayUserInfo(userInfo) {
@@ -166,7 +169,7 @@ function resetUserInterface() {
     if (userDisplay) {
         const newCtaButton = document.createElement('button');
         newCtaButton.className = 'cta-button';
-        newCtaButton.onclick = openLoginModal;
+        newCtaButton.onclick = window.openLoginModal;
         newCtaButton.innerHTML = `
             <span class="google-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24">

@@ -1,3 +1,6 @@
+// Import auth service
+import './authService.js';
+
 // Home Page JavaScript
 class HomePageManager {
     constructor() {

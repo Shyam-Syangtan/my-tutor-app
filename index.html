@@ -23,7 +23,7 @@
             </div>
             <div class="nav-links">
                 <a href="#teachers" class="nav-link">Find a Teacher</a>
-                <button class="nav-btn login-btn" onclick="openLoginModal()">Log in</button>
+                <button class="nav-btn login-btn" onclick="window.openLoginModal()">Log in</button>
             </div>
         </div>
     </nav>
@@ -47,7 +47,7 @@
                         Flexible schedules and prices
                     </li>
                 </ul>
-                <button class="cta-button" onclick="openLoginModal()">
+                <button class="cta-button" onclick="window.openLoginModal()">
                     <span class="google-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -120,11 +120,11 @@
     </section>
 
     <!-- Login Modal -->
-    <div id="loginModal" class="modal-overlay" onclick="closeLoginModal(event)">
+    <div id="loginModal" class="modal-overlay" onclick="window.closeLoginModal(event)">
         <div class="modal-content" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <h2 class="modal-title">Welcome to IndianTutors</h2>
-                <button class="modal-close" onclick="closeLoginModal()" aria-label="Close modal">
+                <button class="modal-close" onclick="window.closeLoginModal()" aria-label="Close modal">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -135,7 +135,7 @@
             <div class="modal-body">
                 <p class="modal-subtitle">Start your language learning journey today</p>
 
-                <button class="google-login-btn" onclick="handleGoogleLogin()">
+                <button class="google-login-btn" onclick="window.handleGoogleLogin()">
                     <div class="google-icon-wrapper">
                         <svg width="20" height="20" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -172,6 +172,6 @@
     <script type="module" src="supabaseClient.js"></script>
     <script type="module" src="authService.js"></script>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
