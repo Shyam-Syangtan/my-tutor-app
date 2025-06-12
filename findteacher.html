@@ -156,7 +156,7 @@
         </div>
 
         <!-- Tutors Grid -->
-        <div id="tutorsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 hidden">
+        <div id="tutorsGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-6 hidden">
             <!-- Tutor cards will be dynamically inserted here -->
         </div>
 
@@ -275,37 +275,115 @@
         // Create tutor card
         function createTutorCard(tutor) {
             const card = document.createElement('div');
-            card.className = 'bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer';
-            card.onclick = () => window.open(`profile.html?id=${tutor.id}`, '_blank');
+            card.className = 'bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-1';
 
             const avatarUrl = tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff&size=80`;
             const rating = tutor.rating || 0;
             const ratingStars = '⭐'.repeat(Math.floor(rating));
+            const languages = tutor.languages_spoken ? JSON.parse(tutor.languages_spoken) : [];
+            const tags = tutor.tags ? JSON.parse(tutor.tags) : [];
+            const countryFlag = tutor.country_flag || '🇮🇳';
+            const totalStudents = tutor.total_students || 0;
+            const totalLessons = tutor.total_lessons || 0;
+            const isProfessional = tutor.is_professional;
 
             card.innerHTML = `
                 <div class="p-6">
-                    <div class="flex items-center mb-4">
-                        <img src="${avatarUrl}" alt="${tutor.name}" class="w-16 h-16 rounded-full object-cover mr-4">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900">${tutor.name}</h3>
-                            <p class="text-sm text-gray-600">${tutor.language} Teacher</p>
-                            <div class="flex items-center mt-1">
-                                <span class="text-sm text-yellow-500">${ratingStars}</span>
-                                <span class="text-sm text-gray-600 ml-1">${rating.toFixed(1)}</span>
+                    <!-- Horizontal Layout -->
+                    <div class="flex items-start space-x-4">
+                        <!-- Left: Avatar and Video Thumbnail -->
+                        <div class="flex-shrink-0">
+                            <div class="relative">
+                                <img src="${avatarUrl}" alt="${tutor.name}" class="w-20 h-20 rounded-full object-cover border-2 border-gray-100">
+                                ${tutor.video_url ? `
+                                    <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M8 5v10l8-5-8-5z"/>
+                                        </svg>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Right: Content -->
+                        <div class="flex-1 min-w-0">
+                            <!-- Header -->
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <h3 class="text-lg font-semibold text-gray-900 truncate">${tutor.name}</h3>
+                                        <span class="text-lg">${countryFlag}</span>
+                                        ${isProfessional ? '<span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Professional</span>' : ''}
+                                    </div>
+                                    <p class="text-sm text-gray-600">${tutor.bio_headline || `${tutor.native_language} Teacher`}</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xl font-bold text-indigo-600">₹${tutor.rate}</div>
+                                    <div class="text-xs text-gray-500">per lesson</div>
+                                </div>
+                            </div>
+
+                            <!-- Language Badges -->
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full font-medium">${tutor.native_language}</span>
+                                ${languages.slice(0, 2).map(lang =>
+                                    `<span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">${lang.language}</span>`
+                                ).join('')}
+                                ${languages.length > 2 ? `<span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">+${languages.length - 2}</span>` : ''}
+                            </div>
+
+                            <!-- Stats -->
+                            <div class="flex items-center space-x-4 mb-3 text-sm text-gray-600">
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-yellow-500">${ratingStars}</span>
+                                    <span class="font-medium">${rating.toFixed(1)}</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                                    </svg>
+                                    <span>${totalStudents} students</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                    </svg>
+                                    <span>${totalLessons} lessons</span>
+                                </div>
+                            </div>
+
+                            <!-- Tags -->
+                            ${tags.length > 0 ? `
+                                <div class="flex flex-wrap gap-1 mb-4">
+                                    ${tags.slice(0, 3).map(tag =>
+                                        `<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">${tag}</span>`
+                                    ).join('')}
+                                    ${tags.length > 3 ? `<span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">+${tags.length - 3}</span>` : ''}
+                                </div>
+                            ` : ''}
+
+                            <!-- Action Buttons -->
+                            <div class="flex space-x-3">
+                                <button onclick="event.stopPropagation(); window.open('profile.html?id=${tutor.id}', '_blank')"
+                                        class="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                                    Book Lesson
+                                </button>
+                                <button onclick="event.stopPropagation(); window.open('profile.html?id=${tutor.id}', '_blank')"
+                                        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
+                                    View Profile
+                                </button>
                             </div>
                         </div>
                     </div>
-
-                    <p class="text-gray-600 text-sm mb-4 line-clamp-2">${tutor.bio || 'Experienced language tutor ready to help you learn.'}</p>
-
-                    <div class="flex items-center justify-between">
-                        <div class="text-lg font-bold text-indigo-600">₹${tutor.rate}/hour</div>
-                        <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
-                            Book
-                        </button>
-                    </div>
                 </div>
             `;
+
+            // Add click handler for the entire card
+            card.addEventListener('click', (e) => {
+                if (!e.target.closest('button')) {
+                    window.open(`profile.html?id=${tutor.id}`, '_blank');
+                }
+            });
 
             return card;
         }
@@ -317,8 +395,8 @@
             const searchTerm = searchInput.value.toLowerCase();
 
             filteredTutors = allTutors.filter(tutor => {
-                // Language filter
-                if (language && tutor.language !== language) return false;
+                // Language filter - check native_language field
+                if (language && tutor.native_language !== language) return false;
 
                 // Price filter
                 if (priceRange) {
@@ -330,8 +408,11 @@
                     if (priceRange === '1200+' && rate < 1200) return false;
                 }
 
-                // Search filter
-                if (searchTerm && !tutor.name.toLowerCase().includes(searchTerm)) return false;
+                // Search filter - search in name and bio
+                if (searchTerm) {
+                    const searchableText = `${tutor.name} ${tutor.bio || ''} ${tutor.bio_headline || ''}`.toLowerCase();
+                    if (!searchableText.includes(searchTerm)) return false;
+                }
 
                 return true;
             });
