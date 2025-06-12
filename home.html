@@ -195,9 +195,143 @@
         </div>
     </main>
 
-    <!-- Supabase Authentication -->
-    <script type="module" src="supabaseClient.js"></script>
-    <script type="module" src="authService.js"></script>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Authentication Check Script -->
+    <script>
+        // Supabase Configuration - SAME AS INDEX.HTML
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
+
+        let supabase = null;
+        let currentUser = null;
+
+        // Initialize when page loads
+        window.addEventListener('load', function() {
+            initializeSupabase();
+        });
+
+        function initializeSupabase() {
+            if (typeof window.supabase !== 'undefined') {
+                if (SUPABASE_URL === 'YOUR_SUPABASE_URL_HERE' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY_HERE') {
+                    console.error('Supabase credentials not configured');
+                    showErrorMessage('Authentication not configured. Redirecting to login...');
+                    setTimeout(() => window.location.href = 'index.html', 2000);
+                    return;
+                }
+
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase initialized successfully');
+
+                // Check authentication and get user
+                checkAuthentication();
+
+                // Listen for auth changes
+                supabase.auth.onAuthStateChange((event, session) => {
+                    console.log('Auth state changed:', event, session);
+                    if (event === 'SIGNED_OUT' || !session) {
+                        window.location.href = 'index.html';
+                    } else if (event === 'SIGNED_IN' && session) {
+                        currentUser = session.user;
+                        displayUserInfo(session.user);
+                    }
+                });
+            } else {
+                console.error('Supabase library not loaded');
+                setTimeout(initializeSupabase, 1000);
+            }
+        }
+
+        async function checkAuthentication() {
+            if (!supabase) return;
+
+            const { data: { session }, error } = await supabase.auth.getSession();
+
+            if (error) {
+                console.error('Auth check error:', error);
+                window.location.href = 'index.html';
+                return;
+            }
+
+            if (!session) {
+                console.log('No active session, redirecting to login');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            currentUser = session.user;
+            displayUserInfo(session.user);
+            console.log('User authenticated:', session.user.email);
+        }
+
+        function displayUserInfo(user) {
+            // Update welcome message
+            const welcomeElement = document.querySelector('.welcome-message');
+            if (welcomeElement) {
+                const userName = user.user_metadata?.full_name || user.email.split('@')[0];
+                welcomeElement.textContent = `Welcome back, ${userName}!`;
+            }
+
+            // Update user avatar if exists
+            const avatarElement = document.querySelector('.user-avatar');
+            if (avatarElement && user.user_metadata?.avatar_url) {
+                avatarElement.src = user.user_metadata.avatar_url;
+                avatarElement.alt = user.user_metadata?.full_name || 'User';
+            }
+
+            // Update any user email displays
+            const emailElements = document.querySelectorAll('.user-email');
+            emailElements.forEach(element => {
+                element.textContent = user.email;
+            });
+
+            // Show user info in console for debugging
+            console.log('User metadata:', user.user_metadata);
+        }
+
+        async function logout() {
+            if (!supabase) return;
+
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                console.error('Logout error:', error);
+                showErrorMessage('Logout failed: ' + error.message);
+            } else {
+                console.log('User logged out successfully');
+                window.location.href = 'index.html';
+            }
+        }
+
+        function showErrorMessage(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #f44336;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                font-family: Inter, sans-serif;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+
+            setTimeout(() => {
+                if (document.body.contains(errorDiv)) {
+                    document.body.removeChild(errorDiv);
+                }
+            }, 5000);
+        }
+
+        // Make logout function globally available
+        window.logout = logout;
+    </script>
+
+    <!-- Home Page Script -->
     <script type="module" src="home-script.js"></script>
 </body>
 </html>
