@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Become a Tutor - IndianTutors</title>
+    <meta name="description" content="Join our community of tutors and start teaching">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .tutor-info-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .header-section {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .header-section h1 {
+            font-size: 2.5rem;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+        
+        .header-section p {
+            font-size: 1.2rem;
+            color: #6b7280;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .requirements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .requirement-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            text-align: center;
+        }
+        
+        .requirement-card .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .requirement-card h3 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        
+        .requirement-card p {
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .requirement-card .action-btn {
+            background: #f3f4f6;
+            color: #374151;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .requirement-card .action-btn:hover {
+            background: #e5e7eb;
+        }
+        
+        .start-application {
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+        
+        .start-application h2 {
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+        
+        .start-application p {
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .start-btn {
+            background: #dc2626;
+            color: white;
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+        
+        .start-btn:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+        }
+        
+        .info-section {
+            background: #f9fafb;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .info-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        
+        .info-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .info-section li {
+            padding: 0.5rem 0;
+            color: #374151;
+            display: flex;
+            align-items: center;
+        }
+        
+        .info-section li::before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 0.75rem;
+        }
+        
+        @media (max-width: 768px) {
+            .tutor-info-container {
+                padding: 1rem;
+            }
+            
+            .header-section h1 {
+                font-size: 2rem;
+            }
+            
+            .requirements-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .requirement-card {
+                padding: 1.5rem;
+            }
+            
+            .start-application {
+                padding: 2rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>IndianTutors</h2>
+            </div>
+            <div class="nav-links">
+                <a href="home.html" class="nav-link">Home</a>
+                <a href="findteacher.html" class="nav-link">Find Teachers</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="tutor-info-container">
+            <a href="home.html" class="back-link">← Back to Home</a>
+            
+            <!-- Header Section -->
+            <div class="header-section">
+                <h1>Become a Tutor</h1>
+                <p>Join our community of passionate educators and start sharing your knowledge with students around the world</p>
+            </div>
+
+            <!-- Requirements Grid -->
+            <div class="requirements-grid">
+                <div class="requirement-card">
+                    <div class="icon">📝</div>
+                    <h3>Is your language open?</h3>
+                    <p>Before applying check if your teaching language is open for application.</p>
+                    <a href="#" class="action-btn">CHECK THE LIST</a>
+                </div>
+
+                <div class="requirement-card">
+                    <div class="icon">🎓</div>
+                    <h3>What type of teacher are you?</h3>
+                    <p>On italki you can become a Professional Teacher or a Community Tutor. Discover a solution that suits you.</p>
+                    <a href="#" class="action-btn">LEARN MORE</a>
+                </div>
+
+                <div class="requirement-card">
+                    <div class="icon">🎥</div>
+                    <h3>Prepare a video introduction</h3>
+                    <p>italki requires that you have a video introduction. This video introduction is how you show off your teaching style and teaching personality to potential students.</p>
+                    <a href="#" class="action-btn">VIDEO RULES</a>
+                </div>
+
+                <div class="requirement-card">
+                    <div class="icon">📜</div>
+                    <h3>Teaching certifications</h3>
+                    <p>italki requires only Professional Teachers to upload their teaching certificates. Your diplomas and certificates are not published.</p>
+                    <a href="#" class="action-btn">LEARN MORE</a>
+                </div>
+            </div>
+
+            <!-- Information Section -->
+            <div class="info-section">
+                <h3>What you'll need to provide:</h3>
+                <ul>
+                    <li>Basic personal information (name, email, country)</li>
+                    <li>Native language(s) and languages you want to teach</li>
+                    <li>Professional profile photo</li>
+                    <li>1-2 minute video introduction</li>
+                    <li>Teaching experience and qualifications</li>
+                    <li>Weekly availability schedule</li>
+                    <li>Written profile introduction</li>
+                </ul>
+            </div>
+
+            <!-- Start Application Section -->
+            <div class="start-application">
+                <h2>Ready to Start Teaching?</h2>
+                <p>Complete your tutor application and join thousands of educators making a difference</p>
+                <a href="become-tutor-application.html" class="start-btn">START YOUR APPLICATION</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Check if user is logged in
+        const SUPABASE_URL = 'https://qbyyutebrgpxngvwenkd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFieXl1dGVicmdweG5ndndlbmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MTA1NTMsImV4cCI6MjA2NTI4NjU1M30.eO8Wd0ZOqtXgvQ3BuedmSPmYVpbG3V-AXvgufLns6yY';
+
+        let supabase = null;
+
+        window.addEventListener('load', function() {
+            if (typeof window.supabase !== 'undefined') {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                checkAuthentication();
+            }
+        });
+
+        async function checkAuthentication() {
+            if (!supabase) return;
+
+            const { data: { session }, error } = await supabase.auth.getSession();
+
+            if (!session) {
+                // Redirect to login if not authenticated
+                window.location.href = 'index.html';
+                return;
+            }
+        }
+    </script>
+</body>
+</html>
