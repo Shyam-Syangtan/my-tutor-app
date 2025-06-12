@@ -147,6 +147,7 @@
                     <span>Continue with Google</span>
                 </button>
 
+
                 <div class="modal-divider">
                     <span>or</span>
                 </div>
@@ -168,9 +169,131 @@
 
     <!-- Authentication handled by Supabase -->
 
-    <!-- Simple Modal Script -->
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Authentication Script -->
     <script>
-        // Simple modal functions that work immediately
+        // Supabase Configuration - YOU NEED TO REPLACE THESE WITH YOUR ACTUAL SUPABASE CREDENTIALS
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
+
+        let supabase = null;
+
+        // Initialize Supabase when page loads
+        window.addEventListener('load', function() {
+            initializeSupabase();
+        });
+
+        function initializeSupabase() {
+            if (typeof window.supabase !== 'undefined') {
+                if (SUPABASE_URL === 'YOUR_SUPABASE_URL_HERE' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY_HERE') {
+                    console.error('Supabase credentials not configured');
+                    showErrorMessage('Authentication not configured. Please set up Supabase credentials.');
+                    return;
+                }
+
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase initialized successfully');
+
+                // Check if user is already logged in
+                checkAuthState();
+            } else {
+                console.error('Supabase library not loaded');
+                setTimeout(initializeSupabase, 1000); // Retry after 1 second
+            }
+        }
+
+        async function checkAuthState() {
+            if (!supabase) return;
+
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                console.log('User already logged in:', session.user);
+                // Redirect to home page if already authenticated
+                window.location.href = 'home.html';
+            }
+        }
+
+        async function handleGoogleLogin() {
+            console.log('Initiating Supabase Google login...');
+
+            if (!supabase) {
+                showErrorMessage('Authentication service not available. Please refresh the page.');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: `${window.location.origin}/my-tutor-app/home.html`
+                    }
+                });
+
+                if (error) {
+                    console.error('Supabase auth error:', error);
+                    showErrorMessage('Login failed: ' + error.message);
+                } else {
+                    console.log('Google login initiated successfully');
+                    closeLoginModal();
+                    showSuccessMessage('Redirecting to Google...');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showErrorMessage('Login failed. Please try again.');
+            }
+        }
+
+        function showSuccessMessage(message) {
+            const successDiv = document.createElement('div');
+            successDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4CAF50;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                font-family: Inter, sans-serif;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+            successDiv.textContent = message;
+            document.body.appendChild(successDiv);
+
+            setTimeout(() => {
+                if (document.body.contains(successDiv)) {
+                    document.body.removeChild(successDiv);
+                }
+            }, 3000);
+        }
+
+        function showErrorMessage(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #f44336;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                font-family: Inter, sans-serif;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+
+            setTimeout(() => {
+                if (document.body.contains(errorDiv)) {
+                    document.body.removeChild(errorDiv);
+                }
+            }, 5000);
+        }
+
+        // Modal functions
         function openLoginModal() {
             console.log('Opening modal...');
             const modal = document.getElementById('loginModal');
@@ -197,10 +320,7 @@
             }
         }
 
-        function handleGoogleLogin() {
-            alert('Google login functionality will be added here!');
-            closeLoginModal();
-        }
+
 
         // Close modal on Escape key
         document.addEventListener('keydown', function(event) {
@@ -214,7 +334,7 @@
         window.closeLoginModal = closeLoginModal;
         window.handleGoogleLogin = handleGoogleLogin;
 
-        console.log('Modal functions loaded successfully');
+        console.log('Authentication system loaded successfully');
     </script>
 </body>
 </html>
