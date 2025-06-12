@@ -298,6 +298,25 @@
                 window.location.href = 'index.html';
                 return;
             }
+
+            // Check if user is already an approved tutor
+            try {
+                const { data: tutorData, error: tutorError } = await supabase
+                    .from('tutors')
+                    .select('*')
+                    .eq('user_id', session.user.id)
+                    .eq('approved', true)
+                    .single();
+
+                if (tutorData) {
+                    // User is already an approved tutor, redirect to dashboard
+                    window.location.href = 'tutor-dashboard.html';
+                    return;
+                }
+            } catch (error) {
+                // No approved tutor profile found, continue normally
+                console.log('No approved tutor profile found');
+            }
         }
     </script>
 </body>

@@ -489,8 +489,14 @@
                     .single();
 
                 if (data) {
-                    // User already has an application
-                    showExistingApplicationMessage(data);
+                    if (data.approved) {
+                        // User is already an approved tutor, redirect to dashboard
+                        window.location.href = 'tutor-dashboard.html';
+                        return;
+                    } else {
+                        // User has pending application
+                        showExistingApplicationMessage(data);
+                    }
                 }
             } catch (error) {
                 // No existing application found, which is fine

@@ -133,13 +133,7 @@
                     </svg>
                     Settings
                 </a>
-                <a href="become-tutor-info.html" class="sidebar-link">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-                        <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-                    </svg>
-                    Become a Tutor
-                </a>
+                <div id="mobileTutorToggleContainer"></div>
                 <button class="sidebar-link logout-link" onclick="handleLogout()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -202,7 +196,7 @@
                         <hr class="dropdown-divider">
                         <a href="#profile">My Profile</a>
                         <a href="#settings">Settings</a>
-                        <a href="become-tutor-info.html" style="color: var(--primary-color); font-weight: 500;">🎓 Become a Tutor</a>
+                        <div id="tutorToggleContainer"></div>
                         <button class="logout-btn" onclick="handleLogout()">Logout</button>
                     </div>
                 </div>
@@ -380,6 +374,7 @@
                     } else if (event === 'SIGNED_IN' && session) {
                         currentUser = session.user;
                         displayUserInfo(session.user);
+                        checkTutorStatus(session.user);
                     }
                 });
             } else {
@@ -407,6 +402,7 @@
 
             currentUser = session.user;
             displayUserInfo(session.user);
+            checkTutorStatus(session.user);
             console.log('User authenticated:', session.user.email);
         }
 
@@ -515,6 +511,103 @@
             console.log('UI updated with:', { userName, userEmail, avatarUrl });
         }
 
+        // Check if user is an approved tutor and update toggle
+        async function checkTutorStatus(user) {
+            try {
+                const { data: tutorData, error } = await supabase
+                    .from('tutors')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (error && error.code !== 'PGRST116') {
+                    console.error('Error checking tutor status:', error);
+                    updateTutorToggle(false, null);
+                    return;
+                }
+
+                if (tutorData) {
+                    console.log('Tutor data found:', tutorData);
+                    updateTutorToggle(tutorData.approved, tutorData);
+                } else {
+                    console.log('No tutor data found');
+                    updateTutorToggle(false, null);
+                }
+            } catch (error) {
+                console.error('Error in checkTutorStatus:', error);
+                updateTutorToggle(false, null);
+            }
+        }
+
+        // Update the tutor toggle based on status
+        function updateTutorToggle(isApprovedTutor, tutorData) {
+            const desktopContainer = document.getElementById('tutorToggleContainer');
+            const mobileContainer = document.getElementById('mobileTutorToggleContainer');
+
+            if (isApprovedTutor) {
+                // User is an approved tutor - show "Switch to Teacher Mode"
+                const toggleHTML = `
+                    <a href="tutor-dashboard.html" style="color: var(--primary-color); font-weight: 500;">
+                        🎓 Switch to Teacher Mode
+                    </a>
+                `;
+                const mobileToggleHTML = `
+                    <a href="tutor-dashboard.html" class="sidebar-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                        </svg>
+                        Switch to Teacher Mode
+                    </a>
+                `;
+
+                if (desktopContainer) desktopContainer.innerHTML = toggleHTML;
+                if (mobileContainer) mobileContainer.innerHTML = mobileToggleHTML;
+            } else if (tutorData && !tutorData.approved) {
+                // User has applied but not approved yet
+                const toggleHTML = `
+                    <a href="#" onclick="showApplicationStatus()" style="color: #f59e0b; font-weight: 500;">
+                        ⏳ Application Pending
+                    </a>
+                `;
+                const mobileToggleHTML = `
+                    <a href="#" onclick="showApplicationStatus()" class="sidebar-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                        Application Pending
+                    </a>
+                `;
+
+                if (desktopContainer) desktopContainer.innerHTML = toggleHTML;
+                if (mobileContainer) mobileContainer.innerHTML = mobileToggleHTML;
+            } else {
+                // User is not a tutor - show "Become a Tutor"
+                const toggleHTML = `
+                    <a href="become-tutor-info.html" style="color: var(--primary-color); font-weight: 500;">
+                        🎓 Become a Tutor
+                    </a>
+                `;
+                const mobileToggleHTML = `
+                    <a href="become-tutor-info.html" class="sidebar-link">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                        </svg>
+                        Become a Tutor
+                    </a>
+                `;
+
+                if (desktopContainer) desktopContainer.innerHTML = toggleHTML;
+                if (mobileContainer) mobileContainer.innerHTML = mobileToggleHTML;
+            }
+        }
+
+        // Show application status modal
+        function showApplicationStatus() {
+            alert('Your tutor application is currently under review. We\'ll notify you once it\'s approved!');
+        }
+
         async function logout() {
             if (!supabase) return;
 
@@ -597,9 +690,10 @@
             initializeMobileSidebar();
         });
 
-        // Make logout function globally available
+        // Make functions globally available
         window.logout = logout;
         window.handleLogout = logout;
+        window.showApplicationStatus = showApplicationStatus;
     </script>
 
     <!-- Home Page Script -->

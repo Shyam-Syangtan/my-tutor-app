@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - IndianTutors</title>
+    <meta name="description" content="Manage your teaching profile and students">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .teacher-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .teacher-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+        }
+        
+        .teacher-details h2 {
+            margin: 0 0 0.5rem 0;
+            color: #1f2937;
+        }
+        
+        .teacher-details p {
+            margin: 0;
+            color: #6b7280;
+        }
+        
+        .teacher-id {
+            font-size: 0.875rem;
+            color: #9ca3af;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .earnings-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        
+        .earnings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .earnings-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .earnings-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .earnings-item {
+            text-align: center;
+        }
+        
+        .earnings-item h4 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1.25rem;
+        }
+        
+        .earnings-item p {
+            margin: 0;
+            opacity: 0.8;
+            font-size: 0.875rem;
+        }
+        
+        .withdraw-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .withdraw-btn:hover {
+            background: #b91c1c;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .action-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .action-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .action-card h3 {
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+        }
+        
+        .action-card p {
+            color: #6b7280;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .action-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .enable-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .tool-item {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .tool-item:hover {
+            background: #e5e7eb;
+        }
+        
+        .tool-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tool-name {
+            font-size: 0.75rem;
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 1rem;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .teacher-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .earnings-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>IndianTutors</h2>
+            </div>
+            <div class="nav-links">
+                <a href="tutor-dashboard.html" class="nav-link active">Teacher Dashboard</a>
+                <a href="findteacher.html" class="nav-link">Find Teachers</a>
+            </div>
+            
+            <!-- Profile Dropdown -->
+            <div class="profile-dropdown">
+                <button class="profile-btn" id="profileBtn">
+                    <img src="" alt="Profile" class="profile-avatar" id="profileAvatar">
+                    <span class="profile-name" id="profileName">Loading...</span>
+                    <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="6,9 12,15 18,9"></polyline>
+                    </svg>
+                </button>
+                
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <div class="dropdown-header">
+                        <img src="" alt="Profile" class="dropdown-avatar" id="dropdownAvatar">
+                        <div class="dropdown-info">
+                            <div class="dropdown-name" id="dropdownName">Loading...</div>
+                            <div class="dropdown-email" id="dropdownEmail">Loading...</div>
+                        </div>
+                    </div>
+                    <div class="dropdown-content">
+                        <hr class="dropdown-divider">
+                        <a href="#profile">My Profile</a>
+                        <a href="#settings">Settings</a>
+                        <a href="home.html" style="color: var(--primary-color); font-weight: 500;">🎓 Switch to Student Mode</a>
+                        <button class="logout-btn" onclick="handleLogout()">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="dashboard-container">
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <div class="teacher-info">
+                    <img src="" alt="Teacher" class="teacher-avatar" id="teacherAvatar">
+                    <div class="teacher-details">
+                        <h2 id="teacherName">Loading...</h2>
+                        <p id="teacherLanguages">Loading...</p>
+                        <div class="teacher-id" id="teacherId">ID: Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="upcomingLessons">0</div>
+                    <div class="stat-label">Upcoming Lessons</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="actionRequired">0</div>
+                    <div class="stat-label">Action Required</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="packageAction">0</div>
+                    <div class="stat-label">Package Action</div>
+                </div>
+            </div>
+
+            <!-- Earnings Section -->
+            <div class="earnings-section">
+                <div class="earnings-header">
+                    <div>
+                        <h3>💰 Earnings</h3>
+                        <div class="earnings-amount" id="totalBalance">₹ 0.00</div>
+                        <p>Total Balance</p>
+                    </div>
+                    <button class="withdraw-btn">Withdraw</button>
+                </div>
+                
+                <div class="earnings-details">
+                    <div class="earnings-item">
+                        <h4 id="mayEarnings">₹ 0.00</h4>
+                        <p>May Earnings</p>
+                    </div>
+                    <div class="earnings-item">
+                        <h4 id="mayReward">₹ 0.00</h4>
+                        <p>May Reward</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                    <p style="margin: 0; font-size: 0.875rem;">💡 You can do it!</p>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem;">Check out these tips to help you get an excellence reward next month!</p>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <div class="action-card">
+                    <div class="action-icon">⚡</div>
+                    <h3>Instant Lesson</h3>
+                    <p>Automatically accept and start a lesson 5 minutes after receiving an Instant Lesson request.</p>
+                    <button class="enable-btn">Enable</button>
+                </div>
+
+                <div class="action-card">
+                    <div class="action-icon">👥</div>
+                    <h3>Teacher Forum</h3>
+                    <p>Where great minds meet</p>
+                    <a href="#" class="action-btn">Visit Forum</a>
+                </div>
+
+                <div class="action-card">
+                    <div class="action-icon">📚</div>
+                    <h3>Teacher Knowledge Base</h3>
+                    <p>Unleash the secret of success</p>
+                    <a href="#" class="action-btn">Learn More</a>
+                </div>
+
+                <div class="action-card">
+                    <div class="action-icon">🛠️</div>
+                    <h3>Teacher Tools</h3>
+                    <p>Create learning content to help your students improve</p>
+                    <div class="tools-grid">
+                        <div class="tool-item">
+                            <div class="tool-icon">📝</div>
+                            <div class="tool-name">Quiz</div>
+                        </div>
+                        <div class="tool-item">
+                            <div class="tool-icon">📖</div>
+                            <div class="tool-name">Vocabulary</div>
+                        </div>
+                        <div class="tool-item">
+                            <div class="tool-icon">🎧</div>
+                            <div class="tool-name">Podcast</div>
+                        </div>
+                        <div class="tool-item">
+                            <div class="tool-icon">🏆</div>
+                            <div class="tool-name">Certificate</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="tutor-dashboard.js"></script>
+</body>
+</html>

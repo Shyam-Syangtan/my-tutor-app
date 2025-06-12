@@ -64,8 +64,23 @@ CREATE TRIGGER update_tutors_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
+-- Create view for approved tutors (for better performance)
+CREATE OR REPLACE VIEW approved_tutors AS
+SELECT * FROM tutors WHERE approved = true;
+
+-- Create function to check if user is approved tutor
+CREATE OR REPLACE FUNCTION is_approved_tutor(user_uuid UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM tutors
+        WHERE user_id = user_uuid AND approved = true
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Show current table structure
 SELECT column_name, data_type, is_nullable, column_default
-FROM information_schema.columns 
-WHERE table_name = 'tutors' 
+FROM information_schema.columns
+WHERE table_name = 'tutors'
 ORDER BY ordinal_position;
