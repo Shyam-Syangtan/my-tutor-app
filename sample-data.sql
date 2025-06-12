@@ -3,15 +3,15 @@
 -- =============================================
 
 -- Insert sample tutors with comprehensive data
+-- First, let's check what columns exist and insert accordingly
 INSERT INTO tutors (
-    name, email, photo_url, country, country_flag, native_language, 
-    languages_spoken, bio, bio_headline, rate, rating, total_students, 
-    total_lessons, video_url, teaching_style, resume, about_me, me_as_teacher, 
+    name, photo_url, country, country_flag, native_language,
+    languages_spoken, bio, bio_headline, rate, rating, total_students,
+    total_lessons, video_url, teaching_style, resume, about_me, me_as_teacher,
     tags, is_professional, is_active
-) VALUES 
+) VALUES
 (
     'Priya Sharma',
-    'priya.sharma@example.com',
     'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
     'India',
     '🇮🇳',
@@ -34,7 +34,6 @@ INSERT INTO tutors (
 ),
 (
     'Rajesh Kumar',
-    'rajesh.kumar@example.com',
     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
     'India',
     '🇮🇳',
@@ -57,7 +56,6 @@ INSERT INTO tutors (
 ),
 (
     'Anita Patel',
-    'anita.patel@example.com',
     'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
     'India',
     '🇮🇳',
@@ -80,7 +78,6 @@ INSERT INTO tutors (
 ),
 (
     'Dr. Suresh Reddy',
-    'suresh.reddy@example.com',
     'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
     'India',
     '🇮🇳',
@@ -103,7 +100,6 @@ INSERT INTO tutors (
 ),
 (
     'Meera Joshi',
-    'meera.joshi@example.com',
     'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
     'India',
     '🇮🇳',
@@ -126,7 +122,6 @@ INSERT INTO tutors (
 ),
 (
     'Arjun Singh',
-    'arjun.singh@example.com',
     'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
     'India',
     '🇮🇳',
