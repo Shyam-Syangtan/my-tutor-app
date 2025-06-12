@@ -266,25 +266,68 @@
         }
 
         function displayUserInfo(user) {
+            console.log('Displaying user info:', user);
+
+            // Extract user information
+            const userName = user.user_metadata?.full_name || user.email.split('@')[0];
+            const userEmail = user.email;
+            const avatarUrl = user.user_metadata?.avatar_url || '';
+
             // Update welcome message
-            const welcomeElement = document.querySelector('.welcome-message');
-            if (welcomeElement) {
-                const userName = user.user_metadata?.full_name || user.email.split('@')[0];
-                welcomeElement.textContent = `Welcome back, ${userName}!`;
+            const welcomeNameElement = document.getElementById('welcomeName');
+            if (welcomeNameElement) {
+                welcomeNameElement.textContent = userName;
             }
 
-            // Update user avatar if exists
-            const avatarElement = document.querySelector('.user-avatar');
-            if (avatarElement && user.user_metadata?.avatar_url) {
-                avatarElement.src = user.user_metadata.avatar_url;
-                avatarElement.alt = user.user_metadata?.full_name || 'User';
+            // Update profile dropdown elements
+            const profileName = document.getElementById('profileName');
+            const profileAvatar = document.getElementById('profileAvatar');
+            const dropdownName = document.getElementById('dropdownName');
+            const dropdownEmail = document.getElementById('dropdownEmail');
+            const dropdownAvatar = document.getElementById('dropdownAvatar');
+
+            if (profileName) profileName.textContent = userName;
+            if (dropdownName) dropdownName.textContent = userName;
+            if (dropdownEmail) dropdownEmail.textContent = userEmail;
+
+            // Update avatars
+            if (avatarUrl) {
+                if (profileAvatar) {
+                    profileAvatar.src = avatarUrl;
+                    profileAvatar.alt = userName;
+                }
+                if (dropdownAvatar) {
+                    dropdownAvatar.src = avatarUrl;
+                    dropdownAvatar.alt = userName;
+                }
+            } else {
+                // Set default avatar if no avatar URL
+                const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=40`;
+                if (profileAvatar) {
+                    profileAvatar.src = defaultAvatar;
+                    profileAvatar.alt = userName;
+                }
+                if (dropdownAvatar) {
+                    dropdownAvatar.src = defaultAvatar;
+                    dropdownAvatar.alt = userName;
+                }
             }
 
-            // Update any user email displays
-            const emailElements = document.querySelectorAll('.user-email');
-            emailElements.forEach(element => {
-                element.textContent = user.email;
-            });
+            // Update profile card elements
+            const cardName = document.getElementById('cardName');
+            const cardAvatar = document.getElementById('cardAvatar');
+
+            if (cardName) cardName.textContent = userName;
+            if (cardAvatar) {
+                if (avatarUrl) {
+                    cardAvatar.src = avatarUrl;
+                    cardAvatar.alt = userName;
+                } else {
+                    const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=60`;
+                    cardAvatar.src = defaultAvatar;
+                    cardAvatar.alt = userName;
+                }
+            }
 
             // Show user info in console for debugging
             console.log('User metadata:', user.user_metadata);
