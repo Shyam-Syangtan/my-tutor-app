@@ -77,7 +77,7 @@ class AuthService {
     // Redirect to landing page after logout
     redirectToLanding() {
         const currentPath = window.location.pathname
-        const basePath = import.meta.env.BASE_URL || '/'
+        const basePath = '/my-tutor-app/'
 
         if (currentPath !== basePath && currentPath !== basePath + 'index.html') {
             window.location.href = basePath + 'index.html'
@@ -186,7 +186,7 @@ class AuthService {
     redirectToHome() {
         // Check if we're on the landing page
         const currentPath = window.location.pathname
-        const basePath = import.meta.env.BASE_URL || '/'
+        const basePath = '/my-tutor-app/'
 
         if (currentPath === basePath || currentPath === basePath + 'index.html') {
             window.location.href = basePath + 'home.html'

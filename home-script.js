@@ -42,14 +42,16 @@ class HomePageManager {
     // Check if user is authenticated
     async checkAuthStatus() {
         try {
-            const { session } = await window.authService.auth.getSession()
-            
+            // Import auth functions from supabaseClient
+            const { auth } = await import('./supabaseClient.js')
+            const { session } = await auth.getSession()
+
             if (!session) {
                 console.log('No active session, redirecting to login')
                 this.redirectToLogin()
                 return
             }
-            
+
             this.currentUser = session.user
             console.log('User authenticated:', this.currentUser)
         } catch (error) {
@@ -61,15 +63,17 @@ class HomePageManager {
     // Load student data from database
     async loadStudentData() {
         if (!this.currentUser) return
-        
+
         try {
-            const { data, error } = await window.authService.db.getStudent(this.currentUser.id)
-            
+            // Import db functions from supabaseClient
+            const { db } = await import('./supabaseClient.js')
+            const { data, error } = await db.getStudent(this.currentUser.id)
+
             if (error) {
                 console.error('Error loading student data:', error)
                 return
             }
-            
+
             this.studentData = data
             console.log('Student data loaded:', this.studentData)
         } catch (error) {
@@ -248,7 +252,7 @@ class HomePageManager {
 
     // Redirect to login page
     redirectToLogin() {
-        const basePath = import.meta.env.BASE_URL || '/'
+        const basePath = '/my-tutor-app/'
         window.location.href = basePath + 'index.html'
     }
 }
@@ -258,7 +262,7 @@ async function handleLogout() {
     if (window.authService) {
         await window.authService.signOut()
     } else {
-        window.location.href = '/index.html'
+        window.location.href = '/my-tutor-app/index.html'
     }
 }
 
