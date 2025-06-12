@@ -2,6 +2,11 @@
 -- SAMPLE DATA FOR TUTOR MARKETPLACE
 -- =============================================
 
+-- First, clean up any existing sample data to avoid duplicates
+DELETE FROM reviews WHERE tutor_id IN (SELECT id FROM tutors WHERE name IN ('Priya Sharma', 'Rajesh Kumar', 'Anita Patel', 'Dr. Suresh Reddy', 'Meera Joshi', 'Arjun Singh'));
+DELETE FROM tutor_availability WHERE tutor_id IN (SELECT id FROM tutors WHERE name IN ('Priya Sharma', 'Rajesh Kumar', 'Anita Patel', 'Dr. Suresh Reddy', 'Meera Joshi', 'Arjun Singh'));
+DELETE FROM tutors WHERE name IN ('Priya Sharma', 'Rajesh Kumar', 'Anita Patel', 'Dr. Suresh Reddy', 'Meera Joshi', 'Arjun Singh');
+
 -- Insert sample tutors with comprehensive data
 -- Include the required 'language' column for existing table structure
 INSERT INTO tutors (
@@ -171,27 +176,27 @@ WHERE t.name IN ('Priya Sharma', 'Dr. Suresh Reddy', 'Arjun Singh');
 -- Insert sample reviews
 -- Note: You'll need to replace these student_id values with actual student UUIDs from your students table
 INSERT INTO reviews (tutor_id, student_id, rating, comment) VALUES
-((SELECT id FROM tutors WHERE name = 'Priya Sharma'),
+((SELECT id FROM tutors WHERE name = 'Priya Sharma' LIMIT 1),
  '00000000-0000-0000-0000-000000000001'::uuid,
  5,
  'Priya is an excellent teacher! Her lessons are well-structured and she makes Hindi grammar easy to understand. Highly recommended!'),
 
-((SELECT id FROM tutors WHERE name = 'Priya Sharma'),
+((SELECT id FROM tutors WHERE name = 'Priya Sharma' LIMIT 1),
  '00000000-0000-0000-0000-000000000002'::uuid,
  5,
  'Amazing teacher! I went from knowing no Hindi to having basic conversations in just 2 months. Priya is patient and encouraging.'),
 
-((SELECT id FROM tutors WHERE name = 'Rajesh Kumar'),
+((SELECT id FROM tutors WHERE name = 'Rajesh Kumar' LIMIT 1),
  '00000000-0000-0000-0000-000000000001'::uuid,
  5,
  'Rajesh brings Tamil literature to life! His cultural insights make learning so much more meaningful.'),
 
-((SELECT id FROM tutors WHERE name = 'Dr. Suresh Reddy'),
+((SELECT id FROM tutors WHERE name = 'Dr. Suresh Reddy' LIMIT 1),
  '00000000-0000-0000-0000-000000000003'::uuid,
  5,
  'Dr. Reddy is incredibly knowledgeable. His academic approach really helped me understand Telugu grammar deeply.'),
 
-((SELECT id FROM tutors WHERE name = 'Anita Patel'),
+((SELECT id FROM tutors WHERE name = 'Anita Patel' LIMIT 1),
  '00000000-0000-0000-0000-000000000002'::uuid,
  4,
  'Anita makes learning Gujarati so fun! Her games and activities keep me engaged throughout the lesson.');
