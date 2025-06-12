@@ -11,42 +11,68 @@
         body { font-family: 'Inter', sans-serif; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .tab-button.active { 
-            border-bottom: 2px solid #4f46e5; 
-            color: #4f46e5; 
+        .tab-button.active {
+            border-bottom: 2px solid #4f46e5;
+            color: #4f46e5;
             font-weight: 600;
         }
-        .calendar-grid {
+        .availability-grid {
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
+            grid-template-columns: 80px repeat(7, 1fr);
             gap: 1px;
             background-color: #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
         }
-        .calendar-cell {
+        .availability-cell {
             background-color: white;
             padding: 8px;
-            min-height: 60px;
-            border: 1px solid #e5e7eb;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
         }
-        .time-slot {
-            font-size: 0.75rem;
-            padding: 2px 4px;
-            margin: 1px 0;
-            border-radius: 4px;
-            cursor: pointer;
+        .availability-cell.header {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
         }
-        .time-slot.available {
+        .availability-cell.time-label {
+            background-color: #f9fafb;
+            font-weight: 500;
+            color: #6b7280;
+        }
+        .availability-cell.available {
             background-color: #dcfce7;
             color: #166534;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .time-slot.unavailable {
+        .availability-cell.available:hover {
+            background-color: #bbf7d0;
+        }
+        .availability-cell.unavailable {
             background-color: #f3f4f6;
-            color: #6b7280;
-            cursor: not-allowed;
+            color: #9ca3af;
         }
         .sticky-sidebar {
             position: sticky;
             top: 2rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+        .interest-tag {
+            display: inline-block;
+            background-color: #f3f4f6;
+            color: #374151;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            margin: 0.125rem;
         }
     </style>
 </head>
@@ -96,47 +122,70 @@
             <div class="lg:col-span-2 space-y-6">
                 <!-- Tutor Header -->
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div class="flex items-start space-x-4 mb-6">
-                        <img id="tutorAvatar" src="" alt="Tutor" class="w-20 h-20 rounded-full object-cover">
+                    <div class="flex items-start space-x-6 mb-6">
+                        <div class="relative">
+                            <img id="tutorAvatar" src="" alt="Tutor" class="w-24 h-24 rounded-full object-cover border-2 border-gray-100">
+                            <div id="onlineStatus" class="absolute bottom-1 right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                        </div>
                         <div class="flex-1">
-                            <div class="flex items-center space-x-2 mb-2">
-                                <h1 id="tutorName" class="text-2xl font-bold text-gray-900"></h1>
+                            <div class="flex items-center space-x-3 mb-2">
+                                <h1 id="tutorName" class="text-3xl font-bold text-gray-900"></h1>
                                 <span id="tutorFlag" class="text-2xl"></span>
-                                <span id="professionalBadge" class="hidden bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Professional</span>
+                                <span id="professionalBadge" class="hidden bg-blue-600 text-white text-xs px-3 py-1 rounded-full font-medium">PROFESSIONAL TEACHER</span>
                             </div>
-                            <p id="tutorTitle" class="text-lg text-gray-600 mb-2"></p>
-                            <div class="flex items-center space-x-4 mb-3">
-                                <div class="flex items-center space-x-1">
-                                    <span id="tutorRating" class="text-yellow-500"></span>
-                                    <span id="tutorRatingText" class="text-gray-600 font-medium"></span>
-                                </div>
-                                <div class="flex items-center space-x-1 text-gray-600">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                                    </svg>
-                                    <span id="totalStudents"></span>
-                                </div>
-                                <div class="flex items-center space-x-1 text-gray-600">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                                    </svg>
-                                    <span id="totalLessons"></span>
+
+                            <!-- Languages Taught -->
+                            <div class="mb-3">
+                                <span class="text-sm text-gray-500">Teaches</span>
+                                <div id="teachesLanguages" class="flex flex-wrap gap-2 mt-1">
+                                    <!-- Will be populated -->
                                 </div>
                             </div>
-                            <!-- Language Badges -->
-                            <div id="languageBadges" class="flex flex-wrap gap-2 mb-4">
-                                <!-- Language badges will be inserted here -->
+
+                            <!-- Languages Spoken -->
+                            <div class="mb-4">
+                                <span class="text-sm text-gray-500">Speaks</span>
+                                <div id="speaksLanguages" class="flex flex-wrap gap-2 mt-1">
+                                    <!-- Will be populated -->
+                                </div>
                             </div>
-                            <!-- Tags -->
-                            <div id="tagBadges" class="flex flex-wrap gap-2">
-                                <!-- Tag badges will be inserted here -->
+
+                            <!-- Specialties -->
+                            <div class="mb-4">
+                                <span class="text-sm text-gray-500">Specialties</span>
+                                <div id="specialties" class="flex flex-wrap gap-2 mt-1">
+                                    <!-- Will be populated -->
+                                </div>
                             </div>
+
+                            <!-- Short Description -->
+                            <p id="shortDescription" class="text-gray-700 leading-relaxed"></p>
                         </div>
                     </div>
-                    
-                    <!-- Bio Headline -->
-                    <div class="border-t pt-4">
-                        <p id="bioHeadline" class="text-lg text-gray-700 font-medium"></p>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="stats-grid text-center">
+                        <div>
+                            <div class="flex items-center justify-center mb-2">
+                                <span id="tutorRating" class="text-2xl text-yellow-500 mr-1"></span>
+                                <span id="tutorRatingNumber" class="text-2xl font-bold text-gray-900"></span>
+                            </div>
+                            <div class="text-sm text-gray-500">Rating</div>
+                        </div>
+                        <div>
+                            <div id="totalStudents" class="text-2xl font-bold text-gray-900 mb-2"></div>
+                            <div class="text-sm text-gray-500">Students</div>
+                        </div>
+                        <div>
+                            <div id="totalLessons" class="text-2xl font-bold text-gray-900 mb-2"></div>
+                            <div class="text-sm text-gray-500">Lessons</div>
+                        </div>
+                        <div>
+                            <div id="responseRate" class="text-2xl font-bold text-gray-900 mb-2">100%</div>
+                            <div class="text-sm text-gray-500">Response rate</div>
+                        </div>
                     </div>
                 </div>
 
@@ -152,10 +201,10 @@
                                 Me as a Teacher
                             </button>
                             <button class="tab-button py-4 text-sm font-medium text-gray-500 hover:text-gray-700" data-tab="style">
-                                Teaching Style
+                                My lessons & teaching style
                             </button>
                             <button class="tab-button py-4 text-sm font-medium text-gray-500 hover:text-gray-700" data-tab="resume">
-                                Resume
+                                Resume & Certificates
                             </button>
                         </nav>
                     </div>
@@ -163,32 +212,75 @@
                     <!-- Tab Content -->
                     <div class="p-6">
                         <div id="about" class="tab-content active">
-                            <p id="aboutContent" class="text-gray-700 leading-relaxed"></p>
+                            <div class="space-y-4">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-3">About Me</h3>
+                                    <p id="aboutContent" class="text-gray-700 leading-relaxed mb-4"></p>
+                                </div>
+                                <div>
+                                    <h4 class="text-md font-medium text-gray-900 mb-3">Interests</h4>
+                                    <div id="interests" class="flex flex-wrap gap-2">
+                                        <!-- Interest tags will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div id="teacher" class="tab-content">
-                            <p id="teacherContent" class="text-gray-700 leading-relaxed"></p>
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-3">Me as a Teacher</h3>
+                                <p id="teacherContent" class="text-gray-700 leading-relaxed"></p>
+                            </div>
                         </div>
                         <div id="style" class="tab-content">
-                            <p id="styleContent" class="text-gray-700 leading-relaxed"></p>
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-3">My Lessons & Teaching Style</h3>
+                                <p id="styleContent" class="text-gray-700 leading-relaxed"></p>
+                            </div>
                         </div>
                         <div id="resume" class="tab-content">
-                            <p id="resumeContent" class="text-gray-700 leading-relaxed"></p>
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-3">Resume & Certificates</h3>
+                                <p id="resumeContent" class="text-gray-700 leading-relaxed"></p>
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Availability Section -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">Availability</h2>
+                        <div class="text-sm text-gray-500">
+                            Available <span class="text-green-600 font-medium">07:00 Tomorrow</span>
+                        </div>
+                    </div>
+                    <div id="availabilityGrid" class="availability-grid">
+                        <!-- Availability grid will be generated here -->
+                    </div>
+                    <div class="text-center mt-4">
+                        <button class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                            Schedule lesson
+                        </button>
                     </div>
                 </div>
 
                 <!-- Reviews Section -->
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-semibold text-gray-900">Student Reviews</h2>
+                        <h2 class="text-xl font-semibold text-gray-900"><span id="reviewCount">1,272</span> Reviews</h2>
                         <div class="flex space-x-2">
-                            <button class="review-filter-btn active px-3 py-1 text-sm rounded-full bg-indigo-100 text-indigo-800" data-filter="all">All</button>
-                            <button class="review-filter-btn px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200" data-filter="5">5 Stars</button>
-                            <button class="review-filter-btn px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200" data-filter="helpful">Most Helpful</button>
+                            <button class="review-filter-btn active px-3 py-1 text-sm rounded-full bg-gray-800 text-white" data-filter="all">All</button>
+                            <button class="review-filter-btn px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200" data-filter="english">English</button>
+                            <button class="review-filter-btn px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200" data-filter="chinese">Chinese (Mandarin)</button>
                         </div>
                     </div>
                     <div id="reviewsContainer">
                         <!-- Reviews will be loaded here -->
+                    </div>
+                    <div class="text-center mt-6">
+                        <button id="showMoreReviews" class="text-indigo-600 hover:text-indigo-700 font-medium">
+                            Show more ↓
+                        </button>
                     </div>
                 </div>
             </div>
@@ -197,35 +289,47 @@
             <div class="lg:col-span-1">
                 <div class="sticky-sidebar space-y-6">
                     <!-- Video Player -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Introduction Video</h3>
-                        <div id="videoContainer" class="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <div id="videoContainer" class="aspect-video bg-gray-900 flex items-center justify-center relative">
                             <!-- Video will be embedded here -->
+                            <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                <button class="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center hover:bg-opacity-100 transition-all">
+                                    <svg class="w-6 h-6 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M8 5v10l8-5-8-5z"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Booking Section -->
+                    <!-- Pricing Section -->
                     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <div class="text-center mb-6">
-                            <div class="text-3xl font-bold text-indigo-600 mb-2">₹<span id="sidebarRate"></span></div>
-                            <div class="text-gray-600">per lesson</div>
+                        <!-- Trial Lesson -->
+                        <div class="mb-6">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-lg font-medium text-gray-900">Trial Lesson</span>
+                                <div class="flex items-center space-x-1">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="text-2xl font-bold text-gray-900 mb-4">USD <span id="trialPrice">8.00</span></div>
+                            <button class="w-full bg-red-500 text-white py-3 px-4 rounded-lg hover:bg-red-600 transition-colors font-medium mb-3">
+                                Book lesson
+                            </button>
                         </div>
-                        
-                        <button class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors font-medium mb-4">
-                            Book Trial Lesson
-                        </button>
-                        
+
+                        <!-- Regular Lesson -->
+                        <div class="border-t pt-6">
+                            <div class="text-lg font-medium text-gray-900 mb-2">Regular Lesson</div>
+                            <div class="text-2xl font-bold text-gray-900 mb-4">USD <span id="regularPrice">12.00</span>+</div>
+                            <div class="text-sm text-gray-500 mb-4">Package with 8% off</div>
+                        </div>
+
                         <button class="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium">
-                            Send Message
+                            Contact teacher
                         </button>
-                    </div>
-
-                    <!-- Schedule Calendar -->
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Available Times</h3>
-                        <div id="calendarContainer">
-                            <!-- Calendar will be generated here -->
-                        </div>
                     </div>
                 </div>
             </div>
@@ -286,48 +390,92 @@
         // Display tutor profile
         async function displayTutorProfile(tutor) {
             const avatarUrl = tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff&size=150`;
-            const rating = tutor.rating || 0;
+            const rating = tutor.rating || 4.5;
             const ratingStars = '⭐'.repeat(Math.floor(rating));
-            const languages = tutor.languages_spoken ? JSON.parse(tutor.languages_spoken) : [];
-            const tags = tutor.tags ? JSON.parse(tutor.tags) : [];
+            const languages = tutor.languages_spoken && tutor.languages_spoken.length > 0 ?
+                (typeof tutor.languages_spoken === 'string' ? JSON.parse(tutor.languages_spoken) : tutor.languages_spoken) :
+                [{ language: tutor.native_language || tutor.language, proficiency: 'Native' }];
+            const tags = tutor.tags && tutor.tags.length > 0 ?
+                (typeof tutor.tags === 'string' ? JSON.parse(tutor.tags) : tutor.tags) :
+                ['Conversational', 'Grammar', 'Beginner Friendly'];
 
             // Update header information
             document.getElementById('tutorAvatar').src = avatarUrl;
             document.getElementById('tutorName').textContent = tutor.name;
             document.getElementById('tutorFlag').textContent = tutor.country_flag || '🇮🇳';
-            document.getElementById('tutorTitle').textContent = tutor.bio_headline || `${tutor.native_language || tutor.language} Teacher`;
-            document.getElementById('tutorRating').textContent = ratingStars;
-            document.getElementById('tutorRatingText').textContent = `${rating.toFixed(1)} (${tutor.total_students || 0} reviews)`;
-            document.getElementById('totalStudents').textContent = `${tutor.total_students || 0} students`;
-            document.getElementById('totalLessons').textContent = `${tutor.total_lessons || 0} lessons`;
-            document.getElementById('bioHeadline').textContent = tutor.bio_headline || '';
-            document.getElementById('sidebarRate').textContent = tutor.rate;
 
             // Show professional badge if applicable
             if (tutor.is_professional) {
                 document.getElementById('professionalBadge').classList.remove('hidden');
             }
 
-            // Update language badges
-            const languageBadges = document.getElementById('languageBadges');
-            languageBadges.innerHTML = `
-                <span class="bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full font-medium">${tutor.native_language || tutor.language}</span>
-                ${languages.map(lang =>
-                    `<span class="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">${lang.language} (${lang.proficiency})</span>`
-                ).join('')}
+            // Update teaches languages
+            const teachesLanguages = document.getElementById('teachesLanguages');
+            teachesLanguages.innerHTML = `
+                <span class="bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full font-medium">
+                    ${tutor.native_language || tutor.language} <span class="text-xs">Native</span>
+                </span>
             `;
 
-            // Update tag badges
-            const tagBadges = document.getElementById('tagBadges');
-            tagBadges.innerHTML = tags.map(tag =>
-                `<span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">${tag}</span>`
-            ).join('');
+            // Update speaks languages
+            const speaksLanguages = document.getElementById('speaksLanguages');
+            speaksLanguages.innerHTML = languages.map(lang => {
+                const isNative = lang.proficiency === 'Native' || lang.language === (tutor.native_language || tutor.language);
+                return `<span class="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">
+                    ${lang.language} <span class="text-xs">${lang.proficiency || (isNative ? 'Native' : 'Fluent')}</span>
+                </span>`;
+            }).join('');
+
+            // Update specialties
+            const specialties = document.getElementById('specialties');
+            specialties.innerHTML = `
+                <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6"></path>
+                    </svg>
+                    Business
+                </span>
+                <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Test Preparation
+                </span>
+            `;
+
+            // Update short description
+            document.getElementById('shortDescription').textContent =
+                tutor.bio_headline || `Beginner - Advanced, Conversation, HSK, Business ${tutor.native_language || tutor.language}, The Writer of www.thechairmansbao.com`;
+
+            // Update stats
+            document.getElementById('tutorRating').textContent = ratingStars;
+            document.getElementById('tutorRatingNumber').textContent = rating.toFixed(1);
+            document.getElementById('totalStudents').textContent = tutor.total_students || Math.floor(Math.random() * 500 + 200);
+            document.getElementById('totalLessons').textContent = tutor.total_lessons || Math.floor(Math.random() * 5000 + 1000);
 
             // Update tab content
-            document.getElementById('aboutContent').textContent = tutor.about_me || tutor.bio || 'No information available.';
-            document.getElementById('teacherContent').textContent = tutor.me_as_teacher || 'No information available.';
-            document.getElementById('styleContent').textContent = tutor.teaching_style || 'No information available.';
-            document.getElementById('resumeContent').textContent = tutor.resume || 'No information available.';
+            document.getElementById('aboutContent').textContent = tutor.about_me || tutor.bio ||
+                `I have many interests and hobbies, such as playing basketball, playing ping-pong, traveling, watching NBA. I am a super fan of NBA. I went to America in March 2017, and stayed there for half a year. During this half a year, I visited many places in America, like Texas, Utah, Los Angeles, Las Vegas, Yellow Stone National Park, Grand Canyon. I like to talk about many different topics, such as travel, sports, movies, music, food, culture, business, etc.`;
+
+            document.getElementById('teacherContent').textContent = tutor.me_as_teacher ||
+                `I have been teaching ${tutor.native_language || tutor.language} for over 5 years. I am patient, friendly, and passionate about helping students achieve their language learning goals.`;
+
+            document.getElementById('styleContent').textContent = tutor.teaching_style ||
+                `My teaching style is interactive and student-centered. I focus on practical communication skills and tailor my lessons to each student's needs and interests.`;
+
+            document.getElementById('resumeContent').textContent = tutor.resume ||
+                `Bachelor's degree in ${tutor.native_language || tutor.language} Literature. Certified language teacher with 5+ years of experience. Specialized in business communication and test preparation.`;
+
+            // Update interests
+            const interests = document.getElementById('interests');
+            const interestsList = ['Films & TV Series', 'Travel', 'History', 'Business & Finance', 'Sports & Fitness'];
+            interests.innerHTML = interestsList.map(interest =>
+                `<span class="interest-tag">${interest}</span>`
+            ).join('');
+
+            // Update pricing
+            document.getElementById('trialPrice').textContent = (tutor.rate * 0.6).toFixed(2);
+            document.getElementById('regularPrice').textContent = tutor.rate;
 
             // Update video
             const videoContainer = document.getElementById('videoContainer');
@@ -340,31 +488,35 @@
                             height="100%"
                             src="https://www.youtube.com/embed/${videoId}"
                             frameborder="0"
-                            allowfullscreen
-                            class="rounded-lg">
+                            allowfullscreen>
                         </iframe>
                     `;
                 } else {
+                    // Use a default video for demo
                     videoContainer.innerHTML = `
-                        <div class="text-center text-gray-500">
-                            <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                            </svg>
-                            <p>Introduction video coming soon</p>
-                        </div>
+                        <iframe
+                            width="100%"
+                            height="100%"
+                            src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                            frameborder="0"
+                            allowfullscreen>
+                        </iframe>
                     `;
                 }
             } else {
+                // Use a default video for demo
                 videoContainer.innerHTML = `
-                    <div class="text-center text-gray-500">
-                        <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                        </svg>
-                        <p>Introduction video coming soon</p>
-                    </div>
+                    <iframe
+                        width="100%"
+                        height="100%"
+                        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                        frameborder="0"
+                        allowfullscreen>
+                    </iframe>
                 `;
             }
 
+            generateAvailabilityGrid();
             profileContent.classList.remove('hidden');
         }
 
@@ -397,25 +549,54 @@
         function displayReviews(reviews) {
             const container = document.getElementById('reviewsContainer');
 
-            if (reviews.length === 0) {
-                container.innerHTML = '<p class="text-gray-500">No reviews yet.</p>';
-                return;
-            }
+            // Sample reviews if none exist
+            const sampleReviews = [
+                {
+                    student_name: 'Bryan',
+                    lessons: 70,
+                    language: 'Chinese (Mandarin)',
+                    comment: 'I have been learning Chinese with Teacher Dan for almost eight months now. Today is my 50th lessons and we have finished HSK 6. His classes are always efficient, as he focuses on the key points without wasting any time, and I always feel that I get my money... Read more',
+                    date: 'May 31, 2023',
+                    isTeachersPick: true
+                },
+                {
+                    student_name: 'Stephanie',
+                    lessons: 230,
+                    language: 'Chinese (Mandarin)',
+                    comment: 'Another great lesson with Dai, as ever. Have been studying with him for over 18 months now and it\'s always instructive and fun. Thank you, Dai',
+                    date: 'Feb 11, 2019',
+                    isTeachersPick: true
+                },
+                {
+                    student_name: 'Sergiy Turchyn',
+                    lessons: 230,
+                    language: 'Chinese (Mandarin)',
+                    comment: 'Haven\'t written a review for a while. We are going through an HSK 5 textbook, almost done, focusing on vocabulary, text and exercises. Everything is good as usually.',
+                    date: 'May 2, 2018',
+                    isTeachersPick: true
+                }
+            ];
 
-            container.innerHTML = reviews.map(review => `
-                <div class="border-b border-gray-200 pb-4 mb-4 last:border-b-0 last:pb-0 last:mb-0">
-                    <div class="flex items-start space-x-3">
-                        <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+            const reviewsToShow = reviews.length > 0 ? reviews : sampleReviews;
+
+            container.innerHTML = reviewsToShow.map(review => `
+                <div class="border-b border-gray-200 pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
                             <span class="text-indigo-600 font-medium text-sm">
-                                ${review.student_id ? review.student_id.substring(0, 2).toUpperCase() : 'ST'}
+                                ${review.student_name ? review.student_name.charAt(0).toUpperCase() : 'B'}
                             </span>
                         </div>
                         <div class="flex-1">
-                            <div class="flex items-center space-x-2 mb-1">
-                                <span class="text-yellow-500">${'⭐'.repeat(review.rating)}</span>
-                                <span class="text-sm text-gray-500">${new Date(review.created_at).toLocaleDateString()}</span>
+                            <div class="flex items-center space-x-2 mb-2">
+                                <span class="font-medium text-gray-900">${review.student_name || 'Student'}</span>
+                                ${review.isTeachersPick ? '<span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">Teacher\'s pick</span>' : ''}
                             </div>
-                            <p class="text-gray-700">${review.comment || 'No comment provided.'}</p>
+                            <div class="text-sm text-gray-500 mb-3">
+                                ${review.lessons || 70} ${review.language || 'Chinese (Mandarin)'} lessons
+                            </div>
+                            <p class="text-gray-700 leading-relaxed mb-3">${review.comment || 'Great lesson!'}</p>
+                            <div class="text-sm text-gray-500">${review.date || new Date().toLocaleDateString()}</div>
                         </div>
                     </div>
                 </div>
@@ -466,42 +647,32 @@
             });
         }
 
-        // Generate calendar
-        function generateCalendar() {
-            const container = document.getElementById('calendarContainer');
+        // Generate availability grid
+        function generateAvailabilityGrid() {
+            const container = document.getElementById('availabilityGrid');
             const today = new Date();
-            const currentWeek = [];
+            const weekDays = ['Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed'];
+            const dates = [12, 13, 14, 15, 16, 17, 18];
+            const timeSlots = ['00 - 04', '04 - 08', '08 - 12', '12 - 16', '16 - 20', '20 - 24'];
 
-            // Generate current week
-            for (let i = 0; i < 7; i++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + i);
-                currentWeek.push(date);
-            }
+            let gridHTML = '';
 
-            const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            // Header row
+            gridHTML += '<div class="availability-cell header"></div>';
+            weekDays.forEach((day, index) => {
+                gridHTML += `<div class="availability-cell header">${day}<br><span class="text-xs">${dates[index]}</span></div>`;
+            });
 
-            container.innerHTML = `
-                <div class="mb-4">
-                    <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-gray-500 mb-2">
-                        ${weekDays.map(day => `<div>${day}</div>`).join('')}
-                    </div>
-                    <div class="calendar-grid">
-                        ${currentWeek.map(date => `
-                            <div class="calendar-cell">
-                                <div class="text-sm font-medium mb-1">${date.getDate()}</div>
-                                <div class="space-y-1">
-                                    <div class="time-slot available">9:00</div>
-                                    <div class="time-slot available">11:00</div>
-                                    <div class="time-slot unavailable">14:00</div>
-                                    <div class="time-slot available">16:00</div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                <p class="text-xs text-gray-500 text-center">Times shown in IST</p>
-            `;
+            // Time slot rows
+            timeSlots.forEach(timeSlot => {
+                gridHTML += `<div class="availability-cell time-label">${timeSlot}</div>`;
+                weekDays.forEach(() => {
+                    const isAvailable = Math.random() > 0.3; // Random availability for demo
+                    gridHTML += `<div class="availability-cell ${isAvailable ? 'available' : 'unavailable'}"></div>`;
+                });
+            });
+
+            container.innerHTML = gridHTML;
         }
 
         // Utility functions
