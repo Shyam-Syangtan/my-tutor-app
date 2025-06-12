@@ -3,15 +3,16 @@
 -- =============================================
 
 -- Insert sample tutors with comprehensive data
--- First, let's check what columns exist and insert accordingly
+-- Include the required 'language' column for existing table structure
 INSERT INTO tutors (
-    name, photo_url, country, country_flag, native_language,
+    name, language, photo_url, country, country_flag, native_language,
     languages_spoken, bio, bio_headline, rate, rating, total_students,
     total_lessons, video_url, teaching_style, resume, about_me, me_as_teacher,
     tags, is_professional, is_active
 ) VALUES
 (
     'Priya Sharma',
+    'Hindi',
     'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
     'India',
     '🇮🇳',
@@ -34,6 +35,7 @@ INSERT INTO tutors (
 ),
 (
     'Rajesh Kumar',
+    'Tamil',
     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
     'India',
     '🇮🇳',
@@ -56,6 +58,7 @@ INSERT INTO tutors (
 ),
 (
     'Anita Patel',
+    'Gujarati',
     'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
     'India',
     '🇮🇳',
@@ -78,6 +81,7 @@ INSERT INTO tutors (
 ),
 (
     'Dr. Suresh Reddy',
+    'Telugu',
     'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
     'India',
     '🇮🇳',
@@ -100,6 +104,7 @@ INSERT INTO tutors (
 ),
 (
     'Meera Joshi',
+    'Marathi',
     'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
     'India',
     '🇮🇳',
@@ -122,6 +127,7 @@ INSERT INTO tutors (
 ),
 (
     'Arjun Singh',
+    'Punjabi',
     'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
     'India',
     '🇮🇳',
@@ -144,8 +150,8 @@ INSERT INTO tutors (
 );
 
 -- Insert sample availability for tutors (showing different time slots)
-INSERT INTO tutor_availability (tutor_id, day_of_week, start_time, end_time) 
-SELECT 
+INSERT INTO tutor_availability (tutor_id, day_of_week, start_time, end_time)
+SELECT
     t.id,
     generate_series(1, 5) as day_of_week, -- Monday to Friday
     '09:00'::time,
@@ -154,39 +160,38 @@ FROM tutors t;
 
 -- Insert some weekend availability for some tutors
 INSERT INTO tutor_availability (tutor_id, day_of_week, start_time, end_time)
-SELECT 
+SELECT
     t.id,
     6 as day_of_week, -- Saturday
     '10:00'::time,
     '15:00'::time
-FROM tutors t 
+FROM tutors t
 WHERE t.name IN ('Priya Sharma', 'Dr. Suresh Reddy', 'Arjun Singh');
 
 -- Insert sample reviews
-INSERT INTO reviews (tutor_id, student_id, rating, comment) VALUES
 -- Note: You'll need to replace these student_id values with actual student UUIDs from your students table
--- For now, using placeholder UUIDs - replace with real ones after students sign up
-((SELECT id FROM tutors WHERE name = 'Priya Sharma'), 
- '00000000-0000-0000-0000-000000000001'::uuid, 
- 5, 
+INSERT INTO reviews (tutor_id, student_id, rating, comment) VALUES
+((SELECT id FROM tutors WHERE name = 'Priya Sharma'),
+ '00000000-0000-0000-0000-000000000001'::uuid,
+ 5,
  'Priya is an excellent teacher! Her lessons are well-structured and she makes Hindi grammar easy to understand. Highly recommended!'),
 
-((SELECT id FROM tutors WHERE name = 'Priya Sharma'), 
- '00000000-0000-0000-0000-000000000002'::uuid, 
- 5, 
+((SELECT id FROM tutors WHERE name = 'Priya Sharma'),
+ '00000000-0000-0000-0000-000000000002'::uuid,
+ 5,
  'Amazing teacher! I went from knowing no Hindi to having basic conversations in just 2 months. Priya is patient and encouraging.'),
 
-((SELECT id FROM tutors WHERE name = 'Rajesh Kumar'), 
- '00000000-0000-0000-0000-000000000001'::uuid, 
- 5, 
+((SELECT id FROM tutors WHERE name = 'Rajesh Kumar'),
+ '00000000-0000-0000-0000-000000000001'::uuid,
+ 5,
  'Rajesh brings Tamil literature to life! His cultural insights make learning so much more meaningful.'),
 
-((SELECT id FROM tutors WHERE name = 'Dr. Suresh Reddy'), 
- '00000000-0000-0000-0000-000000000003'::uuid, 
- 5, 
+((SELECT id FROM tutors WHERE name = 'Dr. Suresh Reddy'),
+ '00000000-0000-0000-0000-000000000003'::uuid,
+ 5,
  'Dr. Reddy is incredibly knowledgeable. His academic approach really helped me understand Telugu grammar deeply.'),
 
-((SELECT id FROM tutors WHERE name = 'Anita Patel'), 
- '00000000-0000-0000-0000-000000000002'::uuid, 
- 4, 
+((SELECT id FROM tutors WHERE name = 'Anita Patel'),
+ '00000000-0000-0000-0000-000000000002'::uuid,
+ 4,
  'Anita makes learning Gujarati so fun! Her games and activities keep me engaged throughout the lesson.');
