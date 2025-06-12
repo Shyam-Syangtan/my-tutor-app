@@ -12,262 +12,457 @@
     <!-- Custom Styles -->
     <link rel="stylesheet" href="styles.css">
     <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .main-content {
+            padding: 0;
+        }
+
         .dashboard-container {
-            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 2rem;
         }
-        
-        .dashboard-header {
+
+        .dashboard-left {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #e5e7eb;
+            flex-direction: column;
+            gap: 2rem;
         }
-        
-        .teacher-info {
+
+        .dashboard-right {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Teacher Profile Card */
+        .teacher-profile-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        .teacher-header {
             display: flex;
             align-items: center;
-            gap: 1rem;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
         }
-        
+
         .teacher-avatar {
             width: 80px;
             height: 80px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid var(--primary-color);
+            border: 3px solid #6366f1;
         }
-        
-        .teacher-details h2 {
-            margin: 0 0 0.5rem 0;
-            color: #1f2937;
+
+        .teacher-info h2 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
         }
-        
-        .teacher-details p {
-            margin: 0;
-            color: #6b7280;
-        }
-        
-        .teacher-id {
+
+        .teacher-info .teacher-id {
+            color: #64748b;
             font-size: 0.875rem;
-            color: #9ca3af;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
-            text-align: center;
-        }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary-color);
             margin-bottom: 0.5rem;
         }
-        
-        .stat-label {
-            color: #6b7280;
+
+        .teacher-info .teacher-language {
+            color: #6366f1;
+            font-weight: 500;
             font-size: 0.875rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-        
-        .earnings-section {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-            color: white;
+
+        /* Earnings Card */
+        .earnings-card {
+            background: white;
+            border-radius: 16px;
             padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
         }
-        
+
         .earnings-header {
             display: flex;
             justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .earnings-title {
+            display: flex;
             align-items: center;
-            margin-bottom: 1rem;
-        }
-        
-        .earnings-amount {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-        
-        .earnings-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        
-        .earnings-item {
-            text-align: center;
-        }
-        
-        .earnings-item h4 {
-            margin: 0 0 0.25rem 0;
-            font-size: 1.25rem;
-        }
-        
-        .earnings-item p {
+            gap: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e293b;
             margin: 0;
-            opacity: 0.8;
-            font-size: 0.875rem;
         }
-        
+
         .withdraw-btn {
-            background: #dc2626;
+            background: #ef4444;
             color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
+            padding: 0.5rem 1rem;
             border-radius: 8px;
-            font-weight: 600;
+            font-size: 0.875rem;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
         }
-        
+
         .withdraw-btn:hover {
-            background: #b91c1c;
+            background: #dc2626;
         }
-        
-        .quick-actions {
+
+        .earnings-amount {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .earnings-subtitle {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .earnings-details {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 1.5rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
-        
-        .action-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
-            text-align: center;
-            transition: all 0.2s;
+
+        .earnings-item h4 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e293b;
         }
-        
-        .action-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-        }
-        
-        .action-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        .action-card h3 {
-            margin-bottom: 0.5rem;
-            color: #1f2937;
-        }
-        
-        .action-card p {
-            color: #6b7280;
-            margin-bottom: 1rem;
+
+        .earnings-item p {
+            margin: 0;
+            color: #64748b;
             font-size: 0.875rem;
         }
-        
-        .action-btn {
-            background: var(--primary-color);
+
+        .earnings-tip {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .earnings-tip p {
+            margin: 0;
+            font-size: 0.875rem;
+            color: #0369a1;
+        }
+
+        .earnings-tip .tip-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Quick Actions Grid */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .action-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .action-icon {
+            font-size: 1.5rem;
+        }
+
+        .action-card h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .action-card p {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .action-btn, .enable-btn {
+            background: #6366f1;
             color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
             font-weight: 500;
             cursor: pointer;
             text-decoration: none;
             display: inline-block;
             transition: all 0.2s;
         }
-        
-        .action-btn:hover {
-            background: var(--primary-dark);
+
+        .action-btn:hover, .enable-btn:hover {
+            background: #4f46e5;
         }
-        
+
         .enable-btn {
             background: #10b981;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            cursor: pointer;
         }
-        
+
+        .enable-btn:hover {
+            background: #059669;
+        }
+
+        /* Teacher Tools */
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 1rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
             margin-top: 1rem;
         }
-        
+
         .tool-item {
-            background: #f3f4f6;
-            padding: 1rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
+            padding: 0.75rem;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
         }
-        
+
         .tool-item:hover {
-            background: #e5e7eb;
+            background: #f1f5f9;
+            border-color: #cbd5e1;
         }
-        
+
         .tool-icon {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
         }
-        
+
         .tool-name {
             font-size: 0.75rem;
-            color: #374151;
+            color: #475569;
             font-weight: 500;
         }
-        
-        @media (max-width: 768px) {
+
+        /* Right Sidebar */
+        .sidebar-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        .sidebar-card h3 {
+            margin: 0 0 1rem 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-link:hover {
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .sidebar-link svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Opportunities Section */
+        .opportunities-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        .opportunities-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .opportunities-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .student-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .student-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .student-info h4 {
+            margin: 0 0 0.25rem 0;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .student-info p {
+            margin: 0;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .student-stats {
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .student-stats p {
+            margin: 0;
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .catch-up-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 0.625rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 1024px) {
             .dashboard-container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
                 padding: 1rem;
             }
-            
-            .dashboard-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
+
+            .quick-actions {
+                grid-template-columns: 1fr;
             }
-            
-            .teacher-info {
+
+            .tools-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .teacher-header {
                 flex-direction: column;
                 text-align: center;
             }
-            
+
             .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: 1fr;
             }
-            
+
+            .earnings-details {
+                grid-template-columns: 1fr;
+            }
+
             .earnings-header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 1rem;
-            }
-            
-            .quick-actions {
-                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -317,107 +512,203 @@
     <!-- Main Content -->
     <main class="main-content">
         <div class="dashboard-container">
-            <!-- Dashboard Header -->
-            <div class="dashboard-header">
-                <div class="teacher-info">
-                    <img src="" alt="Teacher" class="teacher-avatar" id="teacherAvatar">
-                    <div class="teacher-details">
-                        <h2 id="teacherName">Loading...</h2>
-                        <p id="teacherLanguages">Loading...</p>
-                        <div class="teacher-id" id="teacherId">ID: Loading...</div>
+            <!-- Left Column -->
+            <div class="dashboard-left">
+                <!-- Teacher Profile Card -->
+                <div class="teacher-profile-card">
+                    <div class="teacher-header">
+                        <img src="https://via.placeholder.com/80" alt="Teacher Avatar" class="teacher-avatar" id="teacherAvatar">
+                        <div class="teacher-info">
+                            <h2 id="teacherName">Loading...</h2>
+                            <div class="teacher-id" id="teacherId">ID: Loading...</div>
+                            <div class="teacher-language" id="teacherLanguages">Loading...</div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Stats Grid -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number" id="upcomingLessons">0</div>
-                    <div class="stat-label">Upcoming Lessons</div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number" id="upcomingLessons">0</div>
+                            <div class="stat-label">Upcoming Lessons</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="actionRequired">0</div>
+                            <div class="stat-label">Action Required</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="packageAction">0</div>
+                            <div class="stat-label">Package Action</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="actionRequired">0</div>
-                    <div class="stat-label">Action Required</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="packageAction">0</div>
-                    <div class="stat-label">Package Action</div>
-                </div>
-            </div>
 
-            <!-- Earnings Section -->
-            <div class="earnings-section">
-                <div class="earnings-header">
-                    <div>
-                        <h3>💰 Earnings</h3>
-                        <div class="earnings-amount" id="totalBalance">₹ 0.00</div>
-                        <p>Total Balance</p>
+                <!-- Earnings Card -->
+                <div class="earnings-card">
+                    <div class="earnings-header">
+                        <h3 class="earnings-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M16 8l-4 4-4-4"/>
+                            </svg>
+                            Earnings
+                        </h3>
+                        <button class="withdraw-btn">Withdraw</button>
                     </div>
-                    <button class="withdraw-btn">Withdraw</button>
-                </div>
-                
-                <div class="earnings-details">
-                    <div class="earnings-item">
-                        <h4 id="mayEarnings">₹ 0.00</h4>
-                        <p>May Earnings</p>
-                    </div>
-                    <div class="earnings-item">
-                        <h4 id="mayReward">₹ 0.00</h4>
-                        <p>May Reward</p>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                    <p style="margin: 0; font-size: 0.875rem;">💡 You can do it!</p>
-                    <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem;">Check out these tips to help you get an excellence reward next month!</p>
-                </div>
-            </div>
 
-            <!-- Quick Actions -->
-            <div class="quick-actions">
+                    <div class="earnings-amount">$ 0.00 <span style="font-size: 1rem; font-weight: 400;">USD</span></div>
+                    <p class="earnings-subtitle">Total Balance</p>
+
+                    <div class="earnings-details">
+                        <div class="earnings-item">
+                            <h4>$ 3.95</h4>
+                            <p>May Earnings</p>
+                        </div>
+                        <div class="earnings-item">
+                            <h4>$ 0.00</h4>
+                            <p>May Reward</p>
+                        </div>
+                    </div>
+
+                    <div class="earnings-tip">
+                        <p class="tip-title">✅ You can do it!</p>
+                        <p>Check out these tips to help you get an excellence reward next month!</p>
+                    </div>
+                </div>
+
+                <!-- Instant Lesson Card -->
                 <div class="action-card">
-                    <div class="action-icon">⚡</div>
                     <h3>Instant Lesson</h3>
                     <p>Automatically accept and start a lesson 5 minutes after receiving an Instant Lesson request.</p>
                     <button class="enable-btn">Enable</button>
                 </div>
 
-                <div class="action-card">
-                    <div class="action-icon">👥</div>
-                    <h3>Teacher Forum</h3>
-                    <p>Where great minds meet</p>
-                    <a href="#" class="action-btn">Visit Forum</a>
+                <!-- Quick Actions Grid -->
+                <div class="quick-actions">
+                    <div class="action-card">
+                        <div class="action-header">
+                            <div class="action-icon">👥</div>
+                            <h3>Teacher Forum</h3>
+                        </div>
+                        <p>Where great minds meet</p>
+                        <a href="#" class="action-btn">Visit Forum</a>
+                    </div>
+
+                    <div class="action-card">
+                        <div class="action-header">
+                            <div class="action-icon">🛠️</div>
+                            <h3>Teacher Tools</h3>
+                        </div>
+                        <p>Create learning content to help your students improve</p>
+                        <div class="tools-grid">
+                            <div class="tool-item">
+                                <div class="tool-icon">📝</div>
+                                <div class="tool-name">Quiz</div>
+                            </div>
+                            <div class="tool-item">
+                                <div class="tool-icon">📖</div>
+                                <div class="tool-name">Vocabulary</div>
+                            </div>
+                            <div class="tool-item">
+                                <div class="tool-icon">🎧</div>
+                                <div class="tool-name">Podcast</div>
+                            </div>
+                            <div class="tool-item">
+                                <div class="tool-icon">🏆</div>
+                                <div class="tool-name">Certificate</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Teacher Knowledge Base -->
                 <div class="action-card">
-                    <div class="action-icon">📚</div>
-                    <h3>Teacher Knowledge Base</h3>
+                    <div class="action-header">
+                        <div class="action-icon">📚</div>
+                        <h3>Teacher Knowledge Base</h3>
+                    </div>
                     <p>Unleash the secret of success</p>
                     <a href="#" class="action-btn">Learn More</a>
                 </div>
 
-                <div class="action-card">
-                    <div class="action-icon">🛠️</div>
-                    <h3>Teacher Tools</h3>
-                    <p>Create learning content to help your students improve</p>
-                    <div class="tools-grid">
-                        <div class="tool-item">
-                            <div class="tool-icon">📝</div>
-                            <div class="tool-name">Quiz</div>
+                <!-- Opportunities Section -->
+                <div class="opportunities-card">
+                    <div class="opportunities-header">
+                        <h3>Opportunities</h3>
+                    </div>
+                    <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem;">Invite them to book another lesson</p>
+
+                    <div class="catch-up-badge">REGULAR STUDENT CATCH-UP</div>
+                    <div class="student-card">
+                        <img src="https://via.placeholder.com/40" alt="Student" class="student-avatar">
+                        <div class="student-info">
+                            <h4>Shyam Syangtan</h4>
+                            <p>105 Lessons</p>
                         </div>
-                        <div class="tool-item">
-                            <div class="tool-icon">📖</div>
-                            <div class="tool-name">Vocabulary</div>
-                        </div>
-                        <div class="tool-item">
-                            <div class="tool-icon">🎧</div>
-                            <div class="tool-name">Podcast</div>
-                        </div>
-                        <div class="tool-item">
-                            <div class="tool-icon">🏆</div>
-                            <div class="tool-name">Certificate</div>
+                        <div class="student-stats">
+                            <p><strong>Last Lesson</strong></p>
+                            <p>5 days ago</p>
+                            <p><strong>Frequency</strong></p>
+                            <p>Occasional</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="dashboard-right">
+                <div class="sidebar-card">
+                    <h3>Quick Links</h3>
+                    <a href="#" class="sidebar-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                        My lessons
+                    </a>
+                    <a href="#" class="sidebar-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                        My students
+                    </a>
+                    <a href="#" class="sidebar-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                        </svg>
+                        My wallet
+                    </a>
+                    <a href="#" class="sidebar-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        My teacher profile
+                    </a>
+                    <a href="#" class="sidebar-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        </svg>
+                        Account Settings
+                    </a>
+                    <a href="#" class="sidebar-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                            <path d="M12 17h.01"/>
+                        </svg>
+                        Support
+                    </a>
+                    <a href="#" class="sidebar-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+                        </svg>
+                        Upgrade to Professional
+                    </a>
                 </div>
             </div>
         </div>
