@@ -48,13 +48,146 @@
             color: #166534;
             cursor: pointer;
             transition: all 0.2s;
+            position: relative;
         }
         .availability-cell.available:hover {
             background-color: #bbf7d0;
+            transform: scale(1.05);
         }
         .availability-cell.unavailable {
             background-color: #f3f4f6;
             color: #9ca3af;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        /* Detailed Calendar Styles */
+        .detailed-calendar {
+            display: grid;
+            grid-template-columns: 100px repeat(7, 1fr);
+            gap: 1px;
+            background-color: #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .calendar-cell {
+            background-color: white;
+            padding: 6px;
+            min-height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+        .calendar-cell.header {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+        .calendar-cell.time-label {
+            background-color: #f9fafb;
+            font-weight: 500;
+            color: #6b7280;
+            font-size: 0.75rem;
+        }
+        .calendar-cell.available {
+            background-color: #dcfce7;
+            color: #166534;
+            cursor: pointer;
+        }
+        .calendar-cell.available:hover {
+            background-color: #bbf7d0;
+            transform: scale(1.1);
+        }
+        .calendar-cell.selected {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .calendar-cell.unavailable {
+            background-color: #f3f4f6;
+            color: #9ca3af;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .availability-grid {
+                grid-template-columns: 60px repeat(7, 1fr);
+                gap: 0.5px;
+            }
+            .availability-cell {
+                padding: 4px;
+                min-height: 30px;
+                font-size: 0.75rem;
+            }
+            .detailed-calendar {
+                grid-template-columns: 70px repeat(7, 1fr);
+                gap: 0.5px;
+            }
+            .calendar-cell {
+                padding: 3px;
+                min-height: 25px;
+                font-size: 0.625rem;
+            }
+            .modal-content {
+                max-width: 95vw;
+                margin: 1rem;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .availability-grid {
+                grid-template-columns: 50px repeat(7, 1fr);
+            }
+            .availability-cell {
+                padding: 2px;
+                min-height: 25px;
+                font-size: 0.625rem;
+            }
+            .detailed-calendar {
+                grid-template-columns: 60px repeat(7, 1fr);
+            }
+            .calendar-cell {
+                padding: 2px;
+                min-height: 20px;
+                font-size: 0.5rem;
+            }
         }
         .sticky-sidebar {
             position: sticky;
@@ -336,6 +469,93 @@
         </div>
     </div>
 
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="modal-overlay">
+        <div class="modal-content w-full max-w-4xl mx-4">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold text-gray-900">Book a Lesson</h2>
+                    <button id="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-gray-600 mt-2">Select your preferred date and time for the lesson</p>
+            </div>
+
+            <div class="p-6">
+                <!-- Week Navigation -->
+                <div class="flex items-center justify-between mb-6">
+                    <button id="prevWeek" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        <span>Previous Week</span>
+                    </button>
+                    <h3 id="weekRange" class="text-lg font-semibold text-gray-900"></h3>
+                    <button id="nextWeek" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors">
+                        <span>Next Week</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Detailed Calendar -->
+                <div id="detailedCalendar" class="detailed-calendar mb-6">
+                    <!-- Calendar will be generated here -->
+                </div>
+
+                <!-- Selected Time Display -->
+                <div id="selectedTimeDisplay" class="hidden bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">Selected Time</p>
+                            <p id="selectedTimeText" class="text-indigo-600 font-semibold"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lesson Type Selection -->
+                <div class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-4">Lesson Type</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="lesson-type-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-300 transition-colors" data-type="trial">
+                            <div class="flex items-center justify-between mb-2">
+                                <h5 class="font-medium text-gray-900">Trial Lesson</h5>
+                                <span class="text-lg font-bold text-gray-900">$<span id="modalTrialPrice">8.00</span></span>
+                            </div>
+                            <p class="text-sm text-gray-600">30 minutes • Perfect for first-time students</p>
+                        </div>
+                        <div class="lesson-type-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-300 transition-colors" data-type="regular">
+                            <div class="flex items-center justify-between mb-2">
+                                <h5 class="font-medium text-gray-900">Regular Lesson</h5>
+                                <span class="text-lg font-bold text-gray-900">$<span id="modalRegularPrice">12.00</span></span>
+                            </div>
+                            <p class="text-sm text-gray-600">60 minutes • Comprehensive language learning</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200">
+                    <button id="cancelBooking" class="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+                        Cancel
+                    </button>
+                    <button id="confirmBooking" class="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        Book Lesson
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Initialize Supabase
         const supabaseUrl = 'https://qbyyutebrgpxngvwenkd.supabase.co';
@@ -360,6 +580,7 @@
             await loadTutorProfile();
             setupTabNavigation();
             setupReviewFilters();
+            setupModalEventListeners();
         });
 
         // Load tutor profile
@@ -496,8 +717,14 @@
             ).join('');
 
             // Update pricing
-            document.getElementById('trialPrice').textContent = (tutor.rate * 0.6).toFixed(2);
-            document.getElementById('regularPrice').textContent = tutor.rate;
+            const trialPrice = (tutor.rate * 0.6).toFixed(2);
+            const regularPrice = tutor.rate;
+            document.getElementById('trialPrice').textContent = trialPrice;
+            document.getElementById('regularPrice').textContent = regularPrice;
+
+            // Update modal pricing
+            document.getElementById('modalTrialPrice').textContent = trialPrice;
+            document.getElementById('modalRegularPrice').textContent = regularPrice;
 
             // Update video
             const videoContainer = document.getElementById('videoContainer');
@@ -669,12 +896,33 @@
             });
         }
 
+        // Global variables for modal state
+        let currentWeekStart = new Date();
+        let selectedTimeSlot = null;
+        let selectedLessonType = null;
+
         // Generate availability grid
         function generateAvailabilityGrid() {
             const container = document.getElementById('availabilityGrid');
             const today = new Date();
+
+            // Get current week starting from Thursday
+            const currentDate = new Date(today);
+            const dayOfWeek = currentDate.getDay();
+            const daysToThursday = (dayOfWeek + 3) % 7; // Thursday is 4, so we calculate offset
+            currentWeekStart = new Date(currentDate);
+            currentWeekStart.setDate(currentDate.getDate() - daysToThursday);
+
             const weekDays = ['Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed'];
-            const dates = [12, 13, 14, 15, 16, 17, 18];
+            const dates = [];
+
+            // Calculate actual dates for the week
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(currentWeekStart);
+                date.setDate(currentWeekStart.getDate() + i);
+                dates.push(date.getDate());
+            }
+
             const timeSlots = ['00 - 04', '04 - 08', '08 - 12', '12 - 16', '16 - 20', '20 - 24'];
 
             let gridHTML = '';
@@ -686,15 +934,280 @@
             });
 
             // Time slot rows
-            timeSlots.forEach(timeSlot => {
+            timeSlots.forEach((timeSlot, timeIndex) => {
                 gridHTML += `<div class="availability-cell time-label">${timeSlot}</div>`;
-                weekDays.forEach(() => {
+                weekDays.forEach((day, dayIndex) => {
                     const isAvailable = Math.random() > 0.3; // Random availability for demo
-                    gridHTML += `<div class="availability-cell ${isAvailable ? 'available' : 'unavailable'}"></div>`;
+                    const cellClass = isAvailable ? 'available' : 'unavailable';
+                    const dataAttrs = isAvailable ? `data-day="${dayIndex}" data-time="${timeIndex}" data-slot="${timeSlot}"` : '';
+                    gridHTML += `<div class="availability-cell ${cellClass}" ${dataAttrs}></div>`;
                 });
             });
 
             container.innerHTML = gridHTML;
+
+            // Add click handlers to available slots
+            container.querySelectorAll('.availability-cell.available').forEach(cell => {
+                cell.addEventListener('click', () => {
+                    const dayIndex = parseInt(cell.dataset.day);
+                    const timeSlot = cell.dataset.slot;
+                    openBookingModal(dayIndex, timeSlot);
+                });
+            });
+        }
+
+        // Open booking modal
+        function openBookingModal(dayIndex, timeSlot) {
+            const modal = document.getElementById('bookingModal');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // Generate detailed calendar for the modal
+            generateDetailedCalendar();
+
+            // Pre-select the clicked time slot if provided
+            if (dayIndex !== undefined && timeSlot !== undefined) {
+                // We'll implement this after creating the detailed calendar
+                setTimeout(() => {
+                    selectTimeSlotInModal(dayIndex, timeSlot);
+                }, 100);
+            }
+        }
+
+        // Close booking modal
+        function closeBookingModal() {
+            const modal = document.getElementById('bookingModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+            selectedTimeSlot = null;
+            selectedLessonType = null;
+            updateBookingButton();
+            document.getElementById('selectedTimeDisplay').classList.add('hidden');
+        }
+
+        // Generate detailed calendar for modal
+        function generateDetailedCalendar() {
+            const container = document.getElementById('detailedCalendar');
+            const weekDays = ['Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed'];
+            const dates = [];
+
+            // Calculate dates for current week
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(currentWeekStart);
+                date.setDate(currentWeekStart.getDate() + i);
+                dates.push({
+                    day: date.getDate(),
+                    month: date.getMonth(),
+                    year: date.getFullYear()
+                });
+            }
+
+            // Generate hourly time slots
+            const timeSlots = [];
+            for (let hour = 0; hour < 24; hour++) {
+                const startTime = hour.toString().padStart(2, '0') + ':00';
+                const endTime = (hour + 1).toString().padStart(2, '0') + ':00';
+                timeSlots.push(`${startTime}`);
+            }
+
+            let gridHTML = '';
+
+            // Header row
+            gridHTML += '<div class="calendar-cell header"></div>';
+            weekDays.forEach((day, index) => {
+                const date = dates[index];
+                const monthName = new Date(date.year, date.month).toLocaleDateString('en', { month: 'short' });
+                gridHTML += `<div class="calendar-cell header">${day}<br><span class="text-xs">${monthName} ${date.day}</span></div>`;
+            });
+
+            // Time slot rows
+            timeSlots.forEach((timeSlot, timeIndex) => {
+                gridHTML += `<div class="calendar-cell time-label">${timeSlot}</div>`;
+                weekDays.forEach((day, dayIndex) => {
+                    const isAvailable = Math.random() > 0.4; // Random availability for demo
+                    const cellClass = isAvailable ? 'available' : 'unavailable';
+                    const dataAttrs = isAvailable ? `data-day="${dayIndex}" data-time="${timeIndex}" data-slot="${timeSlot}"` : '';
+                    gridHTML += `<div class="calendar-cell ${cellClass}" ${dataAttrs}></div>`;
+                });
+            });
+
+            container.innerHTML = gridHTML;
+
+            // Add click handlers to available slots
+            container.querySelectorAll('.calendar-cell.available').forEach(cell => {
+                cell.addEventListener('click', () => {
+                    selectDetailedTimeSlot(cell);
+                });
+            });
+
+            // Update week range display
+            updateWeekRangeDisplay();
+        }
+
+        // Select detailed time slot in modal
+        function selectDetailedTimeSlot(cell) {
+            // Remove previous selection
+            document.querySelectorAll('.calendar-cell.selected').forEach(c => {
+                c.classList.remove('selected');
+                c.classList.add('available');
+            });
+
+            // Select new cell
+            cell.classList.remove('available');
+            cell.classList.add('selected');
+
+            // Store selected time slot
+            const dayIndex = parseInt(cell.dataset.day);
+            const timeSlot = cell.dataset.slot;
+            const weekDays = ['Thursday', 'Friday', 'Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday'];
+
+            // Calculate the actual date
+            const selectedDate = new Date(currentWeekStart);
+            selectedDate.setDate(currentWeekStart.getDate() + dayIndex);
+
+            selectedTimeSlot = {
+                day: weekDays[dayIndex],
+                date: selectedDate,
+                time: timeSlot,
+                dayIndex: dayIndex
+            };
+
+            // Update selected time display
+            const selectedTimeDisplay = document.getElementById('selectedTimeDisplay');
+            const selectedTimeText = document.getElementById('selectedTimeText');
+
+            const dateStr = selectedDate.toLocaleDateString('en', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            selectedTimeText.textContent = `${dateStr} at ${timeSlot}`;
+            selectedTimeDisplay.classList.remove('hidden');
+
+            updateBookingButton();
+        }
+
+        // Select time slot in modal (for pre-selection from main grid)
+        function selectTimeSlotInModal(dayIndex, timeSlot) {
+            // Find the corresponding cell in detailed calendar
+            const cells = document.querySelectorAll('.calendar-cell.available');
+            cells.forEach(cell => {
+                if (cell.dataset.day == dayIndex && cell.dataset.slot && cell.dataset.slot.includes(timeSlot.split(' - ')[0])) {
+                    selectDetailedTimeSlot(cell);
+                }
+            });
+        }
+
+        // Update week range display
+        function updateWeekRangeDisplay() {
+            const weekRange = document.getElementById('weekRange');
+            const startDate = new Date(currentWeekStart);
+            const endDate = new Date(currentWeekStart);
+            endDate.setDate(startDate.getDate() + 6);
+
+            const startStr = startDate.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+            const endStr = endDate.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+
+            weekRange.textContent = `${startStr} - ${endStr}`;
+        }
+
+        // Navigate to previous week
+        function navigateToPreviousWeek() {
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            generateDetailedCalendar();
+        }
+
+        // Navigate to next week
+        function navigateToNextWeek() {
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            generateDetailedCalendar();
+        }
+
+        // Update booking button state
+        function updateBookingButton() {
+            const bookingButton = document.getElementById('confirmBooking');
+            const canBook = selectedTimeSlot && selectedLessonType;
+
+            bookingButton.disabled = !canBook;
+
+            if (canBook) {
+                bookingButton.textContent = `Book ${selectedLessonType} Lesson`;
+            } else {
+                bookingButton.textContent = 'Book Lesson';
+            }
+        }
+
+        // Setup modal event listeners
+        function setupModalEventListeners() {
+            // Close modal handlers
+            document.getElementById('closeModal').addEventListener('click', closeBookingModal);
+            document.getElementById('cancelBooking').addEventListener('click', closeBookingModal);
+
+            // Click outside modal to close
+            document.getElementById('bookingModal').addEventListener('click', (e) => {
+                if (e.target.id === 'bookingModal') {
+                    closeBookingModal();
+                }
+            });
+
+            // Week navigation
+            document.getElementById('prevWeek').addEventListener('click', navigateToPreviousWeek);
+            document.getElementById('nextWeek').addEventListener('click', navigateToNextWeek);
+
+            // Lesson type selection
+            document.querySelectorAll('.lesson-type-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    // Remove previous selection
+                    document.querySelectorAll('.lesson-type-card').forEach(c => {
+                        c.classList.remove('border-indigo-500', 'bg-indigo-50');
+                        c.classList.add('border-gray-200');
+                    });
+
+                    // Select new card
+                    card.classList.remove('border-gray-200');
+                    card.classList.add('border-indigo-500', 'bg-indigo-50');
+
+                    selectedLessonType = card.dataset.type;
+                    updateBookingButton();
+                });
+            });
+
+            // Confirm booking
+            document.getElementById('confirmBooking').addEventListener('click', () => {
+                if (selectedTimeSlot && selectedLessonType) {
+                    handleBookingConfirmation();
+                }
+            });
+
+            // ESC key to close modal
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeBookingModal();
+                }
+            });
+        }
+
+        // Handle booking confirmation
+        function handleBookingConfirmation() {
+            // Here you would typically send the booking data to your backend
+            const bookingData = {
+                tutorId: tutorId,
+                date: selectedTimeSlot.date,
+                time: selectedTimeSlot.time,
+                lessonType: selectedLessonType,
+                duration: selectedLessonType === 'trial' ? 30 : 60,
+                price: selectedLessonType === 'trial' ?
+                    document.getElementById('modalTrialPrice').textContent :
+                    document.getElementById('modalRegularPrice').textContent
+            };
+
+            console.log('Booking confirmed:', bookingData);
+
+            // Show success message
+            alert(`Lesson booked successfully!\n\nDate: ${selectedTimeSlot.date.toLocaleDateString()}\nTime: ${selectedTimeSlot.time}\nType: ${selectedLessonType} lesson`);
+
+            closeBookingModal();
         }
 
         // Utility functions
