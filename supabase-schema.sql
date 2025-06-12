@@ -165,32 +165,50 @@ ALTER TABLE tutor_availability ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lessons ENABLE ROW LEVEL SECURITY;
 
--- Students can read their own data
-CREATE POLICY "Students can view own profile" ON students
-    FOR SELECT USING (auth.uid() = id);
+-- Create policies only if they don't exist
+DO $$
+BEGIN
+    -- Students can read their own data
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'students' AND policyname = 'Students can view own profile') THEN
+        CREATE POLICY "Students can view own profile" ON students
+            FOR SELECT USING (auth.uid() = id);
+    END IF;
 
-CREATE POLICY "Students can update own profile" ON students
-    FOR UPDATE USING (auth.uid() = id);
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'students' AND policyname = 'Students can update own profile') THEN
+        CREATE POLICY "Students can update own profile" ON students
+            FOR UPDATE USING (auth.uid() = id);
+    END IF;
 
--- Anyone can read tutor profiles (public data)
-CREATE POLICY "Anyone can view tutors" ON tutors
-    FOR SELECT USING (is_active = true);
+    -- Anyone can read tutor profiles (public data)
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'tutors' AND policyname = 'Anyone can view tutors') THEN
+        CREATE POLICY "Anyone can view tutors" ON tutors
+            FOR SELECT USING (COALESCE(is_active, true) = true);
+    END IF;
 
--- Anyone can read tutor availability
-CREATE POLICY "Anyone can view availability" ON tutor_availability
-    FOR SELECT USING (true);
+    -- Anyone can read tutor availability
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'tutor_availability' AND policyname = 'Anyone can view availability') THEN
+        CREATE POLICY "Anyone can view availability" ON tutor_availability
+            FOR SELECT USING (true);
+    END IF;
 
--- Anyone can read reviews
-CREATE POLICY "Anyone can view reviews" ON reviews
-    FOR SELECT USING (true);
+    -- Anyone can read reviews
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'reviews' AND policyname = 'Anyone can view reviews') THEN
+        CREATE POLICY "Anyone can view reviews" ON reviews
+            FOR SELECT USING (true);
+    END IF;
 
--- Students can create reviews for their lessons
-CREATE POLICY "Students can create reviews" ON reviews
-    FOR INSERT WITH CHECK (auth.uid() = student_id);
+    -- Students can create reviews for their lessons
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'reviews' AND policyname = 'Students can create reviews') THEN
+        CREATE POLICY "Students can create reviews" ON reviews
+            FOR INSERT WITH CHECK (auth.uid() = student_id);
+    END IF;
 
--- Students can view their own lessons
-CREATE POLICY "Students can view own lessons" ON lessons
-    FOR SELECT USING (auth.uid() = student_id);
+    -- Students can view their own lessons
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'lessons' AND policyname = 'Students can view own lessons') THEN
+        CREATE POLICY "Students can view own lessons" ON lessons
+            FOR SELECT USING (auth.uid() = student_id);
+    END IF;
+END $$;
 
 -- =============================================
 -- FUNCTIONS AND TRIGGERS
@@ -206,15 +224,19 @@ END;
 $$ language 'plpgsql';
 
 -- Triggers for updated_at
+DROP TRIGGER IF EXISTS update_students_updated_at ON students;
 CREATE TRIGGER update_students_updated_at BEFORE UPDATE ON students
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_tutors_updated_at ON tutors;
 CREATE TRIGGER update_tutors_updated_at BEFORE UPDATE ON tutors
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_reviews_updated_at ON reviews;
 CREATE TRIGGER update_reviews_updated_at BEFORE UPDATE ON reviews
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_lessons_updated_at ON lessons;
 CREATE TRIGGER update_lessons_updated_at BEFORE UPDATE ON lessons
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -234,6 +256,7 @@ END;
 $$ language 'plpgsql';
 
 -- Trigger to update tutor rating when review is added
+DROP TRIGGER IF EXISTS update_tutor_rating_on_review ON reviews;
 CREATE TRIGGER update_tutor_rating_on_review
     AFTER INSERT ON reviews
     FOR EACH ROW EXECUTE FUNCTION update_tutor_stats();
