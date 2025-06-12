@@ -14,12 +14,149 @@
     <link rel="stylesheet" href="home-styles.css">
 </head>
 <body>
-    <!-- Navigation -->
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Mobile Sidebar -->
+    <nav class="mobile-sidebar" id="mobileSidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-profile">
+                <img src="" alt="Profile" class="sidebar-avatar" id="sidebarAvatar">
+                <div class="sidebar-user-info">
+                    <span class="sidebar-name" id="sidebarName">Loading...</span>
+                    <span class="sidebar-email" id="sidebarEmail">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-content">
+            <div class="sidebar-section">
+                <a href="findteacher.html" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    Find a Teacher
+                </a>
+                <a href="#group-class" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Group Class
+                </a>
+                <a href="#trial" class="sidebar-link trial-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                    </svg>
+                    <span>Start 30-Day Free Trial</span>
+                    <span class="trial-badge">Plus</span>
+                </a>
+                <a href="#community" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                    </svg>
+                    Community
+                </a>
+                <a href="#messages" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    Messages
+                </a>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-section">
+                <a href="#lessons" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    My Lessons
+                </a>
+                <a href="#teachers" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    My Teachers
+                </a>
+                <a href="#tests" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14,2 14,8 20,8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10,9 9,9 8,9"></polyline>
+                    </svg>
+                    My Tests
+                </a>
+                <a href="#quizzes" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    My Quizzes
+                </a>
+                <a href="#wallet" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="1" y="3" width="15" height="13"></rect>
+                        <polygon points="16,8 20,8 23,11 23,16 16,16"></polygon>
+                        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                    </svg>
+                    My Wallet
+                </a>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-section">
+                <a href="#profile" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    My Profile
+                </a>
+                <a href="#settings" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    Settings
+                </a>
+                <button class="sidebar-link logout-link" onclick="handleLogout()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16,17 21,12 16,7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Desktop/Tablet Navigation -->
     <nav class="navbar">
         <div class="nav-container">
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <img src="" alt="Profile" class="mobile-profile-avatar" id="mobileProfileAvatar">
+            </button>
+
             <div class="nav-logo">
                 <h2>IndianTutors</h2>
             </div>
+
             <div class="nav-links">
                 <a href="home.html" class="nav-link active">Home</a>
                 <a href="findteacher.html" class="nav-link">Find a Teacher</a>
@@ -323,31 +460,38 @@
             const dropdownEmail = document.getElementById('dropdownEmail');
             const dropdownAvatar = document.getElementById('dropdownAvatar');
 
+            // Update mobile sidebar elements
+            const sidebarName = document.getElementById('sidebarName');
+            const sidebarEmail = document.getElementById('sidebarEmail');
+            const sidebarAvatar = document.getElementById('sidebarAvatar');
+            const mobileProfileAvatar = document.getElementById('mobileProfileAvatar');
+
             if (profileName) profileName.textContent = userName;
             if (dropdownName) dropdownName.textContent = userName;
             if (dropdownEmail) dropdownEmail.textContent = userEmail;
+            if (sidebarName) sidebarName.textContent = userName;
+            if (sidebarEmail) sidebarEmail.textContent = userEmail;
 
             // Update avatars
-            if (avatarUrl) {
-                if (profileAvatar) {
-                    profileAvatar.src = avatarUrl;
-                    profileAvatar.alt = userName;
-                }
-                if (dropdownAvatar) {
-                    dropdownAvatar.src = avatarUrl;
-                    dropdownAvatar.alt = userName;
-                }
-            } else {
-                // Set default avatar if no avatar URL
-                const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=40`;
-                if (profileAvatar) {
-                    profileAvatar.src = defaultAvatar;
-                    profileAvatar.alt = userName;
-                }
-                if (dropdownAvatar) {
-                    dropdownAvatar.src = defaultAvatar;
-                    dropdownAvatar.alt = userName;
-                }
+            const defaultAvatar40 = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=40`;
+            const defaultAvatar60 = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=60`;
+            const avatarToUse = avatarUrl || defaultAvatar40;
+
+            if (profileAvatar) {
+                profileAvatar.src = avatarToUse;
+                profileAvatar.alt = userName;
+            }
+            if (dropdownAvatar) {
+                dropdownAvatar.src = avatarToUse;
+                dropdownAvatar.alt = userName;
+            }
+            if (sidebarAvatar) {
+                sidebarAvatar.src = avatarToUse;
+                sidebarAvatar.alt = userName;
+            }
+            if (mobileProfileAvatar) {
+                mobileProfileAvatar.src = avatarToUse;
+                mobileProfileAvatar.alt = userName;
             }
 
             // Update profile card elements
@@ -356,14 +500,8 @@
 
             if (cardName) cardName.textContent = userName;
             if (cardAvatar) {
-                if (avatarUrl) {
-                    cardAvatar.src = avatarUrl;
-                    cardAvatar.alt = userName;
-                } else {
-                    const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=60`;
-                    cardAvatar.src = defaultAvatar;
-                    cardAvatar.alt = userName;
-                }
+                cardAvatar.src = avatarUrl || defaultAvatar60;
+                cardAvatar.alt = userName;
             }
 
             console.log('UI updated with:', { userName, userEmail, avatarUrl });
@@ -406,8 +544,54 @@
             }, 5000);
         }
 
+        // Mobile Sidebar Functionality
+        function initializeMobileSidebar() {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileSidebar = document.getElementById('mobileSidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            if (mobileMenuBtn && mobileSidebar && sidebarOverlay) {
+                // Open sidebar
+                mobileMenuBtn.addEventListener('click', function() {
+                    mobileSidebar.classList.add('active');
+                    sidebarOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+
+                // Close sidebar when clicking overlay
+                sidebarOverlay.addEventListener('click', function() {
+                    closeMobileSidebar();
+                });
+
+                // Close sidebar when clicking a link (except logout)
+                const sidebarLinks = mobileSidebar.querySelectorAll('.sidebar-link:not(.logout-link)');
+                sidebarLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        closeMobileSidebar();
+                    });
+                });
+            }
+        }
+
+        function closeMobileSidebar() {
+            const mobileSidebar = document.getElementById('mobileSidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            if (mobileSidebar && sidebarOverlay) {
+                mobileSidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Initialize mobile sidebar when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMobileSidebar();
+        });
+
         // Make logout function globally available
         window.logout = logout;
+        window.handleLogout = logout;
     </script>
 
     <!-- Home Page Script -->

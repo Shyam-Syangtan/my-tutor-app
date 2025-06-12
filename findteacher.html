@@ -24,28 +24,370 @@
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
         }
+
+        /* Mobile Sidebar Styles */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .mobile-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100%;
+            background: white;
+            z-index: 1999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-sidebar.active {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .sidebar-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .sidebar-user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .sidebar-name {
+            display: block;
+            font-weight: 600;
+            color: #111827;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .sidebar-email {
+            display: block;
+            font-size: 0.875rem;
+            color: #6b7280;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sidebar-content {
+            padding: 1rem 0;
+        }
+
+        .sidebar-section {
+            padding: 0 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            color: #6b7280;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .sidebar-link:hover {
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        .sidebar-link svg {
+            flex-shrink: 0;
+            color: #6b7280;
+            transition: color 0.2s ease;
+        }
+
+        .sidebar-link:hover svg {
+            color: #4f46e5;
+        }
+
+        .trial-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white !important;
+        }
+
+        .trial-link:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            color: white !important;
+        }
+
+        .trial-link svg {
+            color: white !important;
+        }
+
+        .trial-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 1rem 0;
+            border: none;
+        }
+
+        .logout-link {
+            color: #dc2626 !important;
+        }
+
+        .logout-link:hover {
+            background: rgba(220, 38, 38, 0.1) !important;
+            color: #dc2626 !important;
+        }
+
+        .logout-link svg {
+            color: #dc2626 !important;
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background 0.2s ease;
+        }
+
+        .mobile-menu-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .mobile-profile-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hidden-mobile {
+                display: none !important;
+            }
+
+            .nav-center {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .mobile-sidebar {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
-    <!-- Navigation -->
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Mobile Sidebar -->
+    <nav class="mobile-sidebar" id="mobileSidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-profile">
+                <img src="" alt="Profile" class="sidebar-avatar" id="sidebarAvatar">
+                <div class="sidebar-user-info">
+                    <span class="sidebar-name" id="sidebarName">Loading...</span>
+                    <span class="sidebar-email" id="sidebarEmail">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-content">
+            <div class="sidebar-section">
+                <a href="findteacher.html" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    Find a Teacher
+                </a>
+                <a href="#group-class" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Group Class
+                </a>
+                <a href="#trial" class="sidebar-link trial-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                    </svg>
+                    <span>Start 30-Day Free Trial</span>
+                    <span class="trial-badge">Plus</span>
+                </a>
+                <a href="#community" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                    </svg>
+                    Community
+                </a>
+                <a href="#messages" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    Messages
+                </a>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-section">
+                <a href="#lessons" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    My Lessons
+                </a>
+                <a href="#teachers" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    My Teachers
+                </a>
+                <a href="#tests" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14,2 14,8 20,8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10,9 9,9 8,9"></polyline>
+                    </svg>
+                    My Tests
+                </a>
+                <a href="#quizzes" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    My Quizzes
+                </a>
+                <a href="#wallet" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="1" y="3" width="15" height="13"></rect>
+                        <polygon points="16,8 20,8 23,11 23,16 16,16"></polygon>
+                        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                    </svg>
+                    My Wallet
+                </a>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-section">
+                <a href="#profile" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    My Profile
+                </a>
+                <a href="#settings" class="sidebar-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    Settings
+                </a>
+                <button class="sidebar-link logout-link" onclick="handleLogout()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16,17 21,12 16,7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Desktop/Tablet Navigation -->
     <nav class="bg-white shadow-sm border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
+                <!-- Mobile Menu Button -->
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <img src="" alt="Profile" class="mobile-profile-avatar" id="mobileProfileAvatar">
+                </button>
+
                 <!-- Logo -->
-                <div class="flex items-center">
+                <div class="flex items-center nav-center md:relative md:left-auto md:transform-none">
                     <a href="home.html" class="text-2xl font-bold text-indigo-600">IndianTutors</a>
                 </div>
-                
+
                 <!-- Navigation Links -->
                 <div class="hidden md:flex items-center space-x-8">
                     <a href="home.html" class="text-gray-600 hover:text-gray-900 transition-colors">Home</a>
                     <a href="findteacher.html" class="text-indigo-600 font-medium">Find a Teacher</a>
                 </div>
-                
+
                 <!-- Search Bar -->
                 <div class="hidden md:flex flex-1 max-w-md mx-8">
                     <div class="relative w-full">
-                        <input type="text" id="navSearch" placeholder="Search tutors..." 
+                        <input type="text" id="navSearch" placeholder="Search tutors..."
                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,9 +396,9 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Language Dropdown & User Menu -->
-                <div class="flex items-center space-x-4">
+                <div class="hidden-mobile flex items-center space-x-4">
                     <!-- Language Dropdown -->
                     <div class="relative">
                         <select class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
@@ -65,7 +407,7 @@
                             <option>தமிழ்</option>
                         </select>
                     </div>
-                    
+
                     <!-- User Dropdown -->
                     <div class="relative" id="userDropdown">
                         <button class="flex items-center space-x-2 bg-white border border-gray-300 rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors" id="userMenuButton">
@@ -75,7 +417,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
-                        
+
                         <!-- Dropdown Menu -->
                         <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 hidden" id="userDropdownMenu">
                             <div class="py-1">
@@ -195,6 +537,7 @@
             await checkAuth();
             await loadTutors();
             setupEventListeners();
+            initializeMobileSidebar();
         });
 
         // Check authentication
@@ -217,16 +560,32 @@
                     .single();
 
                 const userName = studentData?.name || user.email.split('@')[0];
+                const userEmail = studentData?.email || user.email;
                 const avatarUrl = studentData?.profile_picture || user.user_metadata?.avatar_url;
 
-                document.getElementById('navUserName').textContent = userName;
-                
-                if (avatarUrl) {
-                    document.getElementById('navUserAvatar').src = avatarUrl;
-                } else {
-                    const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=32`;
-                    document.getElementById('navUserAvatar').src = defaultAvatar;
-                }
+                // Update desktop navigation
+                const navUserName = document.getElementById('navUserName');
+                const navUserAvatar = document.getElementById('navUserAvatar');
+
+                if (navUserName) navUserName.textContent = userName;
+
+                // Update mobile sidebar
+                const sidebarName = document.getElementById('sidebarName');
+                const sidebarEmail = document.getElementById('sidebarEmail');
+                const sidebarAvatar = document.getElementById('sidebarAvatar');
+                const mobileProfileAvatar = document.getElementById('mobileProfileAvatar');
+
+                if (sidebarName) sidebarName.textContent = userName;
+                if (sidebarEmail) sidebarEmail.textContent = userEmail;
+
+                // Set avatars
+                const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=40`;
+                const avatarToUse = avatarUrl || defaultAvatar;
+
+                if (navUserAvatar) navUserAvatar.src = avatarToUse;
+                if (sidebarAvatar) sidebarAvatar.src = avatarToUse;
+                if (mobileProfileAvatar) mobileProfileAvatar.src = avatarToUse;
+
             } catch (error) {
                 console.error('Error loading user info:', error);
             }
@@ -496,6 +855,46 @@
             setTimeout(() => {
                 document.body.removeChild(errorDiv);
             }, 5000);
+        }
+
+        // Mobile Sidebar Functionality
+        function initializeMobileSidebar() {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileSidebar = document.getElementById('mobileSidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            if (mobileMenuBtn && mobileSidebar && sidebarOverlay) {
+                // Open sidebar
+                mobileMenuBtn.addEventListener('click', function() {
+                    mobileSidebar.classList.add('active');
+                    sidebarOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                });
+
+                // Close sidebar when clicking overlay
+                sidebarOverlay.addEventListener('click', function() {
+                    closeMobileSidebar();
+                });
+
+                // Close sidebar when clicking a link (except logout)
+                const sidebarLinks = mobileSidebar.querySelectorAll('.sidebar-link:not(.logout-link)');
+                sidebarLinks.forEach(link => {
+                    link.addEventListener('click', function() {
+                        closeMobileSidebar();
+                    });
+                });
+            }
+        }
+
+        function closeMobileSidebar() {
+            const mobileSidebar = document.getElementById('mobileSidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            if (mobileSidebar && sidebarOverlay) {
+                mobileSidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
         }
 
         // Logout function

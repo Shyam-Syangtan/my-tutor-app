@@ -329,51 +329,62 @@ body {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
-    .nav-container {
-        padding: 0 1rem;
-    }
-    
-    .nav-links {
-        gap: 1rem;
-    }
-    
-    .nav-link {
+@media (max-width: 1024px) {
+    /* Tablet styles - hide More dropdown but keep other nav items */
+    .nav-dropdown {
         display: none;
     }
-    
+}
+
+@media (max-width: 768px) {
+    /* Mobile styles - show mobile menu button, hide desktop nav */
+    .nav-container {
+        padding: 0 1rem;
+        position: relative;
+    }
+
+    .nav-links {
+        display: none;
+    }
+
+    .nav-logo {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
     .hero {
         padding: 6rem 0 2rem;
     }
-    
+
     .hero-container {
         grid-template-columns: 1fr;
         gap: 2rem;
         text-align: center;
     }
-    
+
     .hero-title {
         font-size: 2.5rem;
     }
-    
+
     .hero-features {
         margin-bottom: 2rem;
     }
-    
+
     .hero-features li {
         justify-content: center;
     }
-    
+
     .cta-button {
         width: 100%;
         max-width: 300px;
         margin: 0 auto;
     }
-    
+
     .languages-grid {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     }
-    
+
     .languages-title {
         font-size: 2rem;
     }
