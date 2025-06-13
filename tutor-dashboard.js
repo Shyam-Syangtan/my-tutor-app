@@ -64,86 +64,183 @@ async function checkAuthenticationAndTutorStatus() {
 
 async function checkTutorStatus() {
     try {
-        const { data: tutorDataResult, error } = await supabase
+        console.log('Checking tutor status for user:', currentUser.id);
+
+        // Try different possible column names for user reference
+        let tutorDataResult = null;
+        let error = null;
+
+        // First try with user_id column
+        const { data: userData, error: userError } = await supabase
             .from('tutors')
             .select('*')
             .eq('user_id', currentUser.id)
-            .eq('approved', true)
-            .single();
+            .maybeSingle();
 
-        if (error) {
+        if (userError && userError.code !== 'PGRST116') {
+            console.log('user_id column not found, trying id column...');
+
+            // Try with id column (direct auth.users reference)
+            const { data: idData, error: idError } = await supabase
+                .from('tutors')
+                .select('*')
+                .eq('id', currentUser.id)
+                .maybeSingle();
+
+            if (idError && idError.code !== 'PGRST116') {
+                console.log('id column failed, trying email match...');
+
+                // Try with email match as fallback
+                const { data: emailData, error: emailError } = await supabase
+                    .from('tutors')
+                    .select('*')
+                    .eq('email', currentUser.email)
+                    .maybeSingle();
+
+                tutorDataResult = emailData;
+                error = emailError;
+            } else {
+                tutorDataResult = idData;
+                error = idError;
+            }
+        } else {
+            tutorDataResult = userData;
+            error = userError;
+        }
+
+        if (error && error.code !== 'PGRST116') {
             console.error('Error checking tutor status:', error);
-            // User is not an approved tutor, redirect to home
-            alert('Access denied. You need to be an approved tutor to access this dashboard.');
-            window.location.href = 'home.html';
+            // Don't redirect immediately, allow graceful fallback
+            console.log('Tutor data not found, user may not be a tutor yet');
+            tutorData = null;
+            loadDashboardData(); // Load with limited data
             return;
         }
 
         if (!tutorDataResult) {
-            // User is not an approved tutor
-            alert('Access denied. You need to be an approved tutor to access this dashboard.');
+            console.log('No tutor record found for user');
+            // Don't redirect immediately, show limited dashboard
+            tutorData = null;
+            loadDashboardData(); // Load with limited data
+            return;
+        }
+
+        // Check if tutor is approved (if approved column exists)
+        if (tutorDataResult.hasOwnProperty('approved') && !tutorDataResult.approved) {
+            console.log('Tutor not approved yet');
+            alert('Your tutor application is pending approval. Please wait for admin approval.');
             window.location.href = 'home.html';
             return;
         }
 
         tutorData = tutorDataResult;
-        console.log('Tutor data loaded:', tutorData);
-        
+        console.log('Tutor data loaded successfully:', tutorData);
+
         // Load dashboard data
         loadDashboardData();
 
-        // Setup real-time subscriptions
-        setupRealTimeSubscriptions();
+        // Setup real-time subscriptions only if we have tutor data
+        if (tutorData) {
+            setupRealTimeSubscriptions();
+        }
 
     } catch (error) {
         console.error('Error in checkTutorStatus:', error);
-        alert('Error loading tutor data. Please try again.');
-        window.location.href = 'home.html';
+        // Don't redirect on error, show limited dashboard
+        console.log('Loading dashboard with limited functionality due to error');
+        tutorData = null;
+        loadDashboardData();
     }
 }
+
+// Global variables for subscription management
+let activeSubscriptions = [];
 
 // Setup real-time subscriptions for lesson updates
 function setupRealTimeSubscriptions() {
     if (!supabase || !currentUser) return;
 
-    // Subscribe to lesson_requests changes
-    const lessonRequestsSubscription = supabase
-        .channel('lesson_requests_changes')
-        .on('postgres_changes',
-            {
-                event: '*',
-                schema: 'public',
-                table: 'lesson_requests',
-                filter: `tutor_id=eq.${currentUser.id}`
-            },
-            (payload) => {
-                console.log('📡 Lesson request change detected:', payload);
-                // Refresh stats when lesson requests change
-                loadLessonStats();
-            }
-        )
-        .subscribe();
+    // Clean up any existing subscriptions first
+    cleanupSubscriptions();
 
-    // Subscribe to lessons changes
-    const lessonsSubscription = supabase
-        .channel('lessons_changes')
-        .on('postgres_changes',
-            {
-                event: '*',
-                schema: 'public',
-                table: 'lessons',
-                filter: `tutor_id=eq.${currentUser.id}`
-            },
-            (payload) => {
-                console.log('📡 Lesson change detected:', payload);
-                // Refresh stats when lessons change
-                loadLessonStats();
-            }
-        )
-        .subscribe();
+    try {
+        // Subscribe to lesson_requests changes (only if table exists)
+        const lessonRequestsSubscription = supabase
+            .channel(`lesson_requests_${currentUser.id}_${Date.now()}`)
+            .on('postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'lesson_requests',
+                    filter: `tutor_id=eq.${currentUser.id}`
+                },
+                (payload) => {
+                    console.log('📡 Lesson request change detected:', payload);
+                    // Refresh stats when lesson requests change
+                    loadLessonStats();
+                }
+            )
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ Lesson requests subscription active');
+                } else if (status === 'CHANNEL_ERROR') {
+                    console.log('⚠️ Lesson requests subscription failed - table may not exist');
+                }
+            });
 
-    console.log('✅ Real-time subscriptions setup complete');
+        activeSubscriptions.push(lessonRequestsSubscription);
+
+        // Subscribe to lessons changes (only if table exists)
+        const lessonsSubscription = supabase
+            .channel(`lessons_${currentUser.id}_${Date.now()}`)
+            .on('postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'lessons',
+                    filter: `tutor_id=eq.${currentUser.id}`
+                },
+                (payload) => {
+                    console.log('📡 Lesson change detected:', payload);
+                    // Refresh stats when lessons change
+                    loadLessonStats();
+                }
+            )
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ Lessons subscription active');
+                } else if (status === 'CHANNEL_ERROR') {
+                    console.log('⚠️ Lessons subscription failed - table may not exist');
+                }
+            });
+
+        activeSubscriptions.push(lessonsSubscription);
+
+        console.log('✅ Real-time subscriptions setup complete');
+
+    } catch (error) {
+        console.error('Error setting up real-time subscriptions:', error);
+        console.log('Continuing without real-time updates...');
+    }
 }
+
+// Clean up subscriptions
+function cleanupSubscriptions() {
+    if (activeSubscriptions.length > 0) {
+        console.log('🧹 Cleaning up existing subscriptions...');
+        activeSubscriptions.forEach(subscription => {
+            try {
+                supabase.removeChannel(subscription);
+            } catch (error) {
+                console.log('Error removing subscription:', error);
+            }
+        });
+        activeSubscriptions = [];
+    }
+}
+
+// Clean up on page unload
+window.addEventListener('beforeunload', cleanupSubscriptions);
 
 function loadDashboardData() {
     // Update user profile info
@@ -160,9 +257,10 @@ function loadDashboardData() {
 }
 
 function updateUserProfile() {
-    const userName = tutorData.name || currentUser.email.split('@')[0];
-    const userEmail = tutorData.email || currentUser.email;
-    const avatarUrl = tutorData.photo_url || currentUser.user_metadata?.avatar_url;
+    // Handle case where tutorData might be null
+    const userName = (tutorData && tutorData.name) || currentUser.email.split('@')[0];
+    const userEmail = (tutorData && tutorData.email) || currentUser.email;
+    const avatarUrl = (tutorData && tutorData.photo_url) || currentUser.user_metadata?.avatar_url;
 
     // Update profile elements
     const profileName = document.getElementById('profileName');
@@ -195,14 +293,29 @@ function updateTeacherInfo() {
     const teacherId = document.getElementById('teacherId');
     const teacherAvatar = document.getElementById('teacherAvatar');
 
-    if (teacherName) teacherName.textContent = tutorData.name;
-    if (teacherLanguages) teacherLanguages.textContent = `${tutorData.language} Teacher`;
-    if (teacherId) teacherId.textContent = `ID: ${tutorData.id}`;
+    // Handle case where tutorData might be null
+    if (tutorData) {
+        if (teacherName) teacherName.textContent = tutorData.name || 'Teacher';
+        if (teacherLanguages) teacherLanguages.textContent = `${tutorData.language || 'Language'} Teacher`;
+        if (teacherId) teacherId.textContent = `ID: ${tutorData.id || 'N/A'}`;
 
-    if (teacherAvatar) {
-        const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(tutorData.name)}&background=6366f1&color=fff&size=80`;
-        teacherAvatar.src = tutorData.photo_url || defaultAvatar;
-        teacherAvatar.alt = tutorData.name;
+        if (teacherAvatar) {
+            const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(tutorData.name || 'Teacher')}&background=6366f1&color=fff&size=80`;
+            teacherAvatar.src = tutorData.photo_url || defaultAvatar;
+            teacherAvatar.alt = tutorData.name || 'Teacher';
+        }
+    } else {
+        // Fallback when no tutor data is available
+        const userName = currentUser.email.split('@')[0];
+        if (teacherName) teacherName.textContent = userName;
+        if (teacherLanguages) teacherLanguages.textContent = 'Pending Approval';
+        if (teacherId) teacherId.textContent = 'ID: Pending';
+
+        if (teacherAvatar) {
+            const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=80`;
+            teacherAvatar.src = defaultAvatar;
+            teacherAvatar.alt = userName;
+        }
     }
 }
 
