@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Missing lesson_requests Table</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6 text-red-600">🚨 Fix Missing lesson_requests Table</h1>
+        
+        <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-red-800 mb-2">Error Detected</h2>
+            <p class="text-red-700">The <code>lesson_requests</code> table does not exist in your database. This is why the tutor dashboard shows no lesson requests.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Step 1: Check Current Status -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Step 1: Check Current Status</h2>
+                <button onclick="checkTableExists()" class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-4">
+                    Check if lesson_requests Table Exists
+                </button>
+                <div id="checkResult" class="p-3 rounded bg-gray-50"></div>
+            </div>
+
+            <!-- Step 2: Create Table -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Step 2: Create Table (Manual)</h2>
+                <p class="text-sm text-gray-600 mb-4">Copy the SQL below and run it in your Supabase SQL Editor:</p>
+                <textarea readonly class="w-full h-32 p-2 border rounded text-xs font-mono" id="sqlScript">
+-- Create lesson_requests table
+CREATE TABLE IF NOT EXISTS lesson_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tutor_id UUID NOT NULL,
+    student_id UUID NOT NULL,
+    requested_date DATE NOT NULL,
+    requested_start_time TIME NOT NULL,
+    requested_end_time TIME NOT NULL,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'declined', 'cancelled')),
+    student_message TEXT,
+    tutor_response TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_lesson_requests_tutor ON lesson_requests(tutor_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_requests_student ON lesson_requests(student_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_requests_status ON lesson_requests(status);
+CREATE INDEX IF NOT EXISTS idx_lesson_requests_tutor_status ON lesson_requests(tutor_id, status);
+
+-- Enable RLS
+ALTER TABLE lesson_requests ENABLE ROW LEVEL SECURITY;
+
+-- Create policies
+CREATE POLICY "Students can view own requests" ON lesson_requests
+    FOR SELECT USING (auth.uid() = student_id);
+
+CREATE POLICY "Students can create requests" ON lesson_requests
+    FOR INSERT WITH CHECK (auth.uid() = student_id);
+
+CREATE POLICY "Tutors can view their requests" ON lesson_requests
+    FOR SELECT USING (auth.uid() = tutor_id);
+
+CREATE POLICY "Tutors can update request status" ON lesson_requests
+    FOR UPDATE USING (auth.uid() = tutor_id);
+                </textarea>
+                <button onclick="copySQL()" class="w-full mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Copy SQL to Clipboard
+                </button>
+            </div>
+
+            <!-- Step 3: Test Table Creation -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Step 3: Test After Creation</h2>
+                <button onclick="testTableCreation()" class="w-full bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 mb-4">
+                    Test Table Access
+                </button>
+                <div id="testResult" class="p-3 rounded bg-gray-50"></div>
+            </div>
+
+            <!-- Step 4: Create Test Data -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Step 4: Create Test Data</h2>
+                <div class="space-y-2 mb-4">
+                    <input type="text" id="testTutorId" placeholder="Enter Tutor UUID" class="w-full p-2 border rounded text-sm">
+                    <input type="text" id="testStudentId" placeholder="Enter Student UUID" class="w-full p-2 border rounded text-sm">
+                </div>
+                <button onclick="createTestData()" class="w-full bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 mb-4">
+                    Create Test Lesson Request
+                </button>
+                <div id="testDataResult" class="p-3 rounded bg-gray-50"></div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-blue-800 mb-4">📋 Instructions</h2>
+            <ol class="list-decimal list-inside space-y-2 text-blue-700">
+                <li><strong>Check Status:</strong> Click "Check if lesson_requests Table Exists" to confirm the table is missing</li>
+                <li><strong>Copy SQL:</strong> Click "Copy SQL to Clipboard" to copy the table creation script</li>
+                <li><strong>Run in Supabase:</strong> Go to your Supabase dashboard → SQL Editor → paste and run the script</li>
+                <li><strong>Test:</strong> Come back here and click "Test Table Access" to verify it worked</li>
+                <li><strong>Create Test Data:</strong> Add some test lesson requests to verify the tutor dashboard</li>
+            </ol>
+        </div>
+
+        <!-- Console Output -->
+        <div class="mt-6 bg-black text-green-400 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold mb-2">Console Output:</h3>
+            <div id="console" class="font-mono text-sm max-h-64 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+
+    <script>
+        // Console logging
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        function addToConsole(message, type = 'log') {
+            const consoleDiv = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'text-red-400' : 'text-green-400';
+            consoleDiv.innerHTML += `<div class="${color}">[${timestamp}] ${message}</div>`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole(args.join(' '), 'log');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole(args.join(' '), 'error');
+        };
+
+        // Check if table exists
+        async function checkTableExists() {
+            const result = document.getElementById('checkResult');
+            try {
+                console.log('Checking if lesson_requests table exists...');
+                const { data, error } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .limit(1);
+
+                if (error) {
+                    if (error.message.includes('relation "lesson_requests" does not exist')) {
+                        result.innerHTML = '<span class="text-red-600">❌ Table does NOT exist - this confirms the problem!</span>';
+                        console.error('Table does not exist:', error.message);
+                    } else {
+                        result.innerHTML = `<span class="text-yellow-600">⚠️ Other error: ${error.message}</span>`;
+                        console.error('Other error:', error);
+                    }
+                } else {
+                    result.innerHTML = '<span class="text-green-600">✅ Table exists and is accessible!</span>';
+                    console.log('Table exists and returned data:', data);
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Error: ${error.message}</span>`;
+                console.error('Check failed:', error);
+            }
+        }
+
+        // Copy SQL to clipboard
+        async function copySQL() {
+            const sqlScript = document.getElementById('sqlScript').value;
+            try {
+                await navigator.clipboard.writeText(sqlScript);
+                alert('SQL script copied to clipboard! Now paste it in Supabase SQL Editor.');
+                console.log('SQL script copied to clipboard');
+            } catch (error) {
+                console.error('Failed to copy to clipboard:', error);
+                alert('Failed to copy. Please manually select and copy the SQL text.');
+            }
+        }
+
+        // Test table creation
+        async function testTableCreation() {
+            const result = document.getElementById('testResult');
+            try {
+                console.log('Testing table access after creation...');
+                
+                // Test basic access
+                const { data, error } = await supabase
+                    .from('lesson_requests')
+                    .select('count')
+                    .limit(1);
+
+                if (error) {
+                    result.innerHTML = `<span class="text-red-600">❌ Still not accessible: ${error.message}</span>`;
+                    console.error('Table still not accessible:', error);
+                } else {
+                    result.innerHTML = '<span class="text-green-600">✅ Table is now accessible! You can proceed to test the tutor dashboard.</span>';
+                    console.log('Table is now accessible');
+                    
+                    // Also test count
+                    const { count } = await supabase
+                        .from('lesson_requests')
+                        .select('*', { count: 'exact', head: true });
+                    
+                    result.innerHTML += `<br><span class="text-blue-600">📊 Current records in table: ${count || 0}</span>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Test failed: ${error.message}</span>`;
+                console.error('Test failed:', error);
+            }
+        }
+
+        // Create test data
+        async function createTestData() {
+            const tutorId = document.getElementById('testTutorId').value;
+            const studentId = document.getElementById('testStudentId').value;
+            const result = document.getElementById('testDataResult');
+            
+            if (!tutorId || !studentId) {
+                result.innerHTML = '<span class="text-yellow-600">⚠️ Please enter both tutor and student UUIDs</span>';
+                return;
+            }
+
+            try {
+                console.log('Creating test lesson request...');
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                
+                const { data, error } = await supabase
+                    .from('lesson_requests')
+                    .insert([{
+                        tutor_id: tutorId,
+                        student_id: studentId,
+                        requested_date: tomorrow.toISOString().split('T')[0],
+                        requested_start_time: '10:00:00',
+                        requested_end_time: '11:00:00',
+                        status: 'pending',
+                        student_message: 'Test lesson request to verify tutor dashboard'
+                    }])
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                result.innerHTML = `
+                    <div class="text-green-600">✅ Test request created!</div>
+                    <div class="text-sm mt-2">
+                        <strong>ID:</strong> ${data.id}<br>
+                        <strong>Status:</strong> ${data.status}<br>
+                        <strong>Date:</strong> ${data.requested_date}
+                    </div>
+                    <div class="text-blue-600 mt-2">Now check the tutor dashboard - it should show "1" in Action Required!</div>
+                `;
+                console.log('Test request created:', data);
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Error: ${error.message}</span>`;
+                console.error('Create test data failed:', error);
+            }
+        }
+
+        // Auto-run check on load
+        window.addEventListener('load', () => {
+            console.log('Table creation tool loaded');
+            checkTableExists();
+        });
+    </script>
+</body>
+</html>
