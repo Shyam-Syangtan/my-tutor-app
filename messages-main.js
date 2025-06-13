@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Load chats
         await loadUserChats();
 
+        // Set up global real-time subscription for all user messages
+        await messaging.subscribeToAllUserMessages(handleNewMessage);
+
         // Check for chat ID in URL params
         const urlParams = new URLSearchParams(window.location.search);
         const chatId = urlParams.get('chat');
@@ -43,6 +46,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Wait a bit for the chat to be fully created, then try to open it
             setTimeout(async () => {
                 await loadUserChats(); // Refresh chat list
+                await refreshGlobalSubscription(); // Refresh subscription to include new chat
                 await openChatById(chatId);
             }, 1000);
         }
@@ -76,6 +80,12 @@ async function loadUserChats() {
         console.error('❌ Error loading chats:', error);
         showErrorState();
     }
+}
+
+// Refresh global subscription (call when new chats are created)
+async function refreshGlobalSubscription() {
+    console.log('🔄 Refreshing global subscription...');
+    await messaging.subscribeToAllUserMessages(handleNewMessage);
 }
 
 // Display chats in sidebar
@@ -152,9 +162,8 @@ async function openChat(chatId, otherUserId, userName) {
         // Load messages
         await loadChatMessages(chatId);
 
-        // Subscribe to real-time updates
-        messaging.unsubscribeFromChat();
-        messaging.subscribeToChat(chatId, handleNewMessage);
+        // Note: We're using global subscription now, so no need to subscribe to individual chats
+        console.log('💬 Chat opened, using global subscription for real-time messages');
 
     } catch (error) {
         console.error('Error opening chat:', error);
@@ -376,7 +385,7 @@ function goBackToStudentDashboard() {
 
 function handleLogout() {
     if (confirm('Are you sure you want to log out?')) {
-        messaging.unsubscribeFromChat();
+        messaging.unsubscribeFromAll();
         supabase.auth.signOut();
         window.location.href = 'index.html';
     }
@@ -385,6 +394,6 @@ function handleLogout() {
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {
     if (messaging) {
-        messaging.unsubscribeFromChat();
+        messaging.unsubscribeFromAll();
     }
 });

@@ -545,6 +545,9 @@
 
                 console.log('✅ Chat ID obtained:', chatId);
 
+                // Small delay to ensure chat is created in database
+                await new Promise(resolve => setTimeout(resolve, 500));
+
                 // Redirect to student messages page
                 const redirectUrl = `student-messages.html?chat=${chatId}`;
                 console.log('🔄 Redirecting to:', redirectUrl);

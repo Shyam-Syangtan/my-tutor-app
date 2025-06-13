@@ -9,6 +9,8 @@ class SimpleMessaging {
         this.currentUser = null;
         this.currentChatId = null;
         this.subscription = null;
+        this.globalSubscription = null; // For all user's messages
+        this.messageHandlers = new Map(); // Store message handlers for different chats
     }
 
     // Initialize the messaging system
@@ -216,9 +218,53 @@ class SimpleMessaging {
         return message;
     }
 
-    // Subscribe to real-time messages for a chat
+    // Subscribe to ALL messages for the current user (global subscription)
+    async subscribeToAllUserMessages(onMessage) {
+        if (!this.currentUser) {
+            console.error('❌ Cannot subscribe: User not authenticated');
+            return;
+        }
+
+        // Get all user's chats to create filter
+        const chats = await this.getUserChats();
+        const chatIds = chats.map(chat => chat.id);
+
+        console.log('🔔 Subscribing to ALL messages for user:', this.currentUser.id);
+        console.log('📋 Monitoring chats:', chatIds);
+
+        // Unsubscribe from previous global subscription
+        this.unsubscribeFromAllMessages();
+
+        if (chatIds.length === 0) {
+            console.log('📭 No chats to subscribe to');
+            return;
+        }
+
+        // Create a filter for all user's chats
+        const chatFilter = chatIds.map(id => `chat_id=eq.${id}`).join(',');
+
+        this.globalSubscription = this.supabase
+            .channel('user-messages')
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'messages',
+                filter: `or(${chatFilter})`
+            }, (payload) => {
+                console.log('📨 Global real-time message received:', payload.new);
+                onMessage(payload.new);
+            })
+            .subscribe((status) => {
+                console.log('🔔 Global subscription status:', status);
+            });
+
+        return this.globalSubscription;
+    }
+
+    // Subscribe to real-time messages for a specific chat (legacy method)
     subscribeToChat(chatId, onMessage) {
         this.currentChatId = chatId;
+        this.messageHandlers.set(chatId, onMessage);
 
         console.log('🔔 Subscribing to real-time messages for chat:', chatId);
 
@@ -230,22 +276,39 @@ class SimpleMessaging {
                 table: 'messages',
                 filter: `chat_id=eq.${chatId}`
             }, (payload) => {
-                console.log('📨 Real-time message received:', payload.new);
+                console.log('📨 Real-time message received for chat:', payload.new);
                 onMessage(payload.new);
             })
             .subscribe((status) => {
-                console.log('🔔 Subscription status:', status);
+                console.log('🔔 Chat subscription status:', status);
             });
 
         return this.subscription;
     }
 
-    // Unsubscribe from real-time updates
+    // Unsubscribe from global messages
+    unsubscribeFromAllMessages() {
+        if (this.globalSubscription) {
+            console.log('🔕 Unsubscribing from global messages');
+            this.supabase.removeChannel(this.globalSubscription);
+            this.globalSubscription = null;
+        }
+    }
+
+    // Unsubscribe from specific chat
     unsubscribeFromChat() {
         if (this.subscription) {
+            console.log('🔕 Unsubscribing from current chat');
             this.supabase.removeChannel(this.subscription);
             this.subscription = null;
         }
+    }
+
+    // Unsubscribe from all subscriptions
+    unsubscribeFromAll() {
+        this.unsubscribeFromAllMessages();
+        this.unsubscribeFromChat();
+        this.messageHandlers.clear();
     }
 
     // Contact a teacher (create chat and redirect)
