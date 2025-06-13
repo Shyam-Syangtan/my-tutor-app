@@ -28,6 +28,19 @@ class StudentBookingSystem {
         this.currentUser = currentUser;
 
         const success = await this.loadBookingData();
+
+        // Initialize enhanced booking modal
+        if (success && typeof EnhancedBookingModal !== 'undefined') {
+            this.enhancedModal = new EnhancedBookingModal(this.supabase);
+            await this.enhancedModal.initialize(
+                this.selectedTutor,
+                this.currentUser,
+                this.availabilityData,
+                this.lessonRequestsData || {}
+            );
+            console.log('✅ [INIT] Enhanced modal initialized');
+        }
+
         console.log('🚀 [INIT] Initialization result:', success);
         return success;
     }
@@ -131,11 +144,38 @@ class StudentBookingSystem {
                 });
             }
 
+            // Load lesson requests for enhanced modal
+            console.log('📋 [DEBUG] Loading lesson requests...');
+            const { data: lessonRequests, error: requestsError } = await this.supabase
+                .from('lesson_requests')
+                .select('*')
+                .eq('tutor_id', this.selectedTutor)
+                .gte('requested_date', this.currentWeekStart.toISOString().split('T')[0])
+                .lte('requested_date', weekEnd.toISOString().split('T')[0])
+                .eq('status', 'pending');
+
+            console.log('📋 [DEBUG] Lesson requests result:', {
+                data: lessonRequests,
+                error: requestsError,
+                count: lessonRequests?.length || 0
+            });
+
+            // Convert to lookup object
+            this.lessonRequestsData = {};
+            if (lessonRequests) {
+                lessonRequests.forEach(request => {
+                    const key = `${request.requested_date}-${request.requested_start_time}`;
+                    this.lessonRequestsData[key] = request;
+                });
+            }
+
             console.log('✅ [SUCCESS] Final data loaded:');
             console.log('  - Availability slots:', Object.keys(this.availabilityData).length);
             console.log('  - Booked lessons:', Object.keys(this.lessonsData).length);
+            console.log('  - Lesson requests:', Object.keys(this.lessonRequestsData).length);
             console.log('  - Availability data:', this.availabilityData);
             console.log('  - Lessons data:', this.lessonsData);
+            console.log('  - Requests data:', this.lessonRequestsData);
 
             return true;
 
@@ -264,17 +304,24 @@ class StudentBookingSystem {
         `;
     }
 
-    // Select a time slot for booking
+    // Select a time slot for booking - now opens enhanced modal
     async selectTimeSlot(date, startTime, endTime) {
         if (!this.currentUser) {
             alert('Please log in to book a lesson.');
             return;
         }
 
-        const confirmed = confirm(`Book a lesson on ${this.formatDate(new Date(date))} at ${this.formatTime(startTime.substring(0, 5))}?`);
-        
-        if (confirmed) {
-            await this.createLessonRequest(date, startTime, endTime);
+        // Use enhanced modal if available, otherwise fall back to simple confirm
+        if (this.enhancedModal) {
+            console.log('🎯 [BOOKING] Opening enhanced modal for date:', date);
+            this.enhancedModal.openModal(date);
+        } else {
+            console.log('⚠️ [BOOKING] Enhanced modal not available, using simple booking');
+            const confirmed = confirm(`Book a lesson on ${this.formatDate(new Date(date))} at ${this.formatTime(startTime.substring(0, 5))}?`);
+
+            if (confirmed) {
+                await this.createLessonRequest(date, startTime, endTime);
+            }
         }
     }
 
