@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Messaging Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Real-time Messaging Test</h1>
+        
+        <!-- User Info -->
+        <div class="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">Current User</h2>
+            <div id="userInfo" class="text-gray-600">Loading...</div>
+        </div>
+
+        <!-- Subscription Status -->
+        <div class="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">Subscription Status</h2>
+            <div id="subscriptionStatus" class="text-gray-600">Not connected</div>
+        </div>
+
+        <!-- Test Controls -->
+        <div class="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">Test Controls</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Test Message:</label>
+                    <input type="text" id="testMessage" class="w-full border rounded px-3 py-2" placeholder="Enter test message">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Target Chat ID:</label>
+                    <input type="text" id="targetChatId" class="w-full border rounded px-3 py-2" placeholder="Enter chat ID to send to">
+                </div>
+                <button onclick="sendTestMessage()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Send Test Message
+                </button>
+                <button onclick="refreshSubscription()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Refresh Subscription
+                </button>
+            </div>
+        </div>
+
+        <!-- Real-time Messages Log -->
+        <div class="bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Real-time Messages Log</h2>
+            <div id="messagesLog" class="space-y-2 max-h-96 overflow-y-auto">
+                <div class="text-gray-500">Waiting for messages...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Simple Messaging Service -->
+    <script src="simple-messaging.js"></script>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://qbyyutebrgpxngvwenkd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFieXl1dGVicmdweG5ndndlbmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MTA1NTMsImV4cCI6MjA2NTI4NjU1M30.eO8Wd0ZOqtXgvQ3BuedmSPmYVpbG3V-AXvgufLns6yY';
+
+        let supabase;
+        let messaging;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Initialize Supabase
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                // Check authentication
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    document.getElementById('userInfo').innerHTML = '<span class="text-red-500">Not logged in - please log in first</span>';
+                    return;
+                }
+
+                // Initialize messaging service
+                messaging = new SimpleMessaging(supabase);
+                await messaging.initialize();
+
+                // Update user info
+                document.getElementById('userInfo').innerHTML = `
+                    <div><strong>Email:</strong> ${session.user.email}</div>
+                    <div><strong>User ID:</strong> ${session.user.id}</div>
+                `;
+
+                // Set up real-time subscription
+                await setupRealTimeSubscription();
+
+            } catch (error) {
+                console.error('Error initializing test:', error);
+                document.getElementById('userInfo').innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+            }
+        });
+
+        // Set up real-time subscription
+        async function setupRealTimeSubscription() {
+            try {
+                document.getElementById('subscriptionStatus').innerHTML = '<span class="text-yellow-500">Connecting...</span>';
+                
+                await messaging.subscribeToAllUserMessages(handleTestMessage);
+                
+                document.getElementById('subscriptionStatus').innerHTML = '<span class="text-green-500">Connected ✅</span>';
+            } catch (error) {
+                console.error('Error setting up subscription:', error);
+                document.getElementById('subscriptionStatus').innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+            }
+        }
+
+        // Handle incoming test messages
+        function handleTestMessage(message) {
+            console.log('📨 Test message received:', message);
+            
+            const messagesLog = document.getElementById('messagesLog');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'p-3 bg-gray-50 rounded border-l-4 border-blue-500';
+            messageDiv.innerHTML = `
+                <div class="text-sm text-gray-500">${new Date(message.created_at).toLocaleTimeString()}</div>
+                <div class="font-medium">Chat: ${message.chat_id}</div>
+                <div class="font-medium">From: ${message.sender_id}</div>
+                <div class="mt-1">${message.content}</div>
+            `;
+            
+            // Add to top of log
+            if (messagesLog.firstChild && messagesLog.firstChild.textContent === 'Waiting for messages...') {
+                messagesLog.innerHTML = '';
+            }
+            messagesLog.insertBefore(messageDiv, messagesLog.firstChild);
+        }
+
+        // Send test message
+        async function sendTestMessage() {
+            const content = document.getElementById('testMessage').value.trim();
+            const chatId = document.getElementById('targetChatId').value.trim();
+            
+            if (!content || !chatId) {
+                alert('Please enter both message and chat ID');
+                return;
+            }
+
+            try {
+                console.log('📤 Sending test message:', { chatId, content });
+                await messaging.sendMessage(chatId, content);
+                document.getElementById('testMessage').value = '';
+                console.log('✅ Test message sent successfully');
+            } catch (error) {
+                console.error('❌ Error sending test message:', error);
+                alert(`Error sending message: ${error.message}`);
+            }
+        }
+
+        // Refresh subscription
+        async function refreshSubscription() {
+            try {
+                document.getElementById('subscriptionStatus').innerHTML = '<span class="text-yellow-500">Refreshing...</span>';
+                await setupRealTimeSubscription();
+            } catch (error) {
+                console.error('Error refreshing subscription:', error);
+                document.getElementById('subscriptionStatus').innerHTML = `<span class="text-red-500">Error: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

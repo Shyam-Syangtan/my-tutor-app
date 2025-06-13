@@ -36,7 +36,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         await loadUserChats();
 
         // Set up global real-time subscription for all user messages
+        console.log('🔔 Setting up global real-time subscription...');
         await messaging.subscribeToAllUserMessages(handleNewMessage);
+        console.log('✅ Global subscription setup complete');
 
         // Check for chat ID in URL params
         const urlParams = new URLSearchParams(window.location.search);

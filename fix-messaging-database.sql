@@ -78,6 +78,11 @@ CREATE POLICY "Users can create messages in their chats" ON public.messages
 
 -- 8. Enable Realtime for messages table
 ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.chats;
+
+-- Ensure Realtime is enabled for authenticated users
+GRANT SELECT ON public.messages TO authenticated;
+GRANT SELECT ON public.chats TO authenticated;
 
 -- 9. Create function to update chat timestamp when message is sent
 CREATE OR REPLACE FUNCTION update_chat_timestamp()
@@ -144,7 +149,7 @@ GRANT USAGE ON SCHEMA public TO authenticated;
 -- ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
 -- ALTER PUBLICATION supabase_realtime ADD TABLE public.chats;
 
--- =====================================================
+-- ===================stil==================================
 -- SUCCESS MESSAGE
 -- =====================================================
 SELECT 'Messaging database setup completed successfully!' as status;

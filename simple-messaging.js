@@ -218,47 +218,75 @@ class SimpleMessaging {
         return message;
     }
 
-    // Subscribe to ALL messages for the current user (global subscription)
+    // Subscribe to ALL messages and filter client-side (simple and reliable)
     async subscribeToAllUserMessages(onMessage) {
         if (!this.currentUser) {
             console.error('❌ Cannot subscribe: User not authenticated');
             return;
         }
 
-        // Get all user's chats to create filter
-        const chats = await this.getUserChats();
-        const chatIds = chats.map(chat => chat.id);
-
-        console.log('🔔 Subscribing to ALL messages for user:', this.currentUser.id);
-        console.log('📋 Monitoring chats:', chatIds);
+        console.log('🔔 Subscribing to ALL messages (client-side filtering) for user:', this.currentUser.id);
 
         // Unsubscribe from previous global subscription
         this.unsubscribeFromAllMessages();
 
-        if (chatIds.length === 0) {
-            console.log('📭 No chats to subscribe to');
-            return;
-        }
-
-        // Create a filter for all user's chats
-        const chatFilter = chatIds.map(id => `chat_id=eq.${id}`).join(',');
-
+        // Subscribe to ALL messages in the messages table
         this.globalSubscription = this.supabase
-            .channel('user-messages')
+            .channel('all-messages')
             .on('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
-                table: 'messages',
-                filter: `or(${chatFilter})`
-            }, (payload) => {
-                console.log('📨 Global real-time message received:', payload.new);
-                onMessage(payload.new);
+                table: 'messages'
+                // No filter - we'll filter client-side
+            }, async (payload) => {
+                console.log('📨 Raw real-time message received:', payload.new);
+
+                // Check if this message is for a chat the current user is part of
+                const messageForUser = await this.isMessageForUser(payload.new);
+
+                if (messageForUser) {
+                    console.log('✅ Message is for current user, processing...');
+                    onMessage(payload.new);
+                } else {
+                    console.log('❌ Message not for current user, ignoring');
+                }
             })
             .subscribe((status) => {
                 console.log('🔔 Global subscription status:', status);
             });
 
         return this.globalSubscription;
+    }
+
+    // Check if a message is for the current user
+    async isMessageForUser(message) {
+        try {
+            // Check if the message's chat involves the current user
+            const { data: chat, error } = await this.supabase
+                .from('chats')
+                .select('user1_id, user2_id')
+                .eq('id', message.chat_id)
+                .single();
+
+            if (error || !chat) {
+                console.log('❌ Could not find chat for message:', message.chat_id);
+                return false;
+            }
+
+            const isUserInChat = chat.user1_id === this.currentUser.id || chat.user2_id === this.currentUser.id;
+            console.log('🔍 Message chat check:', {
+                chatId: message.chat_id,
+                user1: chat.user1_id,
+                user2: chat.user2_id,
+                currentUser: this.currentUser.id,
+                isUserInChat
+            });
+
+            return isUserInChat;
+        } catch (error) {
+            console.error('❌ Error checking if message is for user:', error);
+            return false;
+        }
     }
 
     // Subscribe to real-time messages for a specific chat (legacy method)
