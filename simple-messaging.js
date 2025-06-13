@@ -168,28 +168,50 @@ class SimpleMessaging {
     // Send a message
     async sendMessage(chatId, content) {
         if (!this.currentUser) {
+            console.error('❌ User not authenticated for message sending');
             throw new Error('User not authenticated');
         }
 
+        console.log('📤 SimpleMessaging.sendMessage called:', {
+            chatId,
+            content,
+            senderId: this.currentUser.id,
+            userEmail: this.currentUser.email
+        });
+
+        const messageData = {
+            chat_id: chatId,
+            sender_id: this.currentUser.id,
+            content: content
+        };
+
+        console.log('📝 Inserting message data:', messageData);
+
         const { data: message, error } = await this.supabase
             .from('messages')
-            .insert({
-                chat_id: chatId,
-                sender_id: this.currentUser.id,
-                content: content
-            })
+            .insert(messageData)
             .select()
             .single();
 
         if (error) {
+            console.error('❌ Database error inserting message:', error);
             throw error;
         }
 
+        console.log('✅ Message inserted successfully:', message);
+
         // Update chat's updated_at timestamp
-        await this.supabase
+        console.log('🔄 Updating chat timestamp for chat:', chatId);
+        const { error: updateError } = await this.supabase
             .from('chats')
             .update({ updated_at: new Date().toISOString() })
             .eq('id', chatId);
+
+        if (updateError) {
+            console.error('⚠️ Warning: Failed to update chat timestamp:', updateError);
+        } else {
+            console.log('✅ Chat timestamp updated successfully');
+        }
 
         return message;
     }
@@ -197,7 +219,9 @@ class SimpleMessaging {
     // Subscribe to real-time messages for a chat
     subscribeToChat(chatId, onMessage) {
         this.currentChatId = chatId;
-        
+
+        console.log('🔔 Subscribing to real-time messages for chat:', chatId);
+
         this.subscription = this.supabase
             .channel(`chat-${chatId}`)
             .on('postgres_changes', {
@@ -206,9 +230,12 @@ class SimpleMessaging {
                 table: 'messages',
                 filter: `chat_id=eq.${chatId}`
             }, (payload) => {
+                console.log('📨 Real-time message received:', payload.new);
                 onMessage(payload.new);
             })
-            .subscribe();
+            .subscribe((status) => {
+                console.log('🔔 Subscription status:', status);
+            });
 
         return this.subscription;
     }

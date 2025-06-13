@@ -232,13 +232,26 @@ function displayMessages(messages) {
 
 // Handle new message from real-time subscription
 function handleNewMessage(message) {
+    console.log('📨 handleNewMessage called:', {
+        message,
+        currentChatId,
+        messageForCurrentChat: message.chat_id === currentChatId,
+        currentUserId: messaging?.currentUser?.id
+    });
+
     if (message.chat_id === currentChatId) {
         const messagesList = document.getElementById('messagesList');
         const isSent = message.sender_id === messaging.currentUser.id;
         const messageClass = isSent ? 'message-sent text-white ml-auto' : 'message-received mr-auto';
         const justifyClass = isSent ? 'justify-end' : 'justify-start';
         const time = formatTime(new Date(message.created_at));
-        
+
+        console.log('💬 Adding message to UI:', {
+            isSent,
+            content: message.content,
+            time
+        });
+
         const messageHTML = `
             <div class="flex ${justifyClass}">
                 <div class="message-bubble ${messageClass} px-4 py-2 rounded-lg">
@@ -247,11 +260,14 @@ function handleNewMessage(message) {
                 </div>
             </div>
         `;
-        
+
         messagesList.insertAdjacentHTML('beforeend', messageHTML);
         scrollToBottom();
+        console.log('✅ Message added to UI successfully');
+    } else {
+        console.log('📨 Message not for current chat, ignoring');
     }
-    
+
     // Refresh chat list to update latest message
     loadUserChats();
 }
@@ -260,15 +276,40 @@ function handleNewMessage(message) {
 async function sendMessage() {
     const messageInput = document.getElementById('messageText');
     const content = messageInput.value.trim();
-    
-    if (!content || !currentChatId || !currentOtherUser) return;
+
+    console.log('📤 Attempting to send message:', {
+        content,
+        currentChatId,
+        currentOtherUser,
+        hasMessaging: !!messaging,
+        hasCurrentUser: !!messaging?.currentUser
+    });
+
+    if (!content) {
+        console.log('❌ No content to send');
+        return;
+    }
+
+    if (!currentChatId) {
+        console.log('❌ No current chat ID');
+        alert('Please select a chat first');
+        return;
+    }
+
+    if (!currentOtherUser) {
+        console.log('❌ No other user selected');
+        alert('Please select a conversation first');
+        return;
+    }
 
     try {
-        await messaging.sendMessage(currentChatId, content);
+        console.log('📤 Sending message to chat:', currentChatId);
+        const result = await messaging.sendMessage(currentChatId, content);
+        console.log('✅ Message sent successfully:', result);
         messageInput.value = '';
     } catch (error) {
-        console.error('Error sending message:', error);
-        alert('Failed to send message. Please try again.');
+        console.error('❌ Error sending message:', error);
+        alert(`Failed to send message: ${error.message}`);
     }
 }
 
