@@ -55,7 +55,7 @@ class EnhancedBookingModal {
                             <div class="p-3 border-b border-gray-200 flex-shrink-0">
                                 <div class="text-xs font-medium text-gray-600 text-center">UTC+08:00</div>
                             </div>
-                            <div id="timeSlotsList" class="space-y-1 p-2 overflow-y-auto flex-1">
+                            <div id="timeSlotsList" class="overflow-y-auto flex-1" style="scrollbar-width: none; -ms-overflow-style: none;">
                                 <!-- Time slots will be generated here -->
                             </div>
                         </div>
@@ -85,8 +85,8 @@ class EnhancedBookingModal {
                                 <!-- Day headers will be generated here -->
                             </div>
 
-                            <!-- Calendar Grid -->
-                            <div class="overflow-y-auto flex-1">
+                            <!-- Calendar Grid Container -->
+                            <div id="calendarGridContainer" class="overflow-y-auto flex-1" style="scrollbar-width: thin;">
                                 <div id="calendarGrid" class="grid grid-cols-7 gap-0">
                                     <!-- Calendar slots will be generated here -->
                                 </div>
@@ -218,9 +218,12 @@ class EnhancedBookingModal {
     // Setup synchronized scrolling between time slots sidebar and calendar grid
     setupSynchronizedScrolling() {
         const timeSlotsList = document.getElementById('timeSlotsList');
-        const calendarGrid = document.getElementById('calendarGrid');
+        const calendarGridContainer = document.getElementById('calendarGridContainer');
 
-        if (!timeSlotsList || !calendarGrid) return;
+        if (!timeSlotsList || !calendarGridContainer) {
+            console.log('⚠️ Synchronized scrolling elements not found');
+            return;
+        }
 
         let isScrolling = false;
 
@@ -229,26 +232,24 @@ class EnhancedBookingModal {
             if (isScrolling) return;
             isScrolling = true;
 
-            const scrollPercentage = timeSlotsList.scrollTop / (timeSlotsList.scrollHeight - timeSlotsList.clientHeight);
-            const targetScrollTop = scrollPercentage * (calendarGrid.scrollHeight - calendarGrid.clientHeight);
-
-            calendarGrid.scrollTop = targetScrollTop;
+            // Direct 1:1 scroll synchronization
+            calendarGridContainer.scrollTop = timeSlotsList.scrollTop;
 
             setTimeout(() => { isScrolling = false; }, 10);
         });
 
         // Sync time slots scroll to calendar grid
-        calendarGrid.addEventListener('scroll', () => {
+        calendarGridContainer.addEventListener('scroll', () => {
             if (isScrolling) return;
             isScrolling = true;
 
-            const scrollPercentage = calendarGrid.scrollTop / (calendarGrid.scrollHeight - calendarGrid.clientHeight);
-            const targetScrollTop = scrollPercentage * (timeSlotsList.scrollHeight - timeSlotsList.clientHeight);
-
-            timeSlotsList.scrollTop = targetScrollTop;
+            // Direct 1:1 scroll synchronization
+            timeSlotsList.scrollTop = calendarGridContainer.scrollTop;
 
             setTimeout(() => { isScrolling = false; }, 10);
         });
+
+        console.log('✅ Synchronized scrolling setup complete');
     }
 
     // Open modal for specific date
@@ -294,7 +295,7 @@ class EnhancedBookingModal {
         }
 
         timeSlotsList.innerHTML = timeSlots.map(time => `
-            <div class="text-xs text-gray-600 py-3 text-center border-b border-gray-100 hover:bg-gray-100 transition-colors">
+            <div class="text-xs text-gray-600 text-center border-b border-gray-100 hover:bg-gray-100 transition-colors flex items-center justify-center" style="height: 32px; min-height: 32px;">
                 ${this.formatTime(time + ':00')}
             </div>
         `).join('');
@@ -356,7 +357,8 @@ class EnhancedBookingModal {
                 const isClickable = slotStatus === 'available';
                 
                 gridHTML += `
-                    <div class="${slotClass} border-r border-b border-gray-200 last:border-r-0 h-8 ${isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed'}"
+                    <div class="${slotClass} border-r border-b border-gray-200 last:border-r-0 ${isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed'}"
+                         style="height: 32px; min-height: 32px;"
                          ${isClickable ? `onclick="enhancedBookingModal.selectTimeSlot('${dateString}', '${time}')"` : ''}
                          data-date="${dateString}" data-time="${time}">
                     </div>
