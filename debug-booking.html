@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Booking System</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Booking System Debug Tool</h1>
+    
+    <div class="debug-section info">
+        <h3>📋 Debug Tests</h3>
+        <button onclick="testSupabaseConnection()">Test Supabase Connection</button>
+        <button onclick="testAuthentication()">Test Authentication</button>
+        <button onclick="testDatabaseAccess()">Test Database Access</button>
+        <button onclick="testLessonRequestCreation()">Test Lesson Request Creation</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://qbyyutebrgpxngvwenkd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFieXl1dGVicmdweG5ndndlbmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MTA1NTMsImV4cCI6MjA2NTI4NjU1M30.eO8Wd0ZOqtXgvQ3BuedmSPmYVpbG3V-AXvgufLns6yY';
+        
+        let supabase;
+        let currentUser;
+
+        // Initialize Supabase
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            addResult('✅ Supabase client initialized', 'success');
+        } catch (error) {
+            addResult('❌ Failed to initialize Supabase: ' + error.message, 'error');
+        }
+
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `debug-section ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+            console.log(`[DEBUG] ${message}`);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function testSupabaseConnection() {
+            try {
+                addResult('🔄 Testing Supabase connection...', 'info');
+                
+                const { data, error } = await supabase.from('tutors').select('count').limit(1);
+                
+                if (error) {
+                    addResult(`❌ Supabase connection failed: ${error.message}`, 'error');
+                    addResult(`Error details: ${JSON.stringify(error, null, 2)}`, 'error');
+                } else {
+                    addResult('✅ Supabase connection successful', 'success');
+                    addResult(`Response: ${JSON.stringify(data, null, 2)}`, 'info');
+                }
+            } catch (error) {
+                addResult(`💥 Connection test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAuthentication() {
+            try {
+                addResult('🔄 Testing authentication...', 'info');
+                
+                const { data: { session }, error } = await supabase.auth.getSession();
+                
+                if (error) {
+                    addResult(`❌ Auth error: ${error.message}`, 'error');
+                } else if (!session) {
+                    addResult('⚠️ No active session - user not logged in', 'error');
+                } else {
+                    currentUser = session.user;
+                    addResult('✅ User authenticated successfully', 'success');
+                    addResult(`User ID: ${currentUser.id}`, 'info');
+                    addResult(`User Email: ${currentUser.email}`, 'info');
+                }
+            } catch (error) {
+                addResult(`💥 Auth test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDatabaseAccess() {
+            try {
+                addResult('🔄 Testing database access...', 'info');
+                
+                // Test lesson_requests table access
+                const { data: requests, error: requestsError } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .limit(5);
+                
+                if (requestsError) {
+                    addResult(`❌ lesson_requests table error: ${requestsError.message}`, 'error');
+                    addResult(`Error code: ${requestsError.code}`, 'error');
+                    addResult(`Error details: ${requestsError.details}`, 'error');
+                } else {
+                    addResult('✅ lesson_requests table accessible', 'success');
+                    addResult(`Found ${requests.length} lesson requests`, 'info');
+                }
+
+                // Test tutors table access
+                const { data: tutors, error: tutorsError } = await supabase
+                    .from('tutors')
+                    .select('id, name')
+                    .limit(3);
+                
+                if (tutorsError) {
+                    addResult(`❌ tutors table error: ${tutorsError.message}`, 'error');
+                } else {
+                    addResult('✅ tutors table accessible', 'success');
+                    addResult(`Found ${tutors.length} tutors`, 'info');
+                }
+
+            } catch (error) {
+                addResult(`💥 Database test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLessonRequestCreation() {
+            try {
+                addResult('🔄 Testing lesson request creation...', 'info');
+                
+                if (!currentUser) {
+                    addResult('❌ No authenticated user - run authentication test first', 'error');
+                    return;
+                }
+
+                // Get a tutor ID for testing
+                const { data: tutors, error: tutorError } = await supabase
+                    .from('tutors')
+                    .select('id')
+                    .limit(1);
+
+                if (tutorError || !tutors.length) {
+                    addResult('❌ Could not find tutor for testing', 'error');
+                    return;
+                }
+
+                const testData = {
+                    tutor_id: tutors[0].id,
+                    student_id: currentUser.id,
+                    requested_date: '2025-01-20',
+                    requested_start_time: '10:00:00',
+                    requested_end_time: '10:30:00',
+                    status: 'pending',
+                    student_message: 'Test lesson request from debug tool'
+                };
+
+                addResult(`Test data: ${JSON.stringify(testData, null, 2)}`, 'info');
+
+                const { data, error } = await supabase
+                    .from('lesson_requests')
+                    .insert([testData])
+                    .select()
+                    .single();
+
+                if (error) {
+                    addResult(`❌ Lesson request creation failed: ${error.message}`, 'error');
+                    addResult(`Error code: ${error.code}`, 'error');
+                    addResult(`Error details: ${error.details}`, 'error');
+                    addResult(`Error hint: ${error.hint}`, 'error');
+                } else {
+                    addResult('✅ Lesson request created successfully!', 'success');
+                    addResult(`Created request ID: ${data.id}`, 'success');
+                    
+                    // Clean up - delete the test request
+                    const { error: deleteError } = await supabase
+                        .from('lesson_requests')
+                        .delete()
+                        .eq('id', data.id);
+                    
+                    if (deleteError) {
+                        addResult(`⚠️ Could not clean up test request: ${deleteError.message}`, 'error');
+                    } else {
+                        addResult('🧹 Test request cleaned up successfully', 'info');
+                    }
+                }
+
+            } catch (error) {
+                addResult(`💥 Lesson request test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-run basic tests on page load
+        window.addEventListener('load', async () => {
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for Supabase to load
+            await testSupabaseConnection();
+            await testAuthentication();
+        });
+    </script>
+</body>
+</html>
