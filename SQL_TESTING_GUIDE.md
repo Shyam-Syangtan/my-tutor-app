@@ -26,12 +26,16 @@ id                                   | name          | user_id
 
 ## 🔍 **Step 2: Test Availability Queries with Real UUIDs**
 
-**Replace the UUIDs below with actual ones from Step 1:**
+**IMPORTANT: Copy an actual user_id from Step 1 results and paste it below:**
 
 ```sql
--- Check if tutor has set any availability (use user_id from step 1)
-SELECT * FROM tutor_availability 
-WHERE tutor_id = '123e4567-e89b-12d3-a456-426614174000';
+-- Example: If Step 1 showed user_id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+-- Then use that exact UUID in this query:
+
+SELECT * FROM tutor_availability
+WHERE tutor_id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+
+-- ⚠️ REPLACE 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' with actual user_id from your Step 1 results
 ```
 
 **Expected Result (if tutor set availability):**
@@ -48,11 +52,15 @@ uuid-here   | 123e4567...  | 1          | 10:00:00   | 11:00:00 | true
 
 **Test the join between tutors and availability:**
 ```sql
--- Check relationship (use tutors.id from step 1)
+-- Example: If Step 1 showed tutors.id = 'f9e8d7c6-b5a4-3210-9876-543210fedcba'
+-- Then use that exact UUID in this query:
+
 SELECT t.name, t.id as record_id, t.user_id, ta.day_of_week, ta.start_time
 FROM tutors t
 LEFT JOIN tutor_availability ta ON t.user_id = ta.tutor_id
-WHERE t.id = '456e7890-e12b-34d5-a678-901234567890';
+WHERE t.id = 'f9e8d7c6-b5a4-3210-9876-543210fedcba';
+
+-- ⚠️ REPLACE 'f9e8d7c6-b5a4-3210-9876-543210fedcba' with actual tutors.id from your Step 1 results
 ```
 
 **Expected Result:**

@@ -46,17 +46,26 @@ SELECT id, name, user_id FROM tutors LIMIT 5;
 ```
 
 **Then use the actual UUIDs from step 1 in these queries:**
-```sql
--- 2. Check tutor_availability with actual UUID (replace with real user_id from step 1)
--- Example: SELECT * FROM tutor_availability WHERE tutor_id = '123e4567-e89b-12d3-a456-426614174000';
-SELECT * FROM tutor_availability WHERE tutor_id = 'REPLACE_WITH_ACTUAL_USER_ID_FROM_STEP_1';
 
--- 3. Verify the relationship (replace with real tutors.id from step 1)
--- Example: WHERE t.id = '456e7890-e12b-34d5-a678-901234567890';
+**⚠️ CRITICAL: Copy actual UUIDs from Step 1 results - don't use the placeholder text!**
+
+```sql
+-- 2. Check tutor_availability with actual UUID
+-- STEP A: Look at your Step 1 results and copy a real user_id
+-- STEP B: Paste it in place of the example UUID below
+
+SELECT * FROM tutor_availability WHERE tutor_id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+-- ⚠️ REPLACE 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' with actual user_id from Step 1
+
+-- 3. Verify the relationship
+-- STEP A: Look at your Step 1 results and copy a real tutors.id
+-- STEP B: Paste it in place of the example UUID below
+
 SELECT t.name, t.id as record_id, t.user_id, ta.day_of_week, ta.start_time
 FROM tutors t
 LEFT JOIN tutor_availability ta ON t.user_id = ta.tutor_id
-WHERE t.id = 'REPLACE_WITH_ACTUAL_TUTORS_ID_FROM_STEP_1';
+WHERE t.id = 'f9e8d7c6-b5a4-3210-9876-543210fedcba';
+-- ⚠️ REPLACE 'f9e8d7c6-b5a4-3210-9876-543210fedcba' with actual tutors.id from Step 1
 ```
 
 **Quick way to test with any tutor:**

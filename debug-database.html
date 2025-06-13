@@ -295,30 +295,40 @@
 
                 const sqlQueries = `
                     <div class="bg-gray-100 p-4 rounded">
-                        <h3 class="font-semibold mb-2">Copy these SQL queries to test in Supabase SQL Editor:</h3>
+                        <h3 class="font-semibold mb-2 text-green-700">✅ Ready-to-use SQL queries with REAL UUIDs:</h3>
+                        <div class="bg-yellow-100 border border-yellow-400 p-2 rounded mb-4 text-sm">
+                            <strong>⚠️ These queries use actual UUIDs from your database - no syntax errors!</strong>
+                        </div>
                         <div class="space-y-4 text-xs font-mono">
                             <div>
                                 <strong>1. Check tutors table:</strong><br>
-                                <code class="bg-white p-2 block rounded">SELECT id, name, user_id FROM tutors LIMIT 5;</code>
+                                <code class="bg-white p-2 block rounded border">SELECT id, name, user_id FROM tutors LIMIT 5;</code>
                             </div>
                             <div>
                                 <strong>2. Check availability for ${firstTutor.name}:</strong><br>
-                                <code class="bg-white p-2 block rounded">SELECT * FROM tutor_availability WHERE tutor_id = '${firstTutor.user_id}';</code>
+                                <div class="text-xs text-gray-600 mb-1">Using real user_id: ${firstTutor.user_id}</div>
+                                <code class="bg-white p-2 block rounded border">SELECT * FROM tutor_availability WHERE tutor_id = '${firstTutor.user_id}';</code>
                             </div>
                             <div>
                                 <strong>3. Verify relationship for ${firstTutor.name}:</strong><br>
-                                <code class="bg-white p-2 block rounded">SELECT t.name, t.id as record_id, t.user_id, ta.day_of_week, ta.start_time
+                                <div class="text-xs text-gray-600 mb-1">Using real tutors.id: ${firstTutor.id}</div>
+                                <code class="bg-white p-2 block rounded border">SELECT t.name, t.id as record_id, t.user_id, ta.day_of_week, ta.start_time
 FROM tutors t
 LEFT JOIN tutor_availability ta ON t.user_id = ta.tutor_id
 WHERE t.id = '${firstTutor.id}';</code>
                             </div>
                             <div>
-                                <strong>4. Get all tutor-availability relationships:</strong><br>
-                                <code class="bg-white p-2 block rounded">SELECT t.name, t.id as record_id, t.user_id, ta.day_of_week, ta.start_time, ta.end_time
+                                <strong>4. Get all tutor-availability relationships (safe query):</strong><br>
+                                <div class="text-xs text-gray-600 mb-1">No specific UUIDs needed - works for everyone</div>
+                                <code class="bg-white p-2 block rounded border">SELECT t.name, t.id as record_id, t.user_id, ta.day_of_week, ta.start_time, ta.end_time
 FROM tutors t
 LEFT JOIN tutor_availability ta ON t.user_id = ta.tutor_id
-ORDER BY t.name, ta.day_of_week, ta.start_time;</code>
+ORDER BY t.name, ta.day_of_week, ta.start_time
+LIMIT 20;</code>
                             </div>
+                        </div>
+                        <div class="bg-green-100 border border-green-400 p-2 rounded mt-4 text-sm">
+                            <strong>✅ Copy any of these queries to Supabase SQL Editor - they use real UUIDs!</strong>
                         </div>
                     </div>
                 `;
