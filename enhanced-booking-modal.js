@@ -125,19 +125,19 @@ class EnhancedBookingModal {
                     </div>
 
                     <!-- Modal Footer -->
-                    <div class="flex justify-between items-center p-6 border-t border-gray-200">
-                        <div id="selectedSlotInfo" class="text-sm text-gray-600">
+                    <div class="flex justify-between items-center p-6 border-t-2 border-gray-300 bg-gray-50 min-h-[80px]">
+                        <div id="selectedSlotInfo" class="text-sm text-gray-700 font-medium">
                             Select a time slot to continue
                         </div>
                         <div class="flex space-x-3">
                             <button id="modalCancelBtn"
-                                    class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                                    class="px-5 py-2 border-2 border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium">
                                 Cancel
                             </button>
                             <button id="bookLessonBtn"
-                                    class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    class="px-8 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-bold shadow-lg border-2 border-red-600"
                                     disabled>
-                                Book lesson
+                                📚 Book lesson
                             </button>
                         </div>
                     </div>
@@ -149,6 +149,14 @@ class EnhancedBookingModal {
         if (!document.getElementById('enhancedBookingModal')) {
             document.body.insertAdjacentHTML('beforeend', modalHTML);
             this.attachEventListeners();
+
+            // Debug: Check if button was created
+            const bookBtn = document.getElementById('bookLessonBtn');
+            console.log('🔘 [MODAL] Book lesson button created:', bookBtn ? 'YES' : 'NO');
+            if (bookBtn) {
+                console.log('🔘 [MODAL] Button text:', bookBtn.textContent);
+                console.log('🔘 [MODAL] Button classes:', bookBtn.className);
+            }
         }
     }
 
