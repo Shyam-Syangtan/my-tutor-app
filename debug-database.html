@@ -42,6 +42,7 @@
                 <button onclick="testRLSPolicies()" class="bg-purple-600 text-white px-4 py-2 rounded">Test RLS Policies</button>
                 <button onclick="testTutorLookup()" class="bg-orange-600 text-white px-4 py-2 rounded">Test Tutor Lookup</button>
                 <button onclick="testAvailabilityQuery()" class="bg-red-600 text-white px-4 py-2 rounded">Test Availability Query</button>
+                <button onclick="generateSQLQueries()" class="bg-teal-600 text-white px-4 py-2 rounded">Generate SQL Queries</button>
             </div>
             <div id="testResults" class="mt-4 text-sm"></div>
         </div>
@@ -247,7 +248,7 @@
         async function testAvailabilityQuery() {
             console.log('Testing availability query...');
             const tutorUserId = document.getElementById('tutorUserId').value;
-            
+
             if (!tutorUserId) {
                 alert('Please enter a tutor user_id first');
                 return;
@@ -261,7 +262,7 @@
                     .eq('tutor_id', tutorUserId);
 
                 console.log('Availability query result:', { data, error, count: data?.length });
-                
+
                 const testResults = document.getElementById('testResults');
                 testResults.innerHTML = `
                     <div>
@@ -271,6 +272,62 @@
                 `;
             } catch (error) {
                 console.error('Availability query error:', error);
+            }
+        }
+
+        async function generateSQLQueries() {
+            console.log('Generating SQL queries with real UUIDs...');
+
+            try {
+                // Get some real tutors data
+                const { data: tutors, error } = await supabase
+                    .from('tutors')
+                    .select('id, name, user_id')
+                    .limit(3);
+
+                if (error || !tutors || tutors.length === 0) {
+                    console.error('No tutors found:', error);
+                    return;
+                }
+
+                const testResults = document.getElementById('testResults');
+                const firstTutor = tutors[0];
+
+                const sqlQueries = `
+                    <div class="bg-gray-100 p-4 rounded">
+                        <h3 class="font-semibold mb-2">Copy these SQL queries to test in Supabase SQL Editor:</h3>
+                        <div class="space-y-4 text-xs font-mono">
+                            <div>
+                                <strong>1. Check tutors table:</strong><br>
+                                <code class="bg-white p-2 block rounded">SELECT id, name, user_id FROM tutors LIMIT 5;</code>
+                            </div>
+                            <div>
+                                <strong>2. Check availability for ${firstTutor.name}:</strong><br>
+                                <code class="bg-white p-2 block rounded">SELECT * FROM tutor_availability WHERE tutor_id = '${firstTutor.user_id}';</code>
+                            </div>
+                            <div>
+                                <strong>3. Verify relationship for ${firstTutor.name}:</strong><br>
+                                <code class="bg-white p-2 block rounded">SELECT t.name, t.id as record_id, t.user_id, ta.day_of_week, ta.start_time
+FROM tutors t
+LEFT JOIN tutor_availability ta ON t.user_id = ta.tutor_id
+WHERE t.id = '${firstTutor.id}';</code>
+                            </div>
+                            <div>
+                                <strong>4. Get all tutor-availability relationships:</strong><br>
+                                <code class="bg-white p-2 block rounded">SELECT t.name, t.id as record_id, t.user_id, ta.day_of_week, ta.start_time, ta.end_time
+FROM tutors t
+LEFT JOIN tutor_availability ta ON t.user_id = ta.tutor_id
+ORDER BY t.name, ta.day_of_week, ta.start_time;</code>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                testResults.innerHTML = sqlQueries;
+                console.log('SQL queries generated with real UUIDs');
+
+            } catch (error) {
+                console.error('Error generating SQL queries:', error);
             }
         }
     </script>
