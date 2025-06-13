@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Lesson Requests</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Debug Lesson Requests</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Test Database Connection -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Database Connection Test</h2>
+                <button onclick="testConnection()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Test Connection
+                </button>
+                <div id="connectionResult" class="mt-4 p-3 rounded bg-gray-50"></div>
+            </div>
+
+            <!-- Check Table Structure -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Table Structure</h2>
+                <button onclick="checkTableStructure()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    Check Tables
+                </button>
+                <div id="tableResult" class="mt-4 p-3 rounded bg-gray-50"></div>
+            </div>
+
+            <!-- List All Lesson Requests -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">All Lesson Requests</h2>
+                <button onclick="listAllRequests()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    List All Requests
+                </button>
+                <div id="requestsResult" class="mt-4 p-3 rounded bg-gray-50 max-h-64 overflow-y-auto"></div>
+            </div>
+
+            <!-- Test Specific Tutor Query -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Test Tutor Query</h2>
+                <input type="text" id="tutorId" placeholder="Enter Tutor ID" class="w-full p-2 border rounded mb-2">
+                <button onclick="testTutorQuery()" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
+                    Query for Tutor
+                </button>
+                <div id="tutorResult" class="mt-4 p-3 rounded bg-gray-50"></div>
+            </div>
+
+            <!-- Create Test Request -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Create Test Request</h2>
+                <input type="text" id="testTutorId" placeholder="Tutor ID" class="w-full p-2 border rounded mb-2">
+                <input type="text" id="testStudentId" placeholder="Student ID" class="w-full p-2 border rounded mb-2">
+                <button onclick="createTestRequest()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    Create Test Request
+                </button>
+                <div id="createResult" class="mt-4 p-3 rounded bg-gray-50"></div>
+            </div>
+
+            <!-- Current User Info -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4">Current User</h2>
+                <button onclick="getCurrentUser()" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
+                    Get Current User
+                </button>
+                <div id="userResult" class="mt-4 p-3 rounded bg-gray-50"></div>
+            </div>
+        </div>
+
+        <!-- Console Output -->
+        <div class="mt-8 bg-black text-green-400 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold mb-2">Console Output:</h3>
+            <div id="console" class="font-mono text-sm max-h-64 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+
+    <script>
+        // Override console.log to display in our custom console
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        function addToConsole(message, type = 'log') {
+            const consoleDiv = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'text-red-400' : 'text-green-400';
+            consoleDiv.innerHTML += `<div class="${color}">[${timestamp}] ${message}</div>`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole(args.join(' '), 'log');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole(args.join(' '), 'error');
+        };
+
+        // Test functions
+        async function testConnection() {
+            const result = document.getElementById('connectionResult');
+            try {
+                console.log('Testing Supabase connection...');
+                const { data, error } = await supabase.from('users').select('count').limit(1);
+                if (error) throw error;
+                result.innerHTML = '<span class="text-green-600">✅ Connection successful!</span>';
+                console.log('Connection test passed');
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Connection failed: ${error.message}</span>`;
+                console.error('Connection test failed:', error);
+            }
+        }
+
+        async function checkTableStructure() {
+            const result = document.getElementById('tableResult');
+            try {
+                console.log('Checking table structure...');
+                
+                // Check if lesson_requests table exists
+                const { data: requestsData, error: requestsError } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .limit(1);
+                
+                const { data: lessonsData, error: lessonsError } = await supabase
+                    .from('lessons')
+                    .select('*')
+                    .limit(1);
+
+                let html = '';
+                if (!requestsError) {
+                    html += '<div class="text-green-600">✅ lesson_requests table exists</div>';
+                } else {
+                    html += `<div class="text-red-600">❌ lesson_requests error: ${requestsError.message}</div>`;
+                }
+
+                if (!lessonsError) {
+                    html += '<div class="text-green-600">✅ lessons table exists</div>';
+                } else {
+                    html += `<div class="text-red-600">❌ lessons error: ${lessonsError.message}</div>`;
+                }
+
+                result.innerHTML = html;
+                console.log('Table structure check completed');
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Error: ${error.message}</span>`;
+                console.error('Table structure check failed:', error);
+            }
+        }
+
+        async function listAllRequests() {
+            const result = document.getElementById('requestsResult');
+            try {
+                console.log('Listing all lesson requests...');
+                const { data, error } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    let html = `<div class="text-green-600">Found ${data.length} requests:</div>`;
+                    data.forEach((req, index) => {
+                        html += `
+                            <div class="mt-2 p-2 bg-gray-100 rounded text-xs">
+                                <strong>Request ${index + 1}:</strong><br>
+                                ID: ${req.id}<br>
+                                Tutor: ${req.tutor_id}<br>
+                                Student: ${req.student_id}<br>
+                                Status: ${req.status}<br>
+                                Date: ${req.requested_date}<br>
+                                Time: ${req.requested_start_time}
+                            </div>
+                        `;
+                    });
+                    result.innerHTML = html;
+                } else {
+                    result.innerHTML = '<span class="text-yellow-600">⚠️ No lesson requests found</span>';
+                }
+                console.log('Found', data?.length || 0, 'lesson requests');
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Error: ${error.message}</span>`;
+                console.error('List requests failed:', error);
+            }
+        }
+
+        async function testTutorQuery() {
+            const tutorId = document.getElementById('tutorId').value;
+            const result = document.getElementById('tutorResult');
+            
+            if (!tutorId) {
+                result.innerHTML = '<span class="text-yellow-600">⚠️ Please enter a tutor ID</span>';
+                return;
+            }
+
+            try {
+                console.log('Testing tutor query for ID:', tutorId);
+                const { data, error } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .eq('tutor_id', tutorId)
+                    .eq('status', 'pending');
+
+                if (error) throw error;
+
+                result.innerHTML = `
+                    <div class="text-green-600">✅ Query successful</div>
+                    <div>Found ${data?.length || 0} pending requests for tutor ${tutorId}</div>
+                    ${data && data.length > 0 ? `<pre class="text-xs mt-2">${JSON.stringify(data, null, 2)}</pre>` : ''}
+                `;
+                console.log('Tutor query result:', data);
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Error: ${error.message}</span>`;
+                console.error('Tutor query failed:', error);
+            }
+        }
+
+        async function createTestRequest() {
+            const tutorId = document.getElementById('testTutorId').value;
+            const studentId = document.getElementById('testStudentId').value;
+            const result = document.getElementById('createResult');
+            
+            if (!tutorId || !studentId) {
+                result.innerHTML = '<span class="text-yellow-600">⚠️ Please enter both tutor and student IDs</span>';
+                return;
+            }
+
+            try {
+                console.log('Creating test request...');
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                
+                const { data, error } = await supabase
+                    .from('lesson_requests')
+                    .insert([{
+                        tutor_id: tutorId,
+                        student_id: studentId,
+                        requested_date: tomorrow.toISOString().split('T')[0],
+                        requested_start_time: '10:00:00',
+                        requested_end_time: '11:00:00',
+                        status: 'pending',
+                        student_message: 'Test lesson request from debug tool'
+                    }])
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                result.innerHTML = `
+                    <div class="text-green-600">✅ Test request created!</div>
+                    <pre class="text-xs mt-2">${JSON.stringify(data, null, 2)}</pre>
+                `;
+                console.log('Test request created:', data);
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Error: ${error.message}</span>`;
+                console.error('Create test request failed:', error);
+            }
+        }
+
+        async function getCurrentUser() {
+            const result = document.getElementById('userResult');
+            try {
+                console.log('Getting current user...');
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                if (error) throw error;
+
+                if (user) {
+                    result.innerHTML = `
+                        <div class="text-green-600">✅ User logged in</div>
+                        <div><strong>ID:</strong> ${user.id}</div>
+                        <div><strong>Email:</strong> ${user.email}</div>
+                        <div><strong>Role:</strong> ${user.user_metadata?.role || 'Not set'}</div>
+                    `;
+                    console.log('Current user:', user);
+                } else {
+                    result.innerHTML = '<span class="text-yellow-600">⚠️ No user logged in</span>';
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Error: ${error.message}</span>`;
+                console.error('Get current user failed:', error);
+            }
+        }
+
+        // Auto-run connection test on load
+        window.addEventListener('load', () => {
+            console.log('Debug tool loaded');
+            testConnection();
+        });
+    </script>
+</body>
+</html>
