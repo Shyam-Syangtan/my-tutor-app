@@ -483,10 +483,10 @@ class EnhancedBookingModal {
                 const isClickable = true; // All slots are clickable as per requirements
 
                 gridHTML += `
-                    <div class="${slotClass} border-r border-b border-gray-100 last:border-r-0 ${isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed'}"
+                    <div class="${slotClass} border-r border-b border-gray-100 last:border-r-0 ${isClickable ? 'cursor-pointer hover:opacity-80 hover:scale-105 transition-all duration-150' : 'cursor-not-allowed'}"
                          style="height: 32px; min-height: 32px; border-width: 0.5px;"
-                         onclick="enhancedBookingModal.selectTimeSlot('${dateString}', '${time}')"
-                         data-date="${dateString}" data-time="${time}">
+                         data-date="${dateString}" data-time="${time}"
+                         data-clickable="${isClickable}">
                     </div>
                 `;
             }
@@ -494,6 +494,38 @@ class EnhancedBookingModal {
 
         calendarGrid.innerHTML = gridHTML;
         console.log('✅ [MODAL] Calendar grid rendered with', timeSlots.length * 7, 'slots');
+
+        // Add click event listeners to all slots
+        this.attachSlotClickListeners();
+    }
+
+    // Attach click listeners to calendar slots
+    attachSlotClickListeners() {
+        const calendarGrid = document.getElementById('calendarGrid');
+        if (!calendarGrid) return;
+
+        // Remove existing listeners
+        calendarGrid.removeEventListener('click', this.handleSlotClick);
+
+        // Add new listener
+        this.handleSlotClick = (event) => {
+            const slot = event.target.closest('[data-date][data-time]');
+            if (!slot) return;
+
+            const date = slot.getAttribute('data-date');
+            const time = slot.getAttribute('data-time');
+            const isClickable = slot.getAttribute('data-clickable') === 'true';
+
+            if (isClickable && date && time) {
+                console.log('🎯 [MODAL] Slot clicked:', { date, time });
+                this.selectTimeSlot(date, time);
+            } else {
+                console.log('⚠️ [MODAL] Slot not clickable or missing data:', { date, time, isClickable });
+            }
+        };
+
+        calendarGrid.addEventListener('click', this.handleSlotClick);
+        console.log('✅ [MODAL] Slot click listeners attached');
     }
 
     // Get slot status based on availability and requests
@@ -543,15 +575,21 @@ class EnhancedBookingModal {
         // Remove previous selection
         document.querySelectorAll('[data-selected="true"]').forEach(el => {
             el.removeAttribute('data-selected');
-            el.classList.remove('ring-2', 'ring-indigo-500', 'ring-offset-1');
+            el.classList.remove('ring-2', 'ring-indigo-500', 'ring-offset-1', 'ring-4', 'ring-blue-500');
         });
 
         // Add selection to clicked slot
         const slot = document.querySelector(`[data-date="${date}"][data-time="${time}"]`);
         if (slot) {
             slot.setAttribute('data-selected', 'true');
-            slot.classList.add('ring-2', 'ring-indigo-500', 'ring-offset-1');
+            slot.classList.add('ring-4', 'ring-blue-500', 'ring-offset-1');
             console.log('✅ [MODAL] Slot visual selection applied');
+
+            // Add visual feedback with animation
+            slot.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                slot.style.transform = 'scale(1)';
+            }, 200);
         } else {
             console.error('❌ [MODAL] Could not find slot element to select');
         }
@@ -566,12 +604,33 @@ class EnhancedBookingModal {
     // Update selected slot info
     updateSelectedSlotInfo() {
         const info = document.getElementById('selectedSlotInfo');
+        if (!info) {
+            console.error('❌ [MODAL] selectedSlotInfo element not found');
+            return;
+        }
+
         if (this.selectedTimeSlot) {
             const { date, time } = this.selectedTimeSlot;
             const endTime = this.getEndTime(time);
-            info.textContent = `Selected: ${this.formatDate(new Date(date))} at ${this.formatTime(time)} - ${this.formatTime(endTime)}`;
+            const formattedDate = this.formatDate(new Date(date));
+            const formattedStartTime = this.formatTime(time);
+            const formattedEndTime = this.formatTime(endTime);
+
+            info.innerHTML = `
+                <div class="text-sm font-semibold text-green-700">
+                    ✅ Selected: ${formattedDate}
+                </div>
+                <div class="text-xs text-green-600">
+                    ${formattedStartTime} - ${formattedEndTime} (30 minutes)
+                </div>
+            `;
+            console.log('✅ [MODAL] Selected slot info updated:', { date, time });
         } else {
-            info.textContent = 'Select a time slot to continue';
+            info.innerHTML = `
+                <div class="text-sm text-gray-700 font-medium">
+                    Select a time slot to continue
+                </div>
+            `;
         }
     }
 
@@ -645,14 +704,37 @@ class EnhancedBookingModal {
             const formattedTime = this.formatTime(time);
             this.showSuccessMessage(`✅ Lesson request sent for ${formattedDate} at ${formattedTime}! The tutor will review and respond soon.`);
 
-            // Close modal
-            this.closeModal();
+            // Update local data to show pending status
+            const requestKey = `${date}-${time}`;
+            if (!this.lessonRequests) this.lessonRequests = {};
+            this.lessonRequests[requestKey] = {
+                id: data.id,
+                tutor_id: this.tutorId,
+                student_id: this.currentUser.id,
+                requested_date: date,
+                requested_start_time: time,
+                requested_end_time: endTime,
+                status: 'pending',
+                created_at: new Date().toISOString()
+            };
+
+            // Regenerate calendar to show updated status
+            this.generateCalendarGrid();
+
+            // Close modal after a short delay to show the updated status
+            setTimeout(() => {
+                this.closeModal();
+            }, 1500);
 
             // Trigger refresh of parent booking system
             if (window.bookingSystem && typeof window.bookingSystem.loadBookingData === 'function') {
                 console.log('🔄 [BOOKING] Refreshing booking data...');
-                await window.bookingSystem.loadBookingData();
-                window.bookingSystem.renderAvailabilityGrid('availabilityContainer');
+                setTimeout(async () => {
+                    await window.bookingSystem.loadBookingData();
+                    if (window.bookingSystem.renderAvailabilityGrid) {
+                        window.bookingSystem.renderAvailabilityGrid('availabilityContainer');
+                    }
+                }, 2000);
             }
 
         } catch (error) {
@@ -767,3 +849,41 @@ class EnhancedBookingModal {
 
 // Global instance
 let enhancedBookingModal;
+
+// Initialize global enhanced booking modal when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait for Supabase to be available
+    if (typeof window.supabase !== 'undefined') {
+        initializeGlobalEnhancedModal();
+    } else {
+        // Wait for Supabase to load
+        const checkSupabase = setInterval(() => {
+            if (typeof window.supabase !== 'undefined') {
+                clearInterval(checkSupabase);
+                initializeGlobalEnhancedModal();
+            }
+        }, 100);
+    }
+});
+
+function initializeGlobalEnhancedModal() {
+    try {
+        // Get Supabase client from global scope or create one
+        let supabaseClient;
+        if (window.supabase && window.supabase.createClient) {
+            const SUPABASE_URL = 'https://qbyyutebrgpxngvwenkd.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFieXl1dGVicmdweG5ndndlbmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MTA1NTMsImV4cCI6MjA2NTI4NjU1M30.eO8Wd0ZOqtXgvQ3BuedmSPmYVpbG3V-AXvgufLns6yY';
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } else if (window.supabase) {
+            supabaseClient = window.supabase;
+        } else {
+            console.warn('⚠️ [MODAL] Supabase not available for enhanced modal');
+            return;
+        }
+
+        enhancedBookingModal = new EnhancedBookingModal(supabaseClient);
+        console.log('✅ [MODAL] Global enhanced booking modal initialized');
+    } catch (error) {
+        console.error('❌ [MODAL] Error initializing global enhanced modal:', error);
+    }
+}
