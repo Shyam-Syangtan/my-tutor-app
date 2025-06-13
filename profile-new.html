@@ -224,7 +224,11 @@
                     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">Available Times</h3>
                         <div id="calendarContainer">
-                            <!-- Calendar will be generated here -->
+                            <!-- Student booking interface will be generated here -->
+                            <div class="text-center py-8">
+                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                                <p class="text-gray-600 mt-2">Loading availability...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -274,7 +278,7 @@
 
                 await displayTutorProfile(data);
                 await loadReviews();
-                generateCalendar();
+                await initializeBookingSystem();
             } catch (error) {
                 console.error('Error loading tutor profile:', error);
                 showError();
@@ -466,42 +470,36 @@
             });
         }
 
-        // Generate calendar
-        function generateCalendar() {
-            const container = document.getElementById('calendarContainer');
-            const today = new Date();
-            const currentWeek = [];
+        // Initialize booking system
+        async function initializeBookingSystem() {
+            try {
+                // Get current user
+                const { data: { session } } = await supabase.auth.getSession();
+                const currentUser = session?.user;
 
-            // Generate current week
-            for (let i = 0; i < 7; i++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + i);
-                currentWeek.push(date);
+                // Initialize booking system
+                bookingSystem = new StudentBookingSystem(supabase);
+                const success = await bookingSystem.initialize(tutorId, currentUser);
+
+                if (success) {
+                    // Render the availability grid
+                    bookingSystem.renderAvailabilityGrid('calendarContainer');
+                } else {
+                    // Show error message
+                    document.getElementById('calendarContainer').innerHTML = `
+                        <div class="text-center py-8">
+                            <div class="text-gray-500 text-sm">Unable to load availability. Please try again later.</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error initializing booking system:', error);
+                document.getElementById('calendarContainer').innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-red-500 text-sm">Error loading availability. Please refresh the page.</div>
+                    </div>
+                `;
             }
-
-            const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-            container.innerHTML = `
-                <div class="mb-4">
-                    <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-gray-500 mb-2">
-                        ${weekDays.map(day => `<div>${day}</div>`).join('')}
-                    </div>
-                    <div class="calendar-grid">
-                        ${currentWeek.map(date => `
-                            <div class="calendar-cell">
-                                <div class="text-sm font-medium mb-1">${date.getDate()}</div>
-                                <div class="space-y-1">
-                                    <div class="time-slot available">9:00</div>
-                                    <div class="time-slot available">11:00</div>
-                                    <div class="time-slot unavailable">14:00</div>
-                                    <div class="time-slot available">16:00</div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                <p class="text-xs text-gray-500 text-center">Times shown in IST</p>
-            `;
         }
 
         // Contact teacher function
@@ -572,5 +570,8 @@
 
     <!-- Simple Messaging Service -->
     <script src="simple-messaging.js"></script>
+
+    <!-- Student Booking System -->
+    <script src="student-booking.js?v=1"></script>
 </body>
 </html>

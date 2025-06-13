@@ -384,16 +384,15 @@
                     <div class="flex items-center justify-between mb-6">
                         <h2 class="text-xl font-semibold text-gray-900">Availability</h2>
                         <div class="text-sm text-gray-500">
-                            Available <span class="text-green-600 font-medium">07:00 Tomorrow</span>
+                            Click available slots to book a lesson
                         </div>
                     </div>
-                    <div id="availabilityGrid" class="availability-grid">
-                        <!-- Availability grid will be generated here -->
-                    </div>
-                    <div class="text-center mt-4">
-                        <button class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors">
-                            Schedule lesson
-                        </button>
+                    <div id="availabilityContainer">
+                        <!-- Student booking interface will be generated here -->
+                        <div class="text-center py-8">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                            <p class="text-gray-600 mt-2">Loading availability...</p>
+                        </div>
                     </div>
                 </div>
 
@@ -621,7 +620,7 @@
                 }
 
                 await loadReviews();
-                generateAvailabilityGrid();
+                await initializeBookingSystem();
             } catch (error) {
                 console.error('Error loading tutor profile:', error);
                 showError();
@@ -765,7 +764,7 @@
                 `;
             }
 
-            generateAvailabilityGrid();
+            await initializeBookingSystem();
             profileContent.classList.remove('hidden');
         }
 
@@ -901,59 +900,45 @@
         let selectedTimeSlot = null;
         let selectedLessonType = null;
 
-        // Generate availability grid
-        function generateAvailabilityGrid() {
-            const container = document.getElementById('availabilityGrid');
-            const today = new Date();
+        // Initialize booking system
+        async function initializeBookingSystem() {
+            try {
+                // Get current user
+                const { data: { session } } = await supabase.auth.getSession();
+                const currentUser = session?.user;
 
-            // Get current week starting from Thursday
-            const currentDate = new Date(today);
-            const dayOfWeek = currentDate.getDay();
-            const daysToThursday = (dayOfWeek + 3) % 7; // Thursday is 4, so we calculate offset
-            currentWeekStart = new Date(currentDate);
-            currentWeekStart.setDate(currentDate.getDate() - daysToThursday);
+                // Get tutor ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const tutorId = urlParams.get('id');
 
-            const weekDays = ['Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed'];
-            const dates = [];
+                if (!tutorId) {
+                    console.error('No tutor ID found in URL');
+                    return;
+                }
 
-            // Calculate actual dates for the week
-            for (let i = 0; i < 7; i++) {
-                const date = new Date(currentWeekStart);
-                date.setDate(currentWeekStart.getDate() + i);
-                dates.push(date.getDate());
+                // Initialize booking system
+                bookingSystem = new StudentBookingSystem(supabase);
+                const success = await bookingSystem.initialize(tutorId, currentUser);
+
+                if (success) {
+                    // Render the availability grid
+                    bookingSystem.renderAvailabilityGrid('availabilityContainer');
+                } else {
+                    // Show error message
+                    document.getElementById('availabilityContainer').innerHTML = `
+                        <div class="text-center py-8">
+                            <div class="text-gray-500 text-sm">Unable to load availability. Please try again later.</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error initializing booking system:', error);
+                document.getElementById('availabilityContainer').innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-red-500 text-sm">Error loading availability. Please refresh the page.</div>
+                    </div>
+                `;
             }
-
-            const timeSlots = ['00 - 04', '04 - 08', '08 - 12', '12 - 16', '16 - 20', '20 - 24'];
-
-            let gridHTML = '';
-
-            // Header row
-            gridHTML += '<div class="availability-cell header"></div>';
-            weekDays.forEach((day, index) => {
-                gridHTML += `<div class="availability-cell header">${day}<br><span class="text-xs">${dates[index]}</span></div>`;
-            });
-
-            // Time slot rows
-            timeSlots.forEach((timeSlot, timeIndex) => {
-                gridHTML += `<div class="availability-cell time-label">${timeSlot}</div>`;
-                weekDays.forEach((day, dayIndex) => {
-                    const isAvailable = Math.random() > 0.3; // Random availability for demo
-                    const cellClass = isAvailable ? 'available' : 'unavailable';
-                    const dataAttrs = isAvailable ? `data-day="${dayIndex}" data-time="${timeIndex}" data-slot="${timeSlot}"` : '';
-                    gridHTML += `<div class="availability-cell ${cellClass}" ${dataAttrs}></div>`;
-                });
-            });
-
-            container.innerHTML = gridHTML;
-
-            // Add click handlers to available slots
-            container.querySelectorAll('.availability-cell.available').forEach(cell => {
-                cell.addEventListener('click', () => {
-                    const dayIndex = parseInt(cell.dataset.day);
-                    const timeSlot = cell.dataset.slot;
-                    openBookingModal(dayIndex, timeSlot);
-                });
-            });
         }
 
         // Open booking modal
@@ -1278,5 +1263,8 @@
 
     <!-- Simple Messaging Service -->
     <script src="simple-messaging.js"></script>
+
+    <!-- Student Booking System -->
+    <script src="student-booking.js?v=1"></script>
 </body>
 </html>
