@@ -171,7 +171,7 @@
                             <div id="upcomingLessons" class="text-2xl font-bold text-gray-900">0</div>
                             <div class="text-xs text-gray-500 uppercase tracking-wide">Upcoming Lessons</div>
                         </div>
-                        <div class="text-center p-4 bg-gray-50 rounded-lg border">
+                        <div id="actionRequiredCard" class="text-center p-4 bg-gray-50 rounded-lg border transition-all duration-200 hover:shadow-md cursor-pointer" onclick="window.location.href='lesson-requests.html'">
                             <div id="actionRequired" class="text-2xl font-bold text-gray-900">0</div>
                             <div class="text-xs text-gray-500 uppercase tracking-wide">Action Required</div>
                         </div>
@@ -339,6 +339,33 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <style>
+        /* Action Required Card Notification Styling */
+        #actionRequiredCard.has-notification {
+            background: linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%);
+            border-color: #f59e0b;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+
+        #actionRequiredCard.has-notification #actionRequired {
+            color: #92400e;
+        }
+
+        #actionRequiredCard.has-notification .text-gray-500 {
+            color: #92400e !important;
+        }
+
+        /* Pulse animation for notification */
+        #actionRequiredCard.has-notification {
+            animation: pulse-notification 2s infinite;
+        }
+
+        @keyframes pulse-notification {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+    </style>
+
     <script>
         // Dropdown functionality
         const profileBtn = document.getElementById('profileBtn');
@@ -428,6 +455,6 @@
         }
     </script>
 
-    <script src="tutor-dashboard.js"></script>
+    <script src="tutor-dashboard.js?v=2"></script>
 </body>
 </html>

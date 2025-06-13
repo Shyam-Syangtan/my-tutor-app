@@ -489,9 +489,7 @@ function formatLessonDate(dateString) {
 function formatTime(timeString) {
     const [hours, minutes] = timeString.split(':');
     const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
+    return `${hour.toString().padStart(2, '0')}:${minutes}`;
 }
 
 function showSuccessMessage(message) {

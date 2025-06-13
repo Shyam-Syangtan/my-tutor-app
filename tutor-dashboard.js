@@ -91,12 +91,58 @@ async function checkTutorStatus() {
         
         // Load dashboard data
         loadDashboardData();
-        
+
+        // Setup real-time subscriptions
+        setupRealTimeSubscriptions();
+
     } catch (error) {
         console.error('Error in checkTutorStatus:', error);
         alert('Error loading tutor data. Please try again.');
         window.location.href = 'home.html';
     }
+}
+
+// Setup real-time subscriptions for lesson updates
+function setupRealTimeSubscriptions() {
+    if (!supabase || !currentUser) return;
+
+    // Subscribe to lesson_requests changes
+    const lessonRequestsSubscription = supabase
+        .channel('lesson_requests_changes')
+        .on('postgres_changes',
+            {
+                event: '*',
+                schema: 'public',
+                table: 'lesson_requests',
+                filter: `tutor_id=eq.${currentUser.id}`
+            },
+            (payload) => {
+                console.log('📡 Lesson request change detected:', payload);
+                // Refresh stats when lesson requests change
+                loadLessonStats();
+            }
+        )
+        .subscribe();
+
+    // Subscribe to lessons changes
+    const lessonsSubscription = supabase
+        .channel('lessons_changes')
+        .on('postgres_changes',
+            {
+                event: '*',
+                schema: 'public',
+                table: 'lessons',
+                filter: `tutor_id=eq.${currentUser.id}`
+            },
+            (payload) => {
+                console.log('📡 Lesson change detected:', payload);
+                // Refresh stats when lessons change
+                loadLessonStats();
+            }
+        )
+        .subscribe();
+
+    console.log('✅ Real-time subscriptions setup complete');
 }
 
 function loadDashboardData() {
@@ -160,15 +206,88 @@ function updateTeacherInfo() {
     }
 }
 
-function updateStats() {
-    // Placeholder stats - in a real app, these would come from the database
-    const upcomingLessons = document.getElementById('upcomingLessons');
-    const actionRequired = document.getElementById('actionRequired');
-    const packageAction = document.getElementById('packageAction');
+async function updateStats() {
+    try {
+        // Load real lesson data from database
+        await loadLessonStats();
+    } catch (error) {
+        console.error('Error updating stats:', error);
+        // Fallback to placeholder stats
+        const upcomingLessons = document.getElementById('upcomingLessons');
+        const actionRequired = document.getElementById('actionRequired');
+        const packageAction = document.getElementById('packageAction');
 
-    if (upcomingLessons) upcomingLessons.textContent = '0';
-    if (actionRequired) actionRequired.textContent = '0';
-    if (packageAction) packageAction.textContent = '0';
+        if (upcomingLessons) upcomingLessons.textContent = '0';
+        if (actionRequired) actionRequired.textContent = '0';
+        if (packageAction) packageAction.textContent = '0';
+    }
+}
+
+// Load lesson statistics from database
+async function loadLessonStats() {
+    if (!currentUser || !supabase) return;
+
+    try {
+        // Load pending lesson requests (Action Required)
+        const { data: pendingRequests, error: pendingError } = await supabase
+            .from('lesson_requests')
+            .select('id')
+            .eq('tutor_id', currentUser.id)
+            .eq('status', 'pending');
+
+        if (pendingError) {
+            console.error('Error loading pending requests:', pendingError);
+        }
+
+        // Load upcoming confirmed lessons
+        const today = new Date().toISOString().split('T')[0];
+        const { data: upcomingLessons, error: upcomingError } = await supabase
+            .from('lessons')
+            .select('id')
+            .eq('tutor_id', currentUser.id)
+            .eq('status', 'confirmed')
+            .gte('lesson_date', today);
+
+        if (upcomingError) {
+            console.error('Error loading upcoming lessons:', upcomingError);
+        }
+
+        // Update UI with real counts
+        const pendingCount = pendingRequests ? pendingRequests.length : 0;
+        const upcomingCount = upcomingLessons ? upcomingLessons.length : 0;
+
+        const actionRequiredElement = document.getElementById('actionRequired');
+        const upcomingLessonsElement = document.getElementById('upcomingLessons');
+        const packageActionElement = document.getElementById('packageAction');
+
+        if (actionRequiredElement) {
+            actionRequiredElement.textContent = pendingCount;
+            // Add notification styling if there are pending requests
+            const actionRequiredCard = document.getElementById('actionRequiredCard');
+            if (pendingCount > 0) {
+                if (actionRequiredCard) {
+                    actionRequiredCard.classList.add('has-notification');
+                }
+            } else {
+                if (actionRequiredCard) {
+                    actionRequiredCard.classList.remove('has-notification');
+                }
+            }
+        }
+
+        if (upcomingLessonsElement) {
+            upcomingLessonsElement.textContent = upcomingCount;
+        }
+
+        if (packageActionElement) {
+            packageActionElement.textContent = '0'; // Placeholder for now
+        }
+
+        console.log('✅ Lesson stats updated:', { pendingCount, upcomingCount });
+
+    } catch (error) {
+        console.error('Error in loadLessonStats:', error);
+    }
 }
 
 function updateEarnings() {

@@ -104,21 +104,35 @@ async function loadStudentLessons() {
 // Update statistics cards
 function updateStats() {
     const now = new Date();
-    
+
     // Count lessons by status
     const pending = lessonRequests.filter(req => req.status === 'pending').length;
-    const confirmed = lessons.filter(lesson => 
+    const confirmed = lessons.filter(lesson =>
         lesson.status === 'confirmed' && new Date(lesson.lesson_date + 'T' + lesson.start_time) > now
     ).length;
     const completed = lessons.filter(lesson => lesson.status === 'completed').length;
     const total = lessons.length + lessonRequests.length;
-    
+
     // Update UI
-    document.getElementById('pendingCount').textContent = pending;
-    document.getElementById('confirmedCount').textContent = confirmed;
-    document.getElementById('completedCount').textContent = completed;
-    document.getElementById('totalCount').textContent = total;
-    document.getElementById('upcomingCount').textContent = confirmed + pending;
+    const pendingElement = document.getElementById('pendingCount');
+    const confirmedElement = document.getElementById('confirmedCount');
+    const completedElement = document.getElementById('completedCount');
+    const totalElement = document.getElementById('totalCount');
+    const upcomingElement = document.getElementById('upcomingCount');
+
+    if (pendingElement) pendingElement.textContent = pending;
+    if (confirmedElement) confirmedElement.textContent = confirmed;
+    if (completedElement) completedElement.textContent = completed;
+    if (totalElement) totalElement.textContent = total;
+    if (upcomingElement) upcomingElement.textContent = confirmed + pending;
+
+    // Add notification styling for pending requests
+    if (pending > 0) {
+        const pendingCard = pendingElement?.closest('.bg-white');
+        if (pendingCard) {
+            pendingCard.classList.add('border-yellow-300', 'bg-yellow-50');
+        }
+    }
 }
 
 // Render lessons based on current filter
@@ -419,9 +433,7 @@ function formatLessonDate(dateString) {
 function formatTime(timeString) {
     const [hours, minutes] = timeString.split(':');
     const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
+    return `${hour.toString().padStart(2, '0')}:${minutes}`;
 }
 
 function showSuccessMessage(message) {
