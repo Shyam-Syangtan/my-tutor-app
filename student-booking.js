@@ -409,9 +409,7 @@ class StudentBookingSystem {
     formatTime(time) {
         const [hours, minutes] = time.split(':');
         const hour = parseInt(hours);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        const displayHour = hour % 12 || 12;
-        return `${displayHour}:${minutes} ${ampm}`;
+        return `${hour.toString().padStart(2, '0')}:${minutes}`;
     }
 
     formatDate(date) {

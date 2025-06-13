@@ -51,14 +51,14 @@ class EnhancedBookingModal {
                     <!-- Modal Content -->
                     <div class="flex h-[70vh]">
                         <!-- Time Slots Sidebar -->
-                        <div class="w-32 bg-gray-50 border-r border-gray-200 flex flex-col">
+                        <div class="w-32 bg-gray-50 border-r border-gray-100 flex flex-col" style="border-width: 0.5px;">
                             <!-- Header to match calendar navigation height -->
-                            <div class="p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0" style="height: 72px;">
+                            <div class="p-4 border-b border-gray-100 bg-gray-50 flex-shrink-0" style="height: 72px; border-width: 0.5px;">
                                 <div class="text-xs font-medium text-gray-600 text-center">UTC+08:00</div>
                             </div>
 
                             <!-- Days header spacer to match calendar days header -->
-                            <div class="border-b border-gray-200 bg-gray-50 flex-shrink-0" style="height: 48px;">
+                            <div class="border-b border-gray-100 bg-gray-50 flex-shrink-0" style="height: 48px; border-width: 0.5px;">
                                 <div class="text-xs font-medium text-gray-500 text-center py-3">TIME</div>
                             </div>
 
@@ -71,7 +71,7 @@ class EnhancedBookingModal {
                         <!-- Calendar Grid -->
                         <div class="flex-1 flex flex-col overflow-hidden">
                             <!-- Week Navigation -->
-                            <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0" style="height: 72px;">
+                            <div class="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50 flex-shrink-0" style="height: 72px; border-width: 0.5px;">
                                 <button id="prevWeekBtn" class="flex items-center space-x-1 text-gray-600 hover:text-gray-900 transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -89,7 +89,7 @@ class EnhancedBookingModal {
                             </div>
 
                             <!-- Days Header -->
-                            <div id="daysHeader" class="grid grid-cols-7 border-b border-gray-200 bg-gray-50 flex-shrink-0" style="height: 48px;">
+                            <div id="daysHeader" class="grid grid-cols-7 border-b border-gray-100 bg-gray-50 flex-shrink-0" style="height: 48px; border-width: 0.5px;">
                                 <!-- Day headers will be generated here -->
                             </div>
 
@@ -306,7 +306,7 @@ class EnhancedBookingModal {
         }
 
         timeSlotsList.innerHTML = timeSlots.map(time => `
-            <div class="text-xs text-gray-600 text-center border-b border-gray-100 hover:bg-gray-100 transition-colors flex items-center justify-center" style="height: 32px; min-height: 32px;">
+            <div class="text-xs text-gray-600 text-center border-b border-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-center" style="height: 32px; min-height: 32px; border-width: 0.5px;">
                 ${this.formatTime(time + ':00')}
             </div>
         `).join('');
@@ -318,10 +318,41 @@ class EnhancedBookingModal {
         this.generateCalendarGrid();
         this.updateWeekRange();
 
-        // Setup synchronized scrolling after calendar is generated
+        // Setup synchronized scrolling and re-attach navigation listeners after calendar is generated
         setTimeout(() => {
             this.setupSynchronizedScrolling();
+            this.attachNavigationListeners();
         }, 100);
+    }
+
+    // Attach navigation listeners specifically
+    attachNavigationListeners() {
+        // Week navigation
+        const prevBtn = document.getElementById('prevWeekBtn');
+        if (prevBtn) {
+            // Remove existing listeners to prevent duplicates
+            prevBtn.replaceWith(prevBtn.cloneNode(true));
+            const newPrevBtn = document.getElementById('prevWeekBtn');
+            newPrevBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                console.log('🔙 Previous week clicked');
+                this.previousWeek();
+            });
+        }
+
+        const nextBtn = document.getElementById('nextWeekBtn');
+        if (nextBtn) {
+            // Remove existing listeners to prevent duplicates
+            nextBtn.replaceWith(nextBtn.cloneNode(true));
+            const newNextBtn = document.getElementById('nextWeekBtn');
+            newNextBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                console.log('🔜 Next week clicked');
+                this.nextWeek();
+            });
+        }
     }
 
     // Generate days header starting from current day
@@ -337,7 +368,7 @@ class EnhancedBookingModal {
             const isToday = this.isToday(date);
 
             return `
-                <div class="text-center border-r border-gray-200 last:border-r-0 flex flex-col justify-center h-full ${isToday ? 'bg-blue-50 text-blue-600' : ''}">
+                <div class="text-center border-r border-gray-100 last:border-r-0 flex flex-col justify-center h-full ${isToday ? 'bg-blue-50 text-blue-600' : ''}" style="border-width: 0.5px;">
                     <div class="font-semibold text-sm ${isToday ? 'text-blue-600' : 'text-gray-900'}">${dayName}</div>
                     <div class="text-xs ${isToday ? 'text-blue-500' : 'text-gray-500'}">${date.getDate()}</div>
                 </div>
@@ -373,8 +404,8 @@ class EnhancedBookingModal {
                 const isClickable = true; // All slots are clickable as per requirements
 
                 gridHTML += `
-                    <div class="${slotClass} border-r border-b border-gray-200 last:border-r-0 ${isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed'}"
-                         style="height: 32px; min-height: 32px;"
+                    <div class="${slotClass} border-r border-b border-gray-100 last:border-r-0 ${isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed'}"
+                         style="height: 32px; min-height: 32px; border-width: 0.5px;"
                          onclick="enhancedBookingModal.selectTimeSlot('${dateString}', '${time}')"
                          data-date="${dateString}" data-time="${time}">
                     </div>
@@ -551,9 +582,7 @@ class EnhancedBookingModal {
     formatTime(timeString) {
         const [hours, minutes] = timeString.split(':');
         const hour = parseInt(hours);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        const displayHour = hour % 12 || 12;
-        return `${displayHour}:${minutes} ${ampm}`;
+        return `${hour.toString().padStart(2, '0')}:${minutes}`;
     }
 
     formatDate(date) {
