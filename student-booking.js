@@ -264,20 +264,32 @@ class StudentBookingSystem {
                             const dayDate = new Date(this.currentWeekStart);
                             dayDate.setDate(dayDate.getDate() + dayIndex);
                             const lessonKey = `${dayDate.toISOString().split('T')[0]}-${time}:00`;
-                            
-                            let slotClass = 'bg-white border p-2 text-center text-xs cursor-not-allowed text-gray-400';
+
+                            let slotClass = 'bg-white border p-2 text-center text-xs cursor-pointer text-gray-400 hover:bg-gray-100 transition-colors';
                             let slotContent = 'Unavailable';
-                            let clickHandler = '';
-                            
-                            if (this.lessonsData[lessonKey]) {
-                                slotClass = 'bg-yellow-100 border border-yellow-300 p-2 text-center text-xs cursor-not-allowed text-yellow-700';
+
+                            // Check for existing lesson requests
+                            const requestKey = `${dayDate.toISOString().split('T')[0]}-${time}:00`;
+                            if (this.lessonRequests && this.lessonRequests[requestKey]) {
+                                const request = this.lessonRequests[requestKey];
+                                if (request.status === 'pending') {
+                                    slotClass = 'bg-yellow-100 border border-yellow-300 p-2 text-center text-xs cursor-pointer text-yellow-700 hover:bg-yellow-200 transition-colors';
+                                    slotContent = 'Pending';
+                                } else if (request.status === 'approved') {
+                                    slotClass = 'bg-blue-100 border border-blue-300 p-2 text-center text-xs cursor-pointer text-blue-700 hover:bg-blue-200 transition-colors';
+                                    slotContent = 'Confirmed';
+                                }
+                            } else if (this.lessonsData[lessonKey]) {
+                                slotClass = 'bg-blue-100 border border-blue-300 p-2 text-center text-xs cursor-pointer text-blue-700 hover:bg-blue-200 transition-colors';
                                 slotContent = 'Booked';
                             } else if (this.availabilityData[availKey]) {
                                 slotClass = 'bg-green-100 border border-green-300 p-2 text-center text-xs cursor-pointer text-green-700 hover:bg-green-200 transition-colors';
                                 slotContent = 'Available';
-                                clickHandler = `onclick="bookingSystem.selectTimeSlot('${dayDate.toISOString().split('T')[0]}', '${time}:00', '${time === '17:00' ? '18:00:00' : (parseInt(time.split(':')[0]) + 1).toString().padStart(2, '0') + ':00:00'}')"`;
                             }
-                            
+
+                            // ALL slots are now clickable to open the enhanced modal
+                            const clickHandler = `onclick="bookingSystem.selectTimeSlot('${dayDate.toISOString().split('T')[0]}', '${time}:00', '${time === '17:00' ? '18:00:00' : (parseInt(time.split(':')[0]) + 1).toString().padStart(2, '0') + ':00:00'}')"`;
+
                             return `<div class="${slotClass}" ${clickHandler}>${slotContent}</div>`;
                         }).join('')}
                     `).join('')}
@@ -285,20 +297,25 @@ class StudentBookingSystem {
 
                 <!-- Legend -->
                 <div class="bg-gray-50 px-4 py-3 border-t">
-                    <div class="flex justify-center space-x-6 text-xs">
+                    <div class="flex justify-center space-x-4 text-xs">
                         <div class="flex items-center space-x-1">
                             <div class="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
                             <span class="text-gray-600">Available</span>
                         </div>
                         <div class="flex items-center space-x-1">
                             <div class="w-3 h-3 bg-yellow-100 border border-yellow-300 rounded"></div>
-                            <span class="text-gray-600">Booked</span>
+                            <span class="text-gray-600">Pending</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <div class="w-3 h-3 bg-blue-100 border border-blue-300 rounded"></div>
+                            <span class="text-gray-600">Confirmed</span>
                         </div>
                         <div class="flex items-center space-x-1">
                             <div class="w-3 h-3 bg-white border border-gray-300 rounded"></div>
                             <span class="text-gray-600">Unavailable</span>
                         </div>
                     </div>
+                    <p class="text-center text-xs text-gray-500 mt-2">Click any slot to view detailed weekly calendar</p>
                 </div>
             </div>
         `;

@@ -41,7 +41,7 @@ class EnhancedBookingModal {
                                 <p id="modalSubtitle" class="text-sm text-gray-500">Choose your preferred time</p>
                             </div>
                         </div>
-                        <button onclick="enhancedBookingModal.closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <button id="modalCloseBtn" class="text-gray-400 hover:text-gray-600 transition-colors">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -51,20 +51,20 @@ class EnhancedBookingModal {
                     <!-- Modal Content -->
                     <div class="flex h-[70vh]">
                         <!-- Time Slots Sidebar -->
-                        <div class="w-32 bg-gray-50 border-r border-gray-200 overflow-y-auto">
-                            <div class="p-3 border-b border-gray-200">
+                        <div class="w-32 bg-gray-50 border-r border-gray-200 flex flex-col">
+                            <div class="p-3 border-b border-gray-200 flex-shrink-0">
                                 <div class="text-xs font-medium text-gray-600 text-center">UTC+08:00</div>
                             </div>
-                            <div id="timeSlotsList" class="space-y-1 p-2">
+                            <div id="timeSlotsList" class="space-y-1 p-2 overflow-y-auto flex-1">
                                 <!-- Time slots will be generated here -->
                             </div>
                         </div>
 
                         <!-- Calendar Grid -->
-                        <div class="flex-1 overflow-hidden">
+                        <div class="flex-1 flex flex-col overflow-hidden">
                             <!-- Week Navigation -->
-                            <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50">
-                                <button onclick="enhancedBookingModal.previousWeek()" class="flex items-center space-x-1 text-gray-600 hover:text-gray-900 transition-colors">
+                            <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
+                                <button id="prevWeekBtn" class="flex items-center space-x-1 text-gray-600 hover:text-gray-900 transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                                     </svg>
@@ -73,7 +73,7 @@ class EnhancedBookingModal {
                                     <h4 id="weekRange" class="font-semibold text-gray-900">Loading...</h4>
                                     <p class="text-xs text-gray-500">Click available slots to book</p>
                                 </div>
-                                <button onclick="enhancedBookingModal.nextWeek()" class="flex items-center space-x-1 text-gray-600 hover:text-gray-900 transition-colors">
+                                <button id="nextWeekBtn" class="flex items-center space-x-1 text-gray-600 hover:text-gray-900 transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                     </svg>
@@ -81,12 +81,12 @@ class EnhancedBookingModal {
                             </div>
 
                             <!-- Days Header -->
-                            <div id="daysHeader" class="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
+                            <div id="daysHeader" class="grid grid-cols-7 border-b border-gray-200 bg-gray-50 flex-shrink-0">
                                 <!-- Day headers will be generated here -->
                             </div>
 
                             <!-- Calendar Grid -->
-                            <div class="overflow-y-auto" style="height: calc(100% - 120px);">
+                            <div class="overflow-y-auto flex-1">
                                 <div id="calendarGrid" class="grid grid-cols-7 gap-0">
                                     <!-- Calendar slots will be generated here -->
                                 </div>
@@ -122,11 +122,11 @@ class EnhancedBookingModal {
                             Select a time slot to continue
                         </div>
                         <div class="flex space-x-3">
-                            <button onclick="enhancedBookingModal.closeModal()" 
+                            <button id="modalCancelBtn"
                                     class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                                 Cancel
                             </button>
-                            <button id="bookLessonBtn" onclick="enhancedBookingModal.bookSelectedSlot()" 
+                            <button id="bookLessonBtn"
                                     class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled>
                                 Book lesson
@@ -140,7 +140,115 @@ class EnhancedBookingModal {
         // Add modal to body if it doesn't exist
         if (!document.getElementById('enhancedBookingModal')) {
             document.body.insertAdjacentHTML('beforeend', modalHTML);
+            this.attachEventListeners();
         }
+    }
+
+    // Attach event listeners for modal controls
+    attachEventListeners() {
+        const modal = document.getElementById('enhancedBookingModal');
+
+        // Overlay click to close modal
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                this.closeModal();
+            }
+        });
+
+        // Close button
+        const closeBtn = document.getElementById('modalCloseBtn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.closeModal();
+            });
+        }
+
+        // Cancel button
+        const cancelBtn = document.getElementById('modalCancelBtn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.closeModal();
+            });
+        }
+
+        // Book lesson button
+        const bookBtn = document.getElementById('bookLessonBtn');
+        if (bookBtn) {
+            bookBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.bookSelectedSlot();
+            });
+        }
+
+        // Week navigation
+        const prevBtn = document.getElementById('prevWeekBtn');
+        if (prevBtn) {
+            prevBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.previousWeek();
+            });
+        }
+
+        const nextBtn = document.getElementById('nextWeekBtn');
+        if (nextBtn) {
+            nextBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                this.nextWeek();
+            });
+        }
+
+        // ESC key to close modal
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+                this.closeModal();
+            }
+        });
+
+        // Synchronized scrolling between time slots and calendar grid
+        this.setupSynchronizedScrolling();
+    }
+
+    // Setup synchronized scrolling between time slots sidebar and calendar grid
+    setupSynchronizedScrolling() {
+        const timeSlotsList = document.getElementById('timeSlotsList');
+        const calendarGrid = document.getElementById('calendarGrid');
+
+        if (!timeSlotsList || !calendarGrid) return;
+
+        let isScrolling = false;
+
+        // Sync calendar grid scroll to time slots
+        timeSlotsList.addEventListener('scroll', () => {
+            if (isScrolling) return;
+            isScrolling = true;
+
+            const scrollPercentage = timeSlotsList.scrollTop / (timeSlotsList.scrollHeight - timeSlotsList.clientHeight);
+            const targetScrollTop = scrollPercentage * (calendarGrid.scrollHeight - calendarGrid.clientHeight);
+
+            calendarGrid.scrollTop = targetScrollTop;
+
+            setTimeout(() => { isScrolling = false; }, 10);
+        });
+
+        // Sync time slots scroll to calendar grid
+        calendarGrid.addEventListener('scroll', () => {
+            if (isScrolling) return;
+            isScrolling = true;
+
+            const scrollPercentage = calendarGrid.scrollTop / (calendarGrid.scrollHeight - calendarGrid.clientHeight);
+            const targetScrollTop = scrollPercentage * (timeSlotsList.scrollHeight - timeSlotsList.clientHeight);
+
+            timeSlotsList.scrollTop = targetScrollTop;
+
+            setTimeout(() => { isScrolling = false; }, 10);
+        });
     }
 
     // Open modal for specific date
@@ -172,21 +280,21 @@ class EnhancedBookingModal {
         this.updateBookButton();
     }
 
-    // Generate 30-minute time slots from 6 AM to 11 PM
+    // Generate 30-minute time slots from 6 AM to 11 PM (full 24-hour access)
     generateTimeSlots() {
         const timeSlotsList = document.getElementById('timeSlotsList');
         const timeSlots = [];
-        
-        // Generate 30-minute intervals from 06:00 to 23:00
+
+        // Generate 30-minute intervals from 06:00 to 23:00 (6 AM to 11 PM)
         for (let hour = 6; hour <= 23; hour++) {
             for (let minute = 0; minute < 60; minute += 30) {
                 const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
                 timeSlots.push(timeString);
             }
         }
-        
+
         timeSlotsList.innerHTML = timeSlots.map(time => `
-            <div class="text-xs text-gray-600 py-2 text-center border-b border-gray-100">
+            <div class="text-xs text-gray-600 py-3 text-center border-b border-gray-100 hover:bg-gray-100 transition-colors">
                 ${this.formatTime(time + ':00')}
             </div>
         `).join('');
@@ -197,6 +305,11 @@ class EnhancedBookingModal {
         this.generateDaysHeader();
         this.generateCalendarGrid();
         this.updateWeekRange();
+
+        // Setup synchronized scrolling after calendar is generated
+        setTimeout(() => {
+            this.setupSynchronizedScrolling();
+        }, 100);
     }
 
     // Generate days header

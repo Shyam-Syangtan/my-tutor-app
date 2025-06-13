@@ -13,9 +13,10 @@ let currentWeekStart;
 let availabilityData = {};
 let lessonsData = {};
 
-// Time slots (9 AM to 6 PM in 1-hour intervals)
+// Time slots (6 AM to 11 PM in 1-hour intervals for full 24-hour access)
 const TIME_SLOTS = [
-    '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'
+    '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00',
+    '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'
 ];
 
 // Days of the week
