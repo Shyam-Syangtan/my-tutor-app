@@ -264,19 +264,20 @@ class EnhancedBookingModal {
     openModal(date) {
         this.selectedDate = new Date(date);
         this.selectedTimeSlot = null;
-        this.currentWeekStart = this.getStartOfWeek(this.selectedDate);
-        
+        // Start from current day for student booking (7-day view starting today)
+        this.currentWeekStart = new Date();
+
         // Update modal title
         document.getElementById('modalTitle').textContent = 'Select Time Slot';
         document.getElementById('modalSubtitle').textContent = this.formatDate(this.selectedDate);
-        
+
         // Generate time slots and calendar
         this.generateTimeSlots();
         this.generateCalendar();
-        
+
         // Show modal
         document.getElementById('enhancedBookingModal').classList.remove('hidden');
-        
+
         // Disable body scroll
         document.body.style.overflow = 'hidden';
     }
@@ -289,15 +290,17 @@ class EnhancedBookingModal {
         this.updateBookButton();
     }
 
-    // Generate 30-minute time slots from 6 AM to 11 PM (full 24-hour access)
+    // Generate 30-minute time slots for full 24-hour format (1:00 AM - 12:00 AM / 24:00)
     generateTimeSlots() {
         const timeSlotsList = document.getElementById('timeSlotsList');
         const timeSlots = [];
 
-        // Generate 30-minute intervals from 06:00 to 23:00 (6 AM to 11 PM)
-        for (let hour = 6; hour <= 23; hour++) {
+        // Generate 30-minute intervals for full 24-hour format (01:00 to 24:00)
+        for (let hour = 1; hour <= 24; hour++) {
             for (let minute = 0; minute < 60; minute += 30) {
-                const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                // Handle 24:00 as special case (midnight)
+                const displayHour = hour === 24 ? 0 : hour;
+                const timeString = `${displayHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
                 timeSlots.push(timeString);
             }
         }
@@ -321,19 +324,22 @@ class EnhancedBookingModal {
         }, 100);
     }
 
-    // Generate days header
+    // Generate days header starting from current day
     generateDaysHeader() {
         const daysHeader = document.getElementById('daysHeader');
-        const days = ['FRI', 'SAT', 'SUN', 'MON', 'TUE', 'WED', 'THU'];
+        const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-        daysHeader.innerHTML = days.map((day, index) => {
+        daysHeader.innerHTML = Array.from({length: 7}, (_, index) => {
             const date = new Date(this.currentWeekStart);
             date.setDate(date.getDate() + index);
 
+            const dayName = dayNames[date.getDay()];
+            const isToday = this.isToday(date);
+
             return `
-                <div class="text-center border-r border-gray-200 last:border-r-0 flex flex-col justify-center h-full">
-                    <div class="font-semibold text-sm text-gray-900">${day}</div>
-                    <div class="text-xs text-gray-500">${date.getDate()}</div>
+                <div class="text-center border-r border-gray-200 last:border-r-0 flex flex-col justify-center h-full ${isToday ? 'bg-blue-50 text-blue-600' : ''}">
+                    <div class="font-semibold text-sm ${isToday ? 'text-blue-600' : 'text-gray-900'}">${dayName}</div>
+                    <div class="text-xs ${isToday ? 'text-blue-500' : 'text-gray-500'}">${date.getDate()}</div>
                 </div>
             `;
         }).join('');
@@ -343,37 +349,39 @@ class EnhancedBookingModal {
     generateCalendarGrid() {
         const calendarGrid = document.getElementById('calendarGrid');
         const timeSlots = [];
-        
-        // Generate 30-minute intervals
-        for (let hour = 6; hour <= 23; hour++) {
+
+        // Generate 30-minute intervals for full 24-hour format (01:00 to 24:00)
+        for (let hour = 1; hour <= 24; hour++) {
             for (let minute = 0; minute < 60; minute += 30) {
-                const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
+                // Handle 24:00 as special case (midnight)
+                const displayHour = hour === 24 ? 0 : hour;
+                const timeString = `${displayHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00`;
                 timeSlots.push(timeString);
             }
         }
-        
+
         let gridHTML = '';
-        
+
         timeSlots.forEach(time => {
             for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
                 const date = new Date(this.currentWeekStart);
                 date.setDate(date.getDate() + dayIndex);
                 const dateString = date.toISOString().split('T')[0];
-                
+
                 const slotStatus = this.getSlotStatus(date.getDay(), time, dateString);
                 const slotClass = this.getSlotClass(slotStatus);
-                const isClickable = slotStatus === 'available';
-                
+                const isClickable = true; // All slots are clickable as per requirements
+
                 gridHTML += `
                     <div class="${slotClass} border-r border-b border-gray-200 last:border-r-0 ${isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-not-allowed'}"
                          style="height: 32px; min-height: 32px;"
-                         ${isClickable ? `onclick="enhancedBookingModal.selectTimeSlot('${dateString}', '${time}')"` : ''}
+                         onclick="enhancedBookingModal.selectTimeSlot('${dateString}', '${time}')"
                          data-date="${dateString}" data-time="${time}">
                     </div>
                 `;
             }
         });
-        
+
         calendarGrid.innerHTML = gridHTML;
     }
 
@@ -519,12 +527,16 @@ class EnhancedBookingModal {
             `${this.formatDateRange(this.currentWeekStart)} - ${this.formatDateRange(weekEnd)}`;
     }
 
-    // Utility functions
+    // Utility functions - Start from current day for student booking
     getStartOfWeek(date) {
-        const d = new Date(date);
-        const day = d.getDay();
-        const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Monday start
-        return new Date(d.setDate(diff));
+        // For student booking modal, start from the current day (not Monday)
+        return new Date(date);
+    }
+
+    // Check if date is today
+    isToday(date) {
+        const today = new Date();
+        return date.toDateString() === today.toDateString();
     }
 
     getEndTime(startTime) {

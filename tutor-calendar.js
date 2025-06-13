@@ -13,11 +13,18 @@ let currentWeekStart;
 let availabilityData = {};
 let lessonsData = {};
 
-// Time slots (6 AM to 11 PM in 1-hour intervals for full 24-hour access)
-const TIME_SLOTS = [
-    '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00',
-    '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'
-];
+// Time slots (Full 24-hour format: 1:00 AM - 12:00 AM / 24:00 in 30-minute intervals)
+const TIME_SLOTS = [];
+
+// Generate 30-minute intervals for full 24-hour format (01:00 to 24:00)
+for (let hour = 1; hour <= 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+        // Handle 24:00 as special case (midnight)
+        const displayHour = hour === 24 ? 0 : hour;
+        const timeString = `${displayHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        TIME_SLOTS.push(timeString);
+    }
+}
 
 // Days of the week
 const DAYS = [
@@ -220,11 +227,14 @@ function toggleAvailability(dayOfWeek, time) {
     }
 }
 
-// Get end time (1 hour after start time)
+// Get end time (30 minutes after start time)
 function getEndTime(startTime) {
     const [hours, minutes] = startTime.split(':').map(Number);
-    const endHours = hours + 1;
-    return `${endHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+    const endMinutes = minutes + 30;
+    if (endMinutes >= 60) {
+        return `${(hours + 1).toString().padStart(2, '0')}:${(endMinutes - 60).toString().padStart(2, '0')}:00`;
+    }
+    return `${hours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}:00`;
 }
 
 // Save availability to database
