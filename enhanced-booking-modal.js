@@ -205,14 +205,36 @@ class EnhancedBookingModal {
             });
         }
 
-        // Book lesson button
+        // Book lesson button with enhanced debugging
         const bookBtn = document.getElementById('bookLessonBtn');
         if (bookBtn) {
-            bookBtn.addEventListener('click', (event) => {
+            console.log('🔘 [MODAL] Book lesson button found, attaching click listener');
+
+            // Remove any existing listeners
+            bookBtn.replaceWith(bookBtn.cloneNode(true));
+            const newBookBtn = document.getElementById('bookLessonBtn');
+
+            newBookBtn.addEventListener('click', async (event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                this.bookSelectedSlot();
+                console.log('🔘 [MODAL] Book lesson button clicked!');
+                console.log('🔘 [MODAL] Current context:', {
+                    selectedTimeSlot: this.selectedTimeSlot,
+                    currentUser: this.currentUser,
+                    tutorId: this.tutorId
+                });
+
+                try {
+                    await this.bookSelectedSlot();
+                } catch (error) {
+                    console.error('💥 [MODAL] Error in button click handler:', error);
+                    this.showErrorMessage('An error occurred while booking. Please try again.');
+                }
             });
+
+            console.log('✅ [MODAL] Book lesson button click listener attached');
+        } else {
+            console.error('❌ [MODAL] Book lesson button not found during event listener setup!');
         }
 
         // Week navigation
@@ -314,8 +336,10 @@ class EnhancedBookingModal {
             modal.classList.remove('hidden');
             console.log('✅ [MODAL] Modal displayed successfully');
 
-            // Debug: Check footer visibility after modal is shown
+            // Re-attach book button listener to ensure it's working
             setTimeout(() => {
+                this.reattachBookButtonListener();
+
                 const bookBtn = document.getElementById('bookLessonBtn');
                 const footer = modal.querySelector('.border-t-4.border-red-300');
 
@@ -333,6 +357,36 @@ class EnhancedBookingModal {
 
         // Disable body scroll
         document.body.style.overflow = 'hidden';
+    }
+
+    // Re-attach book button listener to ensure it's working
+    reattachBookButtonListener() {
+        const bookBtn = document.getElementById('bookLessonBtn');
+        if (bookBtn) {
+            console.log('🔄 [MODAL] Re-attaching book button listener');
+
+            // Remove any existing listeners by cloning the button
+            const newBookBtn = bookBtn.cloneNode(true);
+            bookBtn.parentNode.replaceChild(newBookBtn, bookBtn);
+
+            // Add the click listener
+            newBookBtn.addEventListener('click', async (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                console.log('🔘 [MODAL] Book lesson button clicked! (re-attached listener)');
+
+                try {
+                    await this.bookSelectedSlot();
+                } catch (error) {
+                    console.error('💥 [MODAL] Error in re-attached button click handler:', error);
+                    this.showErrorMessage('An error occurred while booking. Please try again.');
+                }
+            });
+
+            console.log('✅ [MODAL] Book button listener re-attached successfully');
+        } else {
+            console.error('❌ [MODAL] Book button not found for re-attachment');
+        }
     }
 
     // Close modal
@@ -647,11 +701,30 @@ class EnhancedBookingModal {
 
     // Book selected slot - Enhanced with better error handling and user feedback
     async bookSelectedSlot() {
-        if (!this.selectedTimeSlot || !this.currentUser) {
-            console.error('❌ [BOOKING] Missing required data:', {
-                selectedTimeSlot: this.selectedTimeSlot,
-                currentUser: this.currentUser
-            });
+        console.log('🚀 [BOOKING] bookSelectedSlot() method called');
+
+        // Comprehensive validation
+        if (!this.selectedTimeSlot) {
+            console.error('❌ [BOOKING] No time slot selected');
+            this.showErrorMessage('Please select a time slot first.');
+            return;
+        }
+
+        if (!this.currentUser) {
+            console.error('❌ [BOOKING] No current user');
+            this.showErrorMessage('Please log in to book a lesson.');
+            return;
+        }
+
+        if (!this.tutorId) {
+            console.error('❌ [BOOKING] No tutor ID');
+            this.showErrorMessage('Tutor information not available.');
+            return;
+        }
+
+        if (!this.supabase) {
+            console.error('❌ [BOOKING] Supabase client not available');
+            this.showErrorMessage('Database connection not available.');
             return;
         }
 
@@ -660,41 +733,80 @@ class EnhancedBookingModal {
 
         // Show loading state
         const bookBtn = document.getElementById('bookLessonBtn');
+        if (!bookBtn) {
+            console.error('❌ [BOOKING] Book button not found');
+            return;
+        }
+
         const originalText = bookBtn.textContent;
         bookBtn.disabled = true;
-        bookBtn.textContent = 'Booking...';
+        bookBtn.textContent = '⏳ Booking...';
+        bookBtn.classList.add('opacity-75');
 
         try {
-            console.log('📝 [BOOKING] Creating lesson request:', {
+            console.log('📝 [BOOKING] Creating lesson request with data:', {
                 date,
                 time,
                 endTime,
                 tutorId: this.tutorId,
-                studentId: this.currentUser.id
+                studentId: this.currentUser.id,
+                supabaseAvailable: !!this.supabase
             });
 
-            // Validate required fields
-            if (!this.tutorId || !this.currentUser.id) {
-                throw new Error('Missing tutor ID or student ID');
+            // Check authentication status
+            const { data: { session }, error: authError } = await this.supabase.auth.getSession();
+            if (authError) {
+                console.error('❌ [BOOKING] Auth error:', authError);
+                throw new Error('Authentication error. Please log in again.');
             }
+
+            if (!session) {
+                console.error('❌ [BOOKING] No active session');
+                throw new Error('Please log in to book a lesson.');
+            }
+
+            console.log('✅ [BOOKING] Authentication verified, proceeding with database insert');
+
+            const insertData = {
+                tutor_id: this.tutorId,
+                student_id: this.currentUser.id,
+                requested_date: date,
+                requested_start_time: time,
+                requested_end_time: endTime,
+                status: 'pending',
+                student_message: 'Lesson booking request via enhanced booking system'
+            };
+
+            console.log('📝 [BOOKING] Insert data:', insertData);
 
             const { data, error } = await this.supabase
                 .from('lesson_requests')
-                .insert([{
-                    tutor_id: this.tutorId,
-                    student_id: this.currentUser.id,
-                    requested_date: date,
-                    requested_start_time: time,
-                    requested_end_time: endTime,
-                    status: 'pending',
-                    student_message: document.getElementById('studentMessage')?.value || 'Lesson booking request via enhanced booking system'
-                }])
+                .insert([insertData])
                 .select()
                 .single();
 
             if (error) {
-                console.error('❌ [BOOKING] Database error:', error);
-                throw error;
+                console.error('❌ [BOOKING] Database error details:', {
+                    error,
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code
+                });
+
+                // Provide specific error messages
+                let errorMessage = 'Failed to send lesson request. ';
+                if (error.code === '23505') {
+                    errorMessage += 'You already have a request for this time slot.';
+                } else if (error.code === '42501') {
+                    errorMessage += 'Permission denied. Please log in again.';
+                } else if (error.message.includes('JWT')) {
+                    errorMessage += 'Session expired. Please log in again.';
+                } else {
+                    errorMessage += error.message || 'Please try again.';
+                }
+
+                throw new Error(errorMessage);
             }
 
             console.log('✅ [BOOKING] Lesson request created successfully:', data);
@@ -724,38 +836,62 @@ class EnhancedBookingModal {
             // Close modal after a short delay to show the updated status
             setTimeout(() => {
                 this.closeModal();
-            }, 1500);
+            }, 2000);
 
             // Trigger refresh of parent booking system
             if (window.bookingSystem && typeof window.bookingSystem.loadBookingData === 'function') {
                 console.log('🔄 [BOOKING] Refreshing booking data...');
                 setTimeout(async () => {
-                    await window.bookingSystem.loadBookingData();
-                    if (window.bookingSystem.renderAvailabilityGrid) {
-                        window.bookingSystem.renderAvailabilityGrid('availabilityContainer');
+                    try {
+                        await window.bookingSystem.loadBookingData();
+                        if (window.bookingSystem.renderAvailabilityGrid) {
+                            window.bookingSystem.renderAvailabilityGrid('availabilityContainer');
+                        }
+                    } catch (refreshError) {
+                        console.error('❌ [BOOKING] Error refreshing booking data:', refreshError);
                     }
-                }, 2000);
+                }, 2500);
             }
 
         } catch (error) {
             console.error('💥 [BOOKING] Error creating lesson request:', error);
 
             // Show specific error message
-            let errorMessage = 'Failed to send lesson request. Please try again.';
-            if (error.message.includes('duplicate')) {
+            let errorMessage = error.message || 'Failed to send lesson request. Please try again.';
+
+            // Additional error handling for common issues
+            if (error.message.includes('duplicate') || error.message.includes('23505')) {
                 errorMessage = 'You already have a request for this time slot.';
-            } else if (error.message.includes('permission')) {
+            } else if (error.message.includes('permission') || error.message.includes('42501')) {
                 errorMessage = 'Permission denied. Please log in again.';
-            } else if (error.message.includes('network')) {
-                errorMessage = 'Network error. Please check your connection.';
+            } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                errorMessage = 'Network error. Please check your connection and try again.';
+            } else if (error.message.includes('JWT') || error.message.includes('session')) {
+                errorMessage = 'Session expired. Please refresh the page and log in again.';
             }
 
             this.showErrorMessage(errorMessage);
+
+            // Log additional debugging info
+            console.error('💥 [BOOKING] Full error context:', {
+                error: error,
+                stack: error.stack,
+                selectedTimeSlot: this.selectedTimeSlot,
+                currentUser: this.currentUser?.id,
+                tutorId: this.tutorId,
+                supabaseClient: !!this.supabase
+            });
+
         } finally {
             // Reset button state
-            bookBtn.disabled = false;
-            bookBtn.textContent = originalText;
+            if (bookBtn) {
+                bookBtn.disabled = false;
+                bookBtn.textContent = originalText;
+                bookBtn.classList.remove('opacity-75');
+                console.log('🔘 [BOOKING] Button state reset');
+            }
         }
+    }
     }
 
     // Week navigation
@@ -821,29 +957,89 @@ class EnhancedBookingModal {
     }
 
     showSuccessMessage(message) {
+        console.log('✅ [NOTIFICATION] Showing success message:', message);
+
+        // Remove any existing notifications
+        document.querySelectorAll('.booking-notification').forEach(el => el.remove());
+
         const notification = document.createElement('div');
-        notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-        notification.textContent = message;
+        notification.className = 'booking-notification fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-xl z-[9999] max-w-md';
+        notification.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <div class="flex-shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <div class="text-sm font-medium">${message}</div>
+            </div>
+        `;
+
+        // Add animation
+        notification.style.transform = 'translateX(100%)';
+        notification.style.transition = 'transform 0.3s ease-in-out';
+
         document.body.appendChild(notification);
-        
+
+        // Animate in
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 10);
+
+        // Auto remove
         setTimeout(() => {
             if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
             }
-        }, 4000);
+        }, 5000);
     }
 
     showErrorMessage(message) {
+        console.log('❌ [NOTIFICATION] Showing error message:', message);
+
+        // Remove any existing notifications
+        document.querySelectorAll('.booking-notification').forEach(el => el.remove());
+
         const notification = document.createElement('div');
-        notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-        notification.textContent = message;
+        notification.className = 'booking-notification fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-lg shadow-xl z-[9999] max-w-md';
+        notification.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <div class="flex-shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+                <div class="text-sm font-medium">${message}</div>
+            </div>
+        `;
+
+        // Add animation
+        notification.style.transform = 'translateX(100%)';
+        notification.style.transition = 'transform 0.3s ease-in-out';
+
         document.body.appendChild(notification);
-        
+
+        // Animate in
+        setTimeout(() => {
+            notification.style.transform = 'translateX(0)';
+        }, 10);
+
+        // Auto remove
         setTimeout(() => {
             if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
             }
-        }, 4000);
+        }, 6000);
     }
 }
 
