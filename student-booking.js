@@ -15,9 +15,21 @@ class StudentBookingSystem {
 
     // Initialize the booking system
     async initialize(tutorId, currentUser) {
+        console.log('🚀 [INIT] Initializing booking system...');
+        console.log('🚀 [INIT] Tutor ID:', tutorId);
+        console.log('🚀 [INIT] Current user:', currentUser?.id);
+
+        if (!tutorId) {
+            console.error('❌ [INIT] No tutor ID provided to initialize()');
+            return false;
+        }
+
         this.selectedTutor = tutorId;
         this.currentUser = currentUser;
-        await this.loadBookingData();
+
+        const success = await this.loadBookingData();
+        console.log('🚀 [INIT] Initialization result:', success);
+        return success;
     }
 
     // Get start of current week (Sunday)
@@ -31,31 +43,66 @@ class StudentBookingSystem {
     // Load tutor availability and existing lessons
     async loadBookingData() {
         try {
-            console.log('Loading booking data for tutor:', this.selectedTutor);
-            
-            // Load tutor availability
+            console.log('🔍 [DEBUG] Loading booking data for tutor:', this.selectedTutor);
+            console.log('🔍 [DEBUG] Current user:', this.currentUser?.id);
+            console.log('🔍 [DEBUG] Current week start:', this.currentWeekStart);
+
+            // Validate tutor ID
+            if (!this.selectedTutor) {
+                console.error('❌ [ERROR] No tutor ID provided');
+                return false;
+            }
+
+            // Load tutor availability with detailed logging
+            console.log('📊 [DEBUG] Querying tutor_availability table...');
             const { data: availability, error: availError } = await this.supabase
                 .from('tutor_availability')
                 .select('*')
-                .eq('tutor_id', this.selectedTutor)
-                .eq('is_available', true);
+                .eq('tutor_id', this.selectedTutor);
+
+            console.log('📊 [DEBUG] Availability query result:', {
+                data: availability,
+                error: availError,
+                count: availability?.length || 0
+            });
 
             if (availError) {
-                console.error('Error loading availability:', availError);
+                console.error('❌ [ERROR] Error loading availability:', availError);
+                console.error('❌ [ERROR] Error details:', {
+                    message: availError.message,
+                    details: availError.details,
+                    hint: availError.hint,
+                    code: availError.code
+                });
                 return false;
+            }
+
+            if (!availability || availability.length === 0) {
+                console.warn('⚠️ [WARNING] No availability data found for tutor:', this.selectedTutor);
+                console.log('💡 [INFO] This could mean:');
+                console.log('  - Tutor has not set any availability');
+                console.log('  - Tutor ID is incorrect');
+                console.log('  - RLS policies are blocking access');
             }
 
             // Convert to lookup object
             this.availabilityData = {};
-            availability.forEach(slot => {
-                const key = `${slot.day_of_week}-${slot.start_time}`;
-                this.availabilityData[key] = slot;
-            });
+            if (availability) {
+                availability.forEach(slot => {
+                    const key = `${slot.day_of_week}-${slot.start_time}`;
+                    this.availabilityData[key] = slot;
+                });
+            }
 
             // Load existing lessons for current week to show booked slots
             const weekEnd = new Date(this.currentWeekStart);
             weekEnd.setDate(weekEnd.getDate() + 6);
-            
+
+            console.log('📅 [DEBUG] Loading lessons for date range:', {
+                start: this.currentWeekStart.toISOString().split('T')[0],
+                end: weekEnd.toISOString().split('T')[0]
+            });
+
             const { data: lessons, error: lessonsError } = await this.supabase
                 .from('lessons')
                 .select('*')
@@ -64,24 +111,37 @@ class StudentBookingSystem {
                 .lte('lesson_date', weekEnd.toISOString().split('T')[0])
                 .in('status', ['pending', 'confirmed']);
 
+            console.log('📅 [DEBUG] Lessons query result:', {
+                data: lessons,
+                error: lessonsError,
+                count: lessons?.length || 0
+            });
+
             if (lessonsError) {
-                console.error('Error loading lessons:', lessonsError);
-                return false;
+                console.error('❌ [ERROR] Error loading lessons:', lessonsError);
+                // Don't return false for lessons error - availability is more important
             }
 
             // Convert to lookup object
             this.lessonsData = {};
-            lessons.forEach(lesson => {
-                const key = `${lesson.lesson_date}-${lesson.start_time}`;
-                this.lessonsData[key] = lesson;
-            });
+            if (lessons) {
+                lessons.forEach(lesson => {
+                    const key = `${lesson.lesson_date}-${lesson.start_time}`;
+                    this.lessonsData[key] = lesson;
+                });
+            }
 
-            console.log('Loaded availability:', this.availabilityData);
-            console.log('Loaded lessons:', this.lessonsData);
+            console.log('✅ [SUCCESS] Final data loaded:');
+            console.log('  - Availability slots:', Object.keys(this.availabilityData).length);
+            console.log('  - Booked lessons:', Object.keys(this.lessonsData).length);
+            console.log('  - Availability data:', this.availabilityData);
+            console.log('  - Lessons data:', this.lessonsData);
+
             return true;
 
         } catch (error) {
-            console.error('Error loading booking data:', error);
+            console.error('💥 [FATAL] Error loading booking data:', error);
+            console.error('💥 [FATAL] Error stack:', error.stack);
             return false;
         }
     }
@@ -221,7 +281,17 @@ class StudentBookingSystem {
     // Create a lesson request
     async createLessonRequest(date, startTime, endTime) {
         try {
-            console.log('Creating lesson request:', { date, startTime, endTime });
+            console.log('📝 [BOOKING] Creating lesson request:', {
+                date,
+                startTime,
+                endTime,
+                tutorId: this.selectedTutor,
+                studentId: this.currentUser?.id
+            });
+
+            if (!this.currentUser) {
+                throw new Error('User not authenticated');
+            }
 
             const { data, error } = await this.supabase
                 .from('lesson_requests')
@@ -237,21 +307,23 @@ class StudentBookingSystem {
                 .select()
                 .single();
 
+            console.log('📝 [BOOKING] Lesson request result:', { data, error });
+
             if (error) {
                 throw error;
             }
 
-            console.log('Lesson request created:', data);
-            
+            console.log('✅ [BOOKING] Lesson request created successfully:', data);
+
             // Show success message
             this.showSuccessMessage('Lesson request sent! The tutor will review and respond soon.');
-            
+
             // Reload data to update availability
             await this.loadBookingData();
             this.renderAvailabilityGrid('availabilityContainer');
 
         } catch (error) {
-            console.error('Error creating lesson request:', error);
+            console.error('💥 [BOOKING] Error creating lesson request:', error);
             this.showErrorMessage('Failed to send lesson request. Please try again.');
         }
     }

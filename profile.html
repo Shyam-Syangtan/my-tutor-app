@@ -903,27 +903,56 @@
         // Initialize booking system
         async function initializeBookingSystem() {
             try {
+                console.log('🚀 [PROFILE] Initializing booking system...');
+
                 // Get current user
                 const { data: { session } } = await supabase.auth.getSession();
                 const currentUser = session?.user;
+                console.log('👤 [PROFILE] Current user:', currentUser?.id);
 
-                // Get tutor ID from URL
+                // Get tutor ID from URL (this is the tutors table ID, not user_id)
                 const urlParams = new URLSearchParams(window.location.search);
-                const tutorId = urlParams.get('id');
+                const tutorRecordId = urlParams.get('id');
+                console.log('🆔 [PROFILE] Tutor record ID from URL:', tutorRecordId);
 
-                if (!tutorId) {
-                    console.error('No tutor ID found in URL');
+                if (!tutorRecordId) {
+                    console.error('❌ [PROFILE] No tutor ID found in URL');
                     return;
                 }
 
-                // Initialize booking system
+                // Get the tutor's user_id from the tutors table
+                console.log('🔍 [PROFILE] Looking up tutor user_id...');
+                const { data: tutorData, error: tutorError } = await supabase
+                    .from('tutors')
+                    .select('user_id, name')
+                    .eq('id', tutorRecordId)
+                    .single();
+
+                console.log('🔍 [PROFILE] Tutor lookup result:', { tutorData, tutorError });
+
+                if (tutorError || !tutorData) {
+                    console.error('❌ [PROFILE] Failed to get tutor user_id:', tutorError);
+                    document.getElementById('availabilityContainer').innerHTML = `
+                        <div class="text-center py-8">
+                            <div class="text-red-500 text-sm">Unable to find tutor information.</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const tutorUserId = tutorData.user_id;
+                console.log('✅ [PROFILE] Found tutor user_id:', tutorUserId);
+
+                // Initialize booking system with the correct user_id
                 bookingSystem = new StudentBookingSystem(supabase);
-                const success = await bookingSystem.initialize(tutorId, currentUser);
+                const success = await bookingSystem.initialize(tutorUserId, currentUser);
 
                 if (success) {
+                    console.log('✅ [PROFILE] Booking system initialized successfully');
                     // Render the availability grid
                     bookingSystem.renderAvailabilityGrid('availabilityContainer');
                 } else {
+                    console.error('❌ [PROFILE] Booking system initialization failed');
                     // Show error message
                     document.getElementById('availabilityContainer').innerHTML = `
                         <div class="text-center py-8">
@@ -932,7 +961,7 @@
                     `;
                 }
             } catch (error) {
-                console.error('Error initializing booking system:', error);
+                console.error('💥 [PROFILE] Error initializing booking system:', error);
                 document.getElementById('availabilityContainer').innerHTML = `
                     <div class="text-center py-8">
                         <div class="text-red-500 text-sm">Error loading availability. Please refresh the page.</div>

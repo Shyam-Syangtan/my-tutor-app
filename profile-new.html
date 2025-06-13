@@ -473,18 +473,54 @@
         // Initialize booking system
         async function initializeBookingSystem() {
             try {
+                console.log('🚀 [PROFILE-NEW] Initializing booking system...');
+
                 // Get current user
                 const { data: { session } } = await supabase.auth.getSession();
                 const currentUser = session?.user;
+                console.log('👤 [PROFILE-NEW] Current user:', currentUser?.id);
 
-                // Initialize booking system
+                // Get tutor record ID from URL
+                console.log('🆔 [PROFILE-NEW] Tutor record ID from URL:', tutorId);
+
+                if (!tutorId) {
+                    console.error('❌ [PROFILE-NEW] No tutor ID found');
+                    return;
+                }
+
+                // Get the tutor's user_id from the tutors table
+                console.log('🔍 [PROFILE-NEW] Looking up tutor user_id...');
+                const { data: tutorData, error: tutorError } = await supabase
+                    .from('tutors')
+                    .select('user_id, name')
+                    .eq('id', tutorId)
+                    .single();
+
+                console.log('🔍 [PROFILE-NEW] Tutor lookup result:', { tutorData, tutorError });
+
+                if (tutorError || !tutorData) {
+                    console.error('❌ [PROFILE-NEW] Failed to get tutor user_id:', tutorError);
+                    document.getElementById('calendarContainer').innerHTML = `
+                        <div class="text-center py-8">
+                            <div class="text-red-500 text-sm">Unable to find tutor information.</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const tutorUserId = tutorData.user_id;
+                console.log('✅ [PROFILE-NEW] Found tutor user_id:', tutorUserId);
+
+                // Initialize booking system with the correct user_id
                 bookingSystem = new StudentBookingSystem(supabase);
-                const success = await bookingSystem.initialize(tutorId, currentUser);
+                const success = await bookingSystem.initialize(tutorUserId, currentUser);
 
                 if (success) {
+                    console.log('✅ [PROFILE-NEW] Booking system initialized successfully');
                     // Render the availability grid
                     bookingSystem.renderAvailabilityGrid('calendarContainer');
                 } else {
+                    console.error('❌ [PROFILE-NEW] Booking system initialization failed');
                     // Show error message
                     document.getElementById('calendarContainer').innerHTML = `
                         <div class="text-center py-8">
@@ -493,7 +529,7 @@
                     `;
                 }
             } catch (error) {
-                console.error('Error initializing booking system:', error);
+                console.error('💥 [PROFILE-NEW] Error initializing booking system:', error);
                 document.getElementById('calendarContainer').innerHTML = `
                     <div class="text-center py-8">
                         <div class="text-red-500 text-sm">Error loading availability. Please refresh the page.</div>

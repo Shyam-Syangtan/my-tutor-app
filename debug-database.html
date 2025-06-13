@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Debug Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-2xl font-bold mb-6">Database Debug Tool</h1>
+        
+        <!-- Current User Info -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Current User</h2>
+            <div id="userInfo" class="text-sm text-gray-600">Loading...</div>
+        </div>
+
+        <!-- Tutors Table -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Tutors Table</h2>
+            <button onclick="loadTutors()" class="bg-blue-600 text-white px-4 py-2 rounded mb-4">Load Tutors</button>
+            <div id="tutorsData" class="text-sm"></div>
+        </div>
+
+        <!-- Tutor Availability -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Tutor Availability</h2>
+            <div class="mb-4">
+                <input type="text" id="tutorUserId" placeholder="Enter tutor user_id (UUID)" 
+                       class="border rounded px-3 py-2 w-full mb-2">
+                <button onclick="loadAvailability()" class="bg-green-600 text-white px-4 py-2 rounded">Load Availability</button>
+            </div>
+            <div id="availabilityData" class="text-sm"></div>
+        </div>
+
+        <!-- Test Queries -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">Test Queries</h2>
+            <div class="space-y-2">
+                <button onclick="testRLSPolicies()" class="bg-purple-600 text-white px-4 py-2 rounded">Test RLS Policies</button>
+                <button onclick="testTutorLookup()" class="bg-orange-600 text-white px-4 py-2 rounded">Test Tutor Lookup</button>
+                <button onclick="testAvailabilityQuery()" class="bg-red-600 text-white px-4 py-2 rounded">Test Availability Query</button>
+            </div>
+            <div id="testResults" class="mt-4 text-sm"></div>
+        </div>
+
+        <!-- Console Output -->
+        <div class="bg-gray-900 text-green-400 rounded-lg p-6">
+            <h2 class="text-lg font-semibold mb-4 text-white">Console Output</h2>
+            <div id="consoleOutput" class="font-mono text-xs whitespace-pre-wrap max-h-96 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const supabaseUrl = 'https://qbyyutebrgpxngvwenkd.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFieXl1dGVicmdweG5ndndlbmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MTA1NTMsImV4cCI6MjA2NTI4NjU1M30.eO8Wd0ZOqtXgvQ3BuedmSPmYVpbG3V-AXvgufLns6yY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let currentUser = null;
+
+        // Console logging override
+        const originalLog = console.log;
+        const originalError = console.error;
+        const consoleOutput = document.getElementById('consoleOutput');
+
+        function addToConsole(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'text-red-400' : 'text-green-400';
+            consoleOutput.innerHTML += `<span class="${color}">[${timestamp}] ${message}</span>\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole(args.join(' '), 'log');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole(args.join(' '), 'error');
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadCurrentUser();
+        });
+
+        async function loadCurrentUser() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                currentUser = session?.user;
+                
+                const userInfo = document.getElementById('userInfo');
+                if (currentUser) {
+                    userInfo.innerHTML = `
+                        <strong>ID:</strong> ${currentUser.id}<br>
+                        <strong>Email:</strong> ${currentUser.email}<br>
+                        <strong>Role:</strong> ${currentUser.user_metadata?.role || 'Not set'}
+                    `;
+                    console.log('Current user loaded:', currentUser.id);
+                } else {
+                    userInfo.innerHTML = 'Not authenticated';
+                    console.error('No authenticated user found');
+                }
+            } catch (error) {
+                console.error('Error loading user:', error);
+            }
+        }
+
+        async function loadTutors() {
+            try {
+                console.log('Loading tutors...');
+                const { data, error } = await supabase
+                    .from('tutors')
+                    .select('id, name, user_id')
+                    .limit(10);
+
+                const tutorsData = document.getElementById('tutorsData');
+                if (error) {
+                    console.error('Error loading tutors:', error);
+                    tutorsData.innerHTML = `<span class="text-red-600">Error: ${error.message}</span>`;
+                } else {
+                    console.log('Tutors loaded:', data.length);
+                    tutorsData.innerHTML = `
+                        <div class="space-y-2">
+                            ${data.map(tutor => `
+                                <div class="border rounded p-2">
+                                    <strong>${tutor.name}</strong><br>
+                                    <small>Record ID: ${tutor.id}</small><br>
+                                    <small>User ID: ${tutor.user_id}</small><br>
+                                    <button onclick="document.getElementById('tutorUserId').value='${tutor.user_id}'" 
+                                            class="text-blue-600 text-xs">Use This User ID</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error in loadTutors:', error);
+            }
+        }
+
+        async function loadAvailability() {
+            const tutorUserId = document.getElementById('tutorUserId').value;
+            if (!tutorUserId) {
+                alert('Please enter a tutor user_id');
+                return;
+            }
+
+            try {
+                console.log('Loading availability for tutor:', tutorUserId);
+                const { data, error } = await supabase
+                    .from('tutor_availability')
+                    .select('*')
+                    .eq('tutor_id', tutorUserId);
+
+                const availabilityData = document.getElementById('availabilityData');
+                if (error) {
+                    console.error('Error loading availability:', error);
+                    availabilityData.innerHTML = `<span class="text-red-600">Error: ${error.message}</span>`;
+                } else {
+                    console.log('Availability loaded:', data.length, 'slots');
+                    if (data.length === 0) {
+                        availabilityData.innerHTML = '<span class="text-yellow-600">No availability data found</span>';
+                    } else {
+                        availabilityData.innerHTML = `
+                            <div class="space-y-2">
+                                ${data.map(slot => `
+                                    <div class="border rounded p-2">
+                                        <strong>Day ${slot.day_of_week}</strong> 
+                                        (${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][slot.day_of_week]})<br>
+                                        <small>${slot.start_time} - ${slot.end_time}</small><br>
+                                        <small>Available: ${slot.is_available}</small>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                console.error('Error in loadAvailability:', error);
+            }
+        }
+
+        async function testRLSPolicies() {
+            console.log('Testing RLS policies...');
+            const testResults = document.getElementById('testResults');
+            
+            try {
+                // Test 1: Can we read tutor_availability?
+                const { data: availData, error: availError } = await supabase
+                    .from('tutor_availability')
+                    .select('count')
+                    .limit(1);
+
+                console.log('RLS Test - tutor_availability read:', { data: availData, error: availError });
+
+                // Test 2: Can we read tutors?
+                const { data: tutorData, error: tutorError } = await supabase
+                    .from('tutors')
+                    .select('count')
+                    .limit(1);
+
+                console.log('RLS Test - tutors read:', { data: tutorData, error: tutorError });
+
+                testResults.innerHTML = `
+                    <div class="space-y-2">
+                        <div>tutor_availability: ${availError ? 'FAILED - ' + availError.message : 'SUCCESS'}</div>
+                        <div>tutors: ${tutorError ? 'FAILED - ' + tutorError.message : 'SUCCESS'}</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('RLS test error:', error);
+            }
+        }
+
+        async function testTutorLookup() {
+            console.log('Testing tutor lookup...');
+            // This simulates the profile page lookup
+            const urlParams = new URLSearchParams(window.location.search);
+            let tutorId = urlParams.get('tutor_id') || 'test-tutor-id';
+            
+            try {
+                const { data, error } = await supabase
+                    .from('tutors')
+                    .select('user_id, name')
+                    .eq('id', tutorId)
+                    .single();
+
+                console.log('Tutor lookup result:', { data, error });
+                
+                const testResults = document.getElementById('testResults');
+                testResults.innerHTML = `
+                    <div>
+                        <strong>Tutor Lookup Test:</strong><br>
+                        ${error ? 'FAILED - ' + error.message : 'SUCCESS - Found user_id: ' + data.user_id}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Tutor lookup error:', error);
+            }
+        }
+
+        async function testAvailabilityQuery() {
+            console.log('Testing availability query...');
+            const tutorUserId = document.getElementById('tutorUserId').value;
+            
+            if (!tutorUserId) {
+                alert('Please enter a tutor user_id first');
+                return;
+            }
+
+            try {
+                // This simulates the student-booking.js query
+                const { data, error } = await supabase
+                    .from('tutor_availability')
+                    .select('*')
+                    .eq('tutor_id', tutorUserId);
+
+                console.log('Availability query result:', { data, error, count: data?.length });
+                
+                const testResults = document.getElementById('testResults');
+                testResults.innerHTML = `
+                    <div>
+                        <strong>Availability Query Test:</strong><br>
+                        ${error ? 'FAILED - ' + error.message : `SUCCESS - Found ${data.length} slots`}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Availability query error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
