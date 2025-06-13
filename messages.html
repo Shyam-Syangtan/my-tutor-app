@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - IndianTutors</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .chat-container { height: calc(100vh - 200px); }
+        .messages-container { height: calc(100% - 80px); }
+        .message-bubble {
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .message-sent {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .message-received {
+            background: #f1f5f9;
+            color: #334155;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-8">
+                    <a href="#" class="text-2xl font-bold text-indigo-600">IndianTutors</a>
+                    <button onclick="goBack()" class="text-gray-600 hover:text-indigo-600 transition-colors">
+                        ← Back to Dashboard
+                    </button>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="userEmail" class="text-gray-600">Loading...</span>
+                    <button onclick="handleLogout()" class="text-red-600 hover:text-red-700">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="flex chat-container" style="height: 600px;">
+                <!-- Chat List Sidebar -->
+                <div class="w-1/3 border-r border-gray-200 bg-gray-50">
+                    <div class="p-4 border-b border-gray-200">
+                        <h2 class="text-lg font-semibold text-gray-900">Messages</h2>
+                    </div>
+                    <div id="chatsList" class="overflow-y-auto h-full">
+                        <!-- Sample conversations -->
+                        <div class="chat-item p-4 border-b border-gray-200 hover:bg-gray-100 cursor-pointer transition-colors bg-indigo-50 border-indigo-200" onclick="openChat('1', 'Rajesh Kumar')">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                                    <span class="text-indigo-600 font-semibold">R</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex justify-between items-start">
+                                        <h3 class="font-semibold text-gray-900 truncate">Rajesh Kumar</h3>
+                                        <span class="text-xs text-gray-500">2 min ago</span>
+                                    </div>
+                                    <p class="text-sm text-gray-500 truncate">
+                                        Thank you for the lesson today!
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chat-item p-4 border-b border-gray-200 hover:bg-gray-100 cursor-pointer transition-colors" onclick="openChat('2', 'Priya Sharma')">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                    <span class="text-green-600 font-semibold">P</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex justify-between items-start">
+                                        <h3 class="font-semibold text-gray-900 truncate">Priya Sharma</h3>
+                                        <span class="text-xs text-gray-500">1 hour ago</span>
+                                    </div>
+                                    <p class="text-sm text-gray-500 truncate">
+                                        Can we reschedule tomorrow's lesson?
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chat-item p-4 border-b border-gray-200 hover:bg-gray-100 cursor-pointer transition-colors" onclick="openChat('3', 'Amit Patel')">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <span class="text-purple-600 font-semibold">A</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex justify-between items-start">
+                                        <h3 class="font-semibold text-gray-900 truncate">Amit Patel</h3>
+                                        <span class="text-xs text-gray-500">Yesterday</span>
+                                    </div>
+                                    <p class="text-sm text-gray-500 truncate">
+                                        Looking forward to our next session
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Messages Area -->
+                <div class="flex-1 flex flex-col">
+                    <div id="chatHeader" class="p-4 border-b border-gray-200 bg-white">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                                <span class="text-indigo-600 font-semibold" id="chatUserInitial">R</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900" id="chatUserName">Rajesh Kumar</h3>
+                                <p class="text-sm text-gray-500">Student</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 messages-container">
+                        <div id="messagesList" class="space-y-4">
+                            <!-- Sample messages for Rajesh Kumar -->
+                            <div class="flex justify-start">
+                                <div class="message-bubble message-received px-4 py-2 rounded-lg">
+                                    <p class="text-sm">Hi! I'm looking forward to our Hindi lesson tomorrow.</p>
+                                    <p class="text-xs opacity-75 mt-1">10:30 AM</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-end">
+                                <div class="message-bubble message-sent text-white px-4 py-2 rounded-lg">
+                                    <p class="text-sm">Great! I've prepared some new vocabulary for you.</p>
+                                    <p class="text-xs opacity-75 mt-1">10:32 AM</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-start">
+                                <div class="message-bubble message-received px-4 py-2 rounded-lg">
+                                    <p class="text-sm">Perfect! Should I bring my notebook?</p>
+                                    <p class="text-xs opacity-75 mt-1">10:35 AM</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-end">
+                                <div class="message-bubble message-sent text-white px-4 py-2 rounded-lg">
+                                    <p class="text-sm">Yes, definitely! We'll be doing some writing exercises.</p>
+                                    <p class="text-xs opacity-75 mt-1">10:36 AM</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-start">
+                                <div class="message-bubble message-received px-4 py-2 rounded-lg">
+                                    <p class="text-sm">Thank you for the lesson today!</p>
+                                    <p class="text-xs opacity-75 mt-1">2 min ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="messageInput" class="p-4 border-t border-gray-200 bg-white">
+                        <div class="flex space-x-3">
+                            <input 
+                                type="text" 
+                                id="messageText" 
+                                placeholder="Type your message..." 
+                                class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                onkeypress="handleMessageKeyPress(event)"
+                            >
+                            <button 
+                                onclick="sendMessage()" 
+                                class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                            >
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample chat data
+        const chats = {
+            '1': {
+                name: 'Rajesh Kumar',
+                initial: 'R',
+                color: 'indigo',
+                messages: [
+                    { text: "Hi! I'm looking forward to our Hindi lesson tomorrow.", time: "10:30 AM", sent: false },
+                    { text: "Great! I've prepared some new vocabulary for you.", time: "10:32 AM", sent: true },
+                    { text: "Perfect! Should I bring my notebook?", time: "10:35 AM", sent: false },
+                    { text: "Yes, definitely! We'll be doing some writing exercises.", time: "10:36 AM", sent: true },
+                    { text: "Thank you for the lesson today!", time: "2 min ago", sent: false }
+                ]
+            },
+            '2': {
+                name: 'Priya Sharma',
+                initial: 'P',
+                color: 'green',
+                messages: [
+                    { text: "Hello! I need to reschedule our lesson.", time: "2:00 PM", sent: false },
+                    { text: "Of course! What time works better for you?", time: "2:05 PM", sent: true },
+                    { text: "Can we reschedule tomorrow's lesson?", time: "1 hour ago", sent: false }
+                ]
+            },
+            '3': {
+                name: 'Amit Patel',
+                initial: 'A',
+                color: 'purple',
+                messages: [
+                    { text: "Thank you for the excellent Tamil lesson!", time: "Yesterday", sent: false },
+                    { text: "You're very welcome! Keep practicing!", time: "Yesterday", sent: true },
+                    { text: "Looking forward to our next session", time: "Yesterday", sent: false }
+                ]
+            }
+        };
+
+        let currentChatId = '1';
+
+        function openChat(chatId, userName) {
+            currentChatId = chatId;
+            const chat = chats[chatId];
+            
+            // Update chat header
+            document.getElementById('chatUserName').textContent = chat.name;
+            document.getElementById('chatUserInitial').textContent = chat.initial;
+            
+            // Update messages
+            displayMessages(chat.messages);
+            
+            // Highlight selected chat
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('bg-indigo-50', 'border-indigo-200');
+            });
+            
+            event.currentTarget.classList.add('bg-indigo-50', 'border-indigo-200');
+        }
+
+        function displayMessages(messages) {
+            const messagesList = document.getElementById('messagesList');
+            
+            const messagesHTML = messages.map(message => {
+                const messageClass = message.sent ? 'message-sent text-white ml-auto' : 'message-received mr-auto';
+                const justifyClass = message.sent ? 'justify-end' : 'justify-start';
+                
+                return `
+                    <div class="flex ${justifyClass}">
+                        <div class="message-bubble ${messageClass} px-4 py-2 rounded-lg">
+                            <p class="text-sm">${message.text}</p>
+                            <p class="text-xs opacity-75 mt-1">${message.time}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            messagesList.innerHTML = messagesHTML;
+            scrollToBottom();
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageText');
+            const content = messageInput.value.trim();
+            
+            if (!content) return;
+
+            // Add message to current chat
+            const currentTime = new Date().toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            
+            chats[currentChatId].messages.push({
+                text: content,
+                time: currentTime,
+                sent: true
+            });
+
+            // Clear input and refresh display
+            messageInput.value = '';
+            displayMessages(chats[currentChatId].messages);
+        }
+
+        function handleMessageKeyPress(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function scrollToBottom() {
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function goBack() {
+            // Detect if user came from student or tutor dashboard
+            const referrer = document.referrer;
+            if (referrer.includes('tutor-dashboard')) {
+                window.location.href = 'tutor-dashboard.html';
+            } else {
+                window.location.href = 'student-dashboard.html';
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to log out?')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set user email (placeholder)
+            document.getElementById('userEmail').textContent = 'user@example.com';
+            
+            // Display initial chat
+            displayMessages(chats[currentChatId].messages);
+        });
+    </script>
+</body>
+</html>
