@@ -24,6 +24,8 @@ class SimpleMessaging {
             throw new Error('User not authenticated');
         }
 
+        console.log('🔍 Getting or creating chat between:', this.currentUser.id, 'and', otherUserId);
+
         // Check if chat already exists (either direction)
         const { data: existingChat, error: searchError } = await this.supabase
             .from('chats')
@@ -32,8 +34,11 @@ class SimpleMessaging {
             .single();
 
         if (existingChat) {
+            console.log('✅ Found existing chat:', existingChat.id);
             return existingChat.id;
         }
+
+        console.log('📝 Creating new chat...');
 
         // Create new chat
         const { data: newChat, error: createError } = await this.supabase
@@ -46,9 +51,11 @@ class SimpleMessaging {
             .single();
 
         if (createError) {
+            console.error('❌ Error creating chat:', createError);
             throw createError;
         }
 
+        console.log('✅ Created new chat:', newChat.id);
         return newChat.id;
     }
 
@@ -58,18 +65,23 @@ class SimpleMessaging {
             throw new Error('User not authenticated');
         }
 
+        console.log('🔍 Fetching chats for user:', this.currentUser.id);
+
         const { data: chats, error } = await this.supabase
             .from('chats')
             .select(`
                 *,
-                messages!inner(content, created_at, sender_id)
+                messages(content, created_at, sender_id)
             `)
             .or(`user1_id.eq.${this.currentUser.id},user2_id.eq.${this.currentUser.id}`)
             .order('updated_at', { ascending: false });
 
         if (error) {
+            console.error('❌ Error fetching chats:', error);
             throw error;
         }
+
+        console.log('📋 Raw chats data:', chats);
 
         // Process chats to get other user info and latest message
         const processedChats = await Promise.all(chats.map(async (chat) => {
@@ -120,6 +132,11 @@ class SimpleMessaging {
             const latestMessage = chat.messages && chat.messages.length > 0
                 ? chat.messages.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0]
                 : null;
+
+            console.log(`💬 Chat ${chat.id} with ${otherUser.name}:`, {
+                messagesCount: chat.messages?.length || 0,
+                latestMessage: latestMessage?.content || 'No messages yet'
+            });
 
             return {
                 id: chat.id,

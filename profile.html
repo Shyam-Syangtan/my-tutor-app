@@ -1213,6 +1213,8 @@
         // Contact teacher function
         async function contactTeacher() {
             try {
+                console.log('📞 Contact teacher clicked for tutor ID:', tutorId);
+
                 // Check if user is authenticated
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) {
@@ -1221,6 +1223,8 @@
                     return;
                 }
 
+                console.log('✅ User authenticated:', session.user.id);
+
                 // Get tutor data from the current profile
                 const { data: tutorData, error } = await supabase
                     .from('tutors')
@@ -1228,10 +1232,15 @@
                     .eq('id', tutorId)
                     .single();
 
+                console.log('📋 Tutor data query result:', { tutorData, error });
+
                 if (error || !tutorData) {
+                    console.error('❌ Failed to get tutor data:', error);
                     alert('Unable to contact teacher. Please try again.');
                     return;
                 }
+
+                console.log('✅ Found tutor:', tutorData);
 
                 // Initialize messaging service
                 const messaging = new SimpleMessaging(supabase);
@@ -1240,11 +1249,15 @@
                 // Get or create chat
                 const chatId = await messaging.getOrCreateChat(tutorData.user_id);
 
+                console.log('✅ Chat ID obtained:', chatId);
+
                 // Redirect to student messages page
-                window.location.href = `student-messages.html?chat=${chatId}`;
+                const redirectUrl = `student-messages.html?chat=${chatId}`;
+                console.log('🔄 Redirecting to:', redirectUrl);
+                window.location.href = redirectUrl;
 
             } catch (error) {
-                console.error('Error contacting teacher:', error);
+                console.error('❌ Error contacting teacher:', error);
                 alert('Failed to start conversation. Please try again.');
             }
         }

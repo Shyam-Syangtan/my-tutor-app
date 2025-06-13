@@ -39,7 +39,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         const urlParams = new URLSearchParams(window.location.search);
         const chatId = urlParams.get('chat');
         if (chatId) {
-            await openChatById(chatId);
+            console.log('🔗 Chat ID found in URL:', chatId);
+            // Wait a bit for the chat to be fully created, then try to open it
+            setTimeout(async () => {
+                await loadUserChats(); // Refresh chat list
+                await openChatById(chatId);
+            }, 1000);
         }
 
         // Hide loading state
@@ -63,10 +68,12 @@ function updateUserInfo(user) {
 // Load user's chats
 async function loadUserChats() {
     try {
+        console.log('📋 Loading user chats...');
         const chats = await messaging.getUserChats();
+        console.log('📋 Loaded chats:', chats);
         displayChats(chats);
     } catch (error) {
-        console.error('Error loading chats:', error);
+        console.error('❌ Error loading chats:', error);
         showErrorState();
     }
 }
@@ -74,8 +81,11 @@ async function loadUserChats() {
 // Display chats in sidebar
 function displayChats(chats) {
     const chatsList = document.getElementById('chatsList');
-    
+
+    console.log('🎨 Displaying chats:', chats);
+
     if (chats.length === 0) {
+        console.log('📭 No chats to display');
         chatsList.innerHTML = `
             <div class="p-4 text-center text-gray-500">
                 <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,16 +164,35 @@ async function openChat(chatId, otherUserId, userName) {
 // Open chat by ID (from URL parameter)
 async function openChatById(chatId) {
     try {
+        console.log('🔍 Opening chat by ID:', chatId);
         const chats = await messaging.getUserChats();
+        console.log('📋 Available chats:', chats);
         const chat = chats.find(c => c.id === chatId);
-        
+
         if (chat) {
+            console.log('✅ Found chat:', chat);
             const otherUser = chat.otherUser;
             const userName = otherUser?.name || otherUser?.email?.split('@')[0] || 'Unknown User';
             await openChat(chatId, otherUser.id, userName);
+        } else {
+            console.log('❌ Chat not found with ID:', chatId);
+            console.log('🔄 Retrying in 2 seconds...');
+            // Retry after a delay in case the chat was just created
+            setTimeout(async () => {
+                const retryChats = await messaging.getUserChats();
+                const retryChat = retryChats.find(c => c.id === chatId);
+                if (retryChat) {
+                    console.log('✅ Found chat on retry:', retryChat);
+                    const otherUser = retryChat.otherUser;
+                    const userName = otherUser?.name || otherUser?.email?.split('@')[0] || 'Unknown User';
+                    await openChat(chatId, otherUser.id, userName);
+                } else {
+                    console.log('❌ Chat still not found after retry');
+                }
+            }, 2000);
         }
     } catch (error) {
-        console.error('Error opening chat by ID:', error);
+        console.error('❌ Error opening chat by ID:', error);
     }
 }
 
