@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Lesson Requests Flow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Test Complete Lesson Request Flow</h1>
+        
+        <div class="bg-white p-6 rounded-lg shadow mb-6">
+            <h2 class="text-xl font-semibold mb-4">Current User Status</h2>
+            <div id="userStatus" class="p-4 bg-gray-50 rounded"></div>
+            <button onclick="checkUserStatus()" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Check User Status
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Student Actions -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4 text-blue-600">Student Actions</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Tutor ID:</label>
+                        <input type="text" id="studentTutorId" placeholder="Enter tutor UUID" 
+                               class="w-full p-2 border rounded">
+                    </div>
+                    
+                    <button onclick="createLessonRequest()" 
+                            class="w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                        Create Lesson Request
+                    </button>
+                    
+                    <button onclick="viewMyRequests()" 
+                            class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        View My Requests
+                    </button>
+                </div>
+                
+                <div id="studentResults" class="mt-4 p-3 bg-gray-50 rounded max-h-64 overflow-y-auto"></div>
+            </div>
+
+            <!-- Tutor Actions -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h2 class="text-xl font-semibold mb-4 text-purple-600">Tutor Actions</h2>
+                
+                <div class="space-y-4">
+                    <button onclick="viewPendingRequests()" 
+                            class="w-full bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
+                        View Pending Requests
+                    </button>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Request ID to Approve:</label>
+                        <input type="text" id="requestIdToApprove" placeholder="Enter request UUID" 
+                               class="w-full p-2 border rounded">
+                        <button onclick="approveRequest()" 
+                                class="mt-2 w-full bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                            Approve Request
+                        </button>
+                    </div>
+                    
+                    <button onclick="viewMyLessons()" 
+                            class="w-full bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
+                        View My Lessons
+                    </button>
+                </div>
+                
+                <div id="tutorResults" class="mt-4 p-3 bg-gray-50 rounded max-h-64 overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <!-- Database Queries -->
+        <div class="mt-6 bg-white p-6 rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Database Queries</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="testAllTables()" 
+                        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    Test All Tables
+                </button>
+                <button onclick="checkRLSPolicies()" 
+                        class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                    Check RLS Policies
+                </button>
+                <button onclick="clearResults()" 
+                        class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    Clear Results
+                </button>
+            </div>
+            <div id="dbResults" class="mt-4 p-3 bg-gray-50 rounded max-h-64 overflow-y-auto"></div>
+        </div>
+
+        <!-- Console Output -->
+        <div class="mt-6 bg-black text-green-400 p-4 rounded-lg">
+            <h3 class="text-lg font-semibold mb-2">Console Output:</h3>
+            <div id="console" class="font-mono text-sm max-h-64 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+
+    <script>
+        let currentUser = null;
+
+        // Console logging
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        function addToConsole(message, type = 'log') {
+            const consoleDiv = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'text-red-400' : 'text-green-400';
+            consoleDiv.innerHTML += `<div class="${color}">[${timestamp}] ${message}</div>`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole(args.join(' '), 'log');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole(args.join(' '), 'error');
+        };
+
+        // Check user status
+        async function checkUserStatus() {
+            const result = document.getElementById('userStatus');
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                if (error) throw error;
+
+                if (user) {
+                    currentUser = user;
+                    result.innerHTML = `
+                        <div class="text-green-600">✅ User logged in</div>
+                        <div><strong>ID:</strong> ${user.id}</div>
+                        <div><strong>Email:</strong> ${user.email}</div>
+                        <div><strong>Role:</strong> ${user.user_metadata?.role || 'Not set'}</div>
+                    `;
+                    console.log('Current user:', user);
+                } else {
+                    result.innerHTML = '<span class="text-yellow-600">⚠️ No user logged in</span>';
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Error: ${error.message}</span>`;
+                console.error('Get current user failed:', error);
+            }
+        }
+
+        // Student: Create lesson request
+        async function createLessonRequest() {
+            const tutorId = document.getElementById('studentTutorId').value;
+            const result = document.getElementById('studentResults');
+            
+            if (!tutorId) {
+                result.innerHTML = '<span class="text-yellow-600">⚠️ Please enter a tutor ID</span>';
+                return;
+            }
+
+            if (!currentUser) {
+                result.innerHTML = '<span class="text-red-600">❌ Please check user status first</span>';
+                return;
+            }
+
+            try {
+                console.log('Creating lesson request...');
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                
+                const { data, error } = await supabase
+                    .from('lesson_requests')
+                    .insert([{
+                        tutor_id: tutorId,
+                        student_id: currentUser.id,
+                        requested_date: tomorrow.toISOString().split('T')[0],
+                        requested_start_time: '10:00:00',
+                        requested_end_time: '11:00:00',
+                        status: 'pending',
+                        student_message: 'Test lesson request from flow test'
+                    }])
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                result.innerHTML = `
+                    <div class="text-green-600">✅ Lesson request created!</div>
+                    <div><strong>ID:</strong> ${data.id}</div>
+                    <div><strong>Status:</strong> ${data.status}</div>
+                    <div><strong>Date:</strong> ${data.requested_date}</div>
+                `;
+                console.log('Lesson request created:', data);
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Error: ${error.message}</span>`;
+                console.error('Create lesson request failed:', error);
+            }
+        }
+
+        // Student: View my requests
+        async function viewMyRequests() {
+            const result = document.getElementById('studentResults');
+            
+            if (!currentUser) {
+                result.innerHTML = '<span class="text-red-600">❌ Please check user status first</span>';
+                return;
+            }
+
+            try {
+                console.log('Loading student requests...');
+                const { data, error } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .eq('student_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    let html = `<div class="text-green-600">Found ${data.length} requests:</div>`;
+                    data.forEach((req, index) => {
+                        html += `
+                            <div class="mt-2 p-2 bg-gray-100 rounded text-xs">
+                                <strong>Request ${index + 1}:</strong><br>
+                                ID: ${req.id}<br>
+                                Tutor: ${req.tutor_id}<br>
+                                Status: ${req.status}<br>
+                                Date: ${req.requested_date}
+                            </div>
+                        `;
+                    });
+                    result.innerHTML = html;
+                } else {
+                    result.innerHTML = '<span class="text-yellow-600">⚠️ No requests found</span>';
+                }
+                console.log('Student requests:', data);
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Error: ${error.message}</span>`;
+                console.error('View student requests failed:', error);
+            }
+        }
+
+        // Tutor: View pending requests
+        async function viewPendingRequests() {
+            const result = document.getElementById('tutorResults');
+            
+            if (!currentUser) {
+                result.innerHTML = '<span class="text-red-600">❌ Please check user status first</span>';
+                return;
+            }
+
+            try {
+                console.log('Loading pending requests for tutor:', currentUser.id);
+                const { data, error } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .eq('tutor_id', currentUser.id)
+                    .eq('status', 'pending')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    let html = `<div class="text-green-600">Found ${data.length} pending requests:</div>`;
+                    data.forEach((req, index) => {
+                        html += `
+                            <div class="mt-2 p-2 bg-yellow-100 rounded text-xs">
+                                <strong>Request ${index + 1}:</strong><br>
+                                ID: ${req.id}<br>
+                                Student: ${req.student_id}<br>
+                                Date: ${req.requested_date}<br>
+                                Time: ${req.requested_start_time}<br>
+                                Message: ${req.student_message}
+                            </div>
+                        `;
+                    });
+                    result.innerHTML = html;
+                } else {
+                    result.innerHTML = '<span class="text-yellow-600">⚠️ No pending requests found</span>';
+                }
+                console.log('Pending requests:', data);
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Error: ${error.message}</span>`;
+                console.error('View pending requests failed:', error);
+            }
+        }
+
+        // Tutor: Approve request
+        async function approveRequest() {
+            const requestId = document.getElementById('requestIdToApprove').value;
+            const result = document.getElementById('tutorResults');
+            
+            if (!requestId) {
+                result.innerHTML = '<span class="text-yellow-600">⚠️ Please enter a request ID</span>';
+                return;
+            }
+
+            try {
+                console.log('Approving request:', requestId);
+                const { data, error } = await supabase
+                    .from('lesson_requests')
+                    .update({ 
+                        status: 'approved',
+                        tutor_response: 'Request approved! Looking forward to the lesson.'
+                    })
+                    .eq('id', requestId)
+                    .eq('tutor_id', currentUser.id)
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                result.innerHTML = `
+                    <div class="text-green-600">✅ Request approved!</div>
+                    <div><strong>ID:</strong> ${data.id}</div>
+                    <div><strong>Status:</strong> ${data.status}</div>
+                `;
+                console.log('Request approved:', data);
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Error: ${error.message}</span>`;
+                console.error('Approve request failed:', error);
+            }
+        }
+
+        // Tutor: View my lessons
+        async function viewMyLessons() {
+            const result = document.getElementById('tutorResults');
+            
+            if (!currentUser) {
+                result.innerHTML = '<span class="text-red-600">❌ Please check user status first</span>';
+                return;
+            }
+
+            try {
+                console.log('Loading tutor lessons...');
+                const { data, error } = await supabase
+                    .from('lessons')
+                    .select('*')
+                    .eq('tutor_id', currentUser.id)
+                    .order('lesson_date', { ascending: false });
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    let html = `<div class="text-green-600">Found ${data.length} lessons:</div>`;
+                    data.forEach((lesson, index) => {
+                        html += `
+                            <div class="mt-2 p-2 bg-blue-100 rounded text-xs">
+                                <strong>Lesson ${index + 1}:</strong><br>
+                                ID: ${lesson.id}<br>
+                                Student: ${lesson.student_id}<br>
+                                Status: ${lesson.status}<br>
+                                Date: ${lesson.lesson_date}
+                            </div>
+                        `;
+                    });
+                    result.innerHTML = html;
+                } else {
+                    result.innerHTML = '<span class="text-yellow-600">⚠️ No lessons found</span>';
+                }
+                console.log('Tutor lessons:', data);
+            } catch (error) {
+                result.innerHTML = `<span class="text-red-600">❌ Error: ${error.message}</span>`;
+                console.error('View tutor lessons failed:', error);
+            }
+        }
+
+        // Test all tables
+        async function testAllTables() {
+            const result = document.getElementById('dbResults');
+            const tables = ['users', 'tutors', 'lessons', 'lesson_requests', 'tutor_availability'];
+            let html = '<div class="text-blue-600">Testing all tables:</div>';
+
+            for (const table of tables) {
+                try {
+                    const { data, error } = await supabase.from(table).select('*').limit(1);
+                    if (error) {
+                        html += `<div class="text-red-600">❌ ${table}: ${error.message}</div>`;
+                    } else {
+                        html += `<div class="text-green-600">✅ ${table}: accessible</div>`;
+                    }
+                } catch (error) {
+                    html += `<div class="text-red-600">❌ ${table}: ${error.message}</div>`;
+                }
+            }
+            result.innerHTML = html;
+        }
+
+        // Clear results
+        function clearResults() {
+            document.getElementById('studentResults').innerHTML = '';
+            document.getElementById('tutorResults').innerHTML = '';
+            document.getElementById('dbResults').innerHTML = '';
+            document.getElementById('console').innerHTML = '';
+        }
+
+        // Auto-run user status check on load
+        window.addEventListener('load', () => {
+            console.log('Flow test tool loaded');
+            checkUserStatus();
+        });
+    </script>
+</body>
+</html>
