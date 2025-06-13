@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Become a Tutor - IndianTutors</title>
+    <meta name="description" content="Join our community of language tutors">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .become-tutor-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+        
+        .form-section {
+            margin-bottom: 2rem;
+        }
+        
+        .form-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .language-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .language-tag {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .language-tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .submit-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+        
+        .submit-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .submit-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .success-message {
+            background: #10b981;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .error-message {
+            background: #ef4444;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .info-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .info-box h4 {
+            color: #1e40af;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-box p {
+            color: #1e40af;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <h2>IndianTutors</h2>
+            </div>
+            <div class="nav-links">
+                <a href="home.html" class="nav-link">Home</a>
+                <a href="findteacher.html" class="nav-link">Find a Teacher</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="become-tutor-container">
+            <a href="home.html" class="back-link">
+                ← Back to Home
+            </a>
+            
+            <h1>Become a Tutor</h1>
+            <p>Join our community of language tutors and start teaching students worldwide!</p>
+            
+            <div class="info-box">
+                <h4>📋 Application Process</h4>
+                <p>After submitting your application, our team will review your profile. Once approved, you'll be able to start teaching and your profile will appear in our tutor directory.</p>
+            </div>
+            
+            <div class="success-message" id="successMessage">
+                Your tutor application has been submitted successfully! We'll review it and get back to you soon.
+            </div>
+            
+            <div class="error-message" id="errorMessage">
+                There was an error submitting your application. Please try again.
+            </div>
+            
+            <form id="tutorApplicationForm">
+                <!-- Personal Information -->
+                <div class="form-section">
+                    <h3>Personal Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="fullName">Full Name *</label>
+                        <input type="text" id="fullName" name="fullName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bio">Bio / About Me *</label>
+                        <textarea id="bio" name="bio" placeholder="Tell students about yourself, your teaching experience, and what makes you a great tutor..." required></textarea>
+                    </div>
+                </div>
+                
+                <!-- Teaching Information -->
+                <div class="form-section">
+                    <h3>Teaching Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="languageInput">Languages You Can Teach *</label>
+                        <input type="text" id="languageInput" placeholder="Type a language and press Enter">
+                        <div class="language-tags" id="languageTags"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="experience">Years of Teaching Experience *</label>
+                        <select id="experience" name="experience" required>
+                            <option value="">Select experience level</option>
+                            <option value="0-1">0-1 years</option>
+                            <option value="1-3">1-3 years</option>
+                            <option value="3-5">3-5 years</option>
+                            <option value="5-10">5-10 years</option>
+                            <option value="10+">10+ years</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="hourlyRate">Hourly Rate (₹) *</label>
+                        <input type="number" id="hourlyRate" name="hourlyRate" min="100" max="5000" placeholder="e.g., 500" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="videoUrl">Introduction Video (Google Drive Link) *</label>
+                        <input type="url" id="videoUrl" name="videoUrl" placeholder="https://drive.google.com/file/d/..." required>
+                        <small style="color: #6b7280; font-size: 0.875rem;">
+                            Upload a 2-3 minute introduction video to Google Drive and paste the shareable link here
+                        </small>
+                    </div>
+                </div>
+                
+                <!-- Additional Information -->
+                <div class="form-section">
+                    <h3>Additional Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="specialties">Teaching Specialties</label>
+                        <textarea id="specialties" name="specialties" placeholder="e.g., Conversational Hindi, Business English, Grammar, Pronunciation..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="availability">Preferred Teaching Hours</label>
+                        <textarea id="availability" name="availability" placeholder="e.g., Weekdays 6-10 PM, Weekends 9 AM - 6 PM..."></textarea>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    Submit Application
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="become-tutor.js"></script>
+</body>
+</html>
