@@ -181,76 +181,151 @@
         </div>
     </div>
 
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Simple Messaging Service -->
+    <script src="simple-messaging.js"></script>
+
     <script>
-        // Sample chat data
-        const chats = {
-            '1': {
-                name: 'Rajesh Kumar',
-                initial: 'R',
-                color: 'indigo',
-                messages: [
-                    { text: "Hi! I'm looking forward to our Hindi lesson tomorrow.", time: "10:30 AM", sent: false },
-                    { text: "Great! I've prepared some new vocabulary for you.", time: "10:32 AM", sent: true },
-                    { text: "Perfect! Should I bring my notebook?", time: "10:35 AM", sent: false },
-                    { text: "Yes, definitely! We'll be doing some writing exercises.", time: "10:36 AM", sent: true },
-                    { text: "Thank you for the lesson today!", time: "2 min ago", sent: false }
-                ]
-            },
-            '2': {
-                name: 'Priya Sharma',
-                initial: 'P',
-                color: 'green',
-                messages: [
-                    { text: "Hello! I need to reschedule our lesson.", time: "2:00 PM", sent: false },
-                    { text: "Of course! What time works better for you?", time: "2:05 PM", sent: true },
-                    { text: "Can we reschedule tomorrow's lesson?", time: "1 hour ago", sent: false }
-                ]
-            },
-            '3': {
-                name: 'Amit Patel',
-                initial: 'A',
-                color: 'purple',
-                messages: [
-                    { text: "Thank you for the excellent Tamil lesson!", time: "Yesterday", sent: false },
-                    { text: "You're very welcome! Keep practicing!", time: "Yesterday", sent: true },
-                    { text: "Looking forward to our next session", time: "Yesterday", sent: false }
-                ]
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://qbyyutebrgpxngvwenkd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFieXl1dGVicmdweG5ndndlbmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MTA1NTMsImV4cCI6MjA2NTI4NjU1M30.eO8Wd0ZOqtXgvQ3BuedmSPmYVpbG3V-AXvgufLns6yY';
+
+        let supabase;
+        let messaging;
+        let currentChatId = null;
+        let allChats = [];
+
+        // Initialize the application
+        async function initializeApp() {
+            try {
+                // Initialize Supabase
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+                // Check authentication
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // Initialize messaging
+                messaging = new SimpleMessaging(supabase);
+                await messaging.initialize();
+
+                // Update user info
+                document.getElementById('userEmail').textContent = session.user.email;
+
+                // Load chats
+                await loadChats();
+
+            } catch (error) {
+                console.error('Error initializing app:', error);
+                alert('Failed to initialize messaging. Please refresh the page.');
             }
-        };
-
-        let currentChatId = '1';
-
-        function openChat(chatId, userName) {
-            currentChatId = chatId;
-            const chat = chats[chatId];
-            
-            // Update chat header
-            document.getElementById('chatUserName').textContent = chat.name;
-            document.getElementById('chatUserInitial').textContent = chat.initial;
-            
-            // Update messages
-            displayMessages(chat.messages);
-            
-            // Highlight selected chat
-            document.querySelectorAll('.chat-item').forEach(item => {
-                item.classList.remove('bg-indigo-50', 'border-indigo-200');
-            });
-            
-            event.currentTarget.classList.add('bg-indigo-50', 'border-indigo-200');
         }
 
+        // Load user's chats
+        async function loadChats() {
+            try {
+                allChats = await messaging.getUserChats();
+                displayChatsList();
+
+                // Open first chat if available
+                if (allChats.length > 0) {
+                    await openChat(allChats[0].id, allChats[0].otherUser.name);
+                }
+            } catch (error) {
+                console.error('Error loading chats:', error);
+                document.getElementById('chatsList').innerHTML = '<div class="p-4 text-center text-gray-500">Failed to load chats</div>';
+            }
+        }
+
+        // Display chats list
+        function displayChatsList() {
+            const chatsList = document.getElementById('chatsList');
+
+            if (allChats.length === 0) {
+                chatsList.innerHTML = '<div class="p-4 text-center text-gray-500">No conversations yet</div>';
+                return;
+            }
+
+            const chatsHTML = allChats.map(chat => {
+                const userName = chat.otherUser.name;
+                const userInitial = userName.charAt(0).toUpperCase();
+                const lastMessage = chat.latestMessage ? chat.latestMessage.content : 'No messages yet';
+                const timeAgo = chat.latestMessage ? formatTimeAgo(new Date(chat.latestMessage.created_at)) : '';
+
+                return `
+                    <div class="chat-item p-4 border-b border-gray-200 hover:bg-gray-100 cursor-pointer transition-colors"
+                         onclick="openChat('${chat.id}', '${userName}')">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                                <span class="text-indigo-600 font-semibold">${userInitial}</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-semibold text-gray-900 truncate">${userName}</h3>
+                                    <span class="text-xs text-gray-500">${timeAgo}</span>
+                                </div>
+                                <p class="text-sm text-gray-500 truncate">${lastMessage}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            chatsList.innerHTML = chatsHTML;
+        }
+
+        // Open a specific chat
+        async function openChat(chatId, userName) {
+            try {
+                currentChatId = chatId;
+
+                // Update chat header
+                document.getElementById('chatUserName').textContent = userName;
+                document.getElementById('chatUserInitial').textContent = userName.charAt(0).toUpperCase();
+
+                // Load and display messages
+                const messages = await messaging.getChatMessages(chatId);
+                displayMessages(messages);
+
+                // Highlight selected chat
+                document.querySelectorAll('.chat-item').forEach(item => {
+                    item.classList.remove('bg-indigo-50', 'border-indigo-200');
+                });
+
+                if (event && event.currentTarget) {
+                    event.currentTarget.classList.add('bg-indigo-50', 'border-indigo-200');
+                }
+
+                // Subscribe to real-time updates
+                messaging.unsubscribeFromChat();
+                messaging.subscribeToChat(chatId, handleNewMessage);
+
+            } catch (error) {
+                console.error('Error opening chat:', error);
+                alert('Failed to load chat messages');
+            }
+        }
+
+        // Display messages in the chat
         function displayMessages(messages) {
             const messagesList = document.getElementById('messagesList');
-            
+
             const messagesHTML = messages.map(message => {
-                const messageClass = message.sent ? 'message-sent text-white ml-auto' : 'message-received mr-auto';
-                const justifyClass = message.sent ? 'justify-end' : 'justify-start';
-                
+                const isSent = message.sender_id === messaging.currentUser.id;
+                const messageClass = isSent ? 'message-sent text-white ml-auto' : 'message-received mr-auto';
+                const justifyClass = isSent ? 'justify-end' : 'justify-start';
+                const time = formatTime(new Date(message.created_at));
+
                 return `
                     <div class="flex ${justifyClass}">
                         <div class="message-bubble ${messageClass} px-4 py-2 rounded-lg">
-                            <p class="text-sm">${message.text}</p>
-                            <p class="text-xs opacity-75 mt-1">${message.time}</p>
+                            <p class="text-sm">${escapeHtml(message.content)}</p>
+                            <p class="text-xs opacity-75 mt-1">${time}</p>
                         </div>
                     </div>
                 `;
@@ -260,28 +335,46 @@
             scrollToBottom();
         }
 
-        function sendMessage() {
+        // Handle new message from real-time subscription
+        function handleNewMessage(message) {
+            if (message.chat_id === currentChatId) {
+                const messagesList = document.getElementById('messagesList');
+                const isSent = message.sender_id === messaging.currentUser.id;
+                const messageClass = isSent ? 'message-sent text-white ml-auto' : 'message-received mr-auto';
+                const justifyClass = isSent ? 'justify-end' : 'justify-start';
+                const time = formatTime(new Date(message.created_at));
+
+                const messageHTML = `
+                    <div class="flex ${justifyClass}">
+                        <div class="message-bubble ${messageClass} px-4 py-2 rounded-lg">
+                            <p class="text-sm">${escapeHtml(message.content)}</p>
+                            <p class="text-xs opacity-75 mt-1">${time}</p>
+                        </div>
+                    </div>
+                `;
+
+                messagesList.insertAdjacentHTML('beforeend', messageHTML);
+                scrollToBottom();
+            }
+
+            // Refresh chat list to show latest message
+            loadChats();
+        }
+
+        // Send a message
+        async function sendMessage() {
             const messageInput = document.getElementById('messageText');
             const content = messageInput.value.trim();
-            
-            if (!content) return;
 
-            // Add message to current chat
-            const currentTime = new Date().toLocaleTimeString('en-US', { 
-                hour: 'numeric', 
-                minute: '2-digit',
-                hour12: true 
-            });
-            
-            chats[currentChatId].messages.push({
-                text: content,
-                time: currentTime,
-                sent: true
-            });
+            if (!content || !currentChatId) return;
 
-            // Clear input and refresh display
-            messageInput.value = '';
-            displayMessages(chats[currentChatId].messages);
+            try {
+                await messaging.sendMessage(currentChatId, content);
+                messageInput.value = '';
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please try again.');
+            }
         }
 
         function handleMessageKeyPress(event) {
@@ -312,13 +405,43 @@
             }
         }
 
+        // Utility functions
+        function formatTime(date) {
+            return date.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set user email (placeholder)
-            document.getElementById('userEmail').textContent = 'user@example.com';
-            
-            // Display initial chat
-            displayMessages(chats[currentChatId].messages);
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (messaging) {
+                messaging.unsubscribeFromChat();
+            }
         });
     </script>
 </body>

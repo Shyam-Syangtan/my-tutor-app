@@ -460,7 +460,7 @@
                             <div class="text-sm text-gray-500 mb-4">Package with 8% off</div>
                         </div>
 
-                        <button class="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium">
+                        <button onclick="contactTeacher()" class="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors font-medium">
                             Contact teacher
                         </button>
                     </div>
@@ -1210,6 +1210,45 @@
             closeBookingModal();
         }
 
+        // Contact teacher function
+        async function contactTeacher() {
+            try {
+                // Check if user is authenticated
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    alert('Please log in to contact teachers');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // Get tutor data from the current profile
+                const { data: tutorData, error } = await supabase
+                    .from('tutors')
+                    .select('user_id, name')
+                    .eq('id', tutorId)
+                    .single();
+
+                if (error || !tutorData) {
+                    alert('Unable to contact teacher. Please try again.');
+                    return;
+                }
+
+                // Initialize messaging service
+                const messaging = new SimpleMessaging(supabase);
+                await messaging.initialize();
+
+                // Get or create chat
+                const chatId = await messaging.getOrCreateChat(tutorData.user_id);
+
+                // Redirect to student messages page
+                window.location.href = `student-messages.html?chat=${chatId}`;
+
+            } catch (error) {
+                console.error('Error contacting teacher:', error);
+                alert('Failed to start conversation. Please try again.');
+            }
+        }
+
         // Utility functions
         function hideLoading() {
             loadingState.classList.add('hidden');
@@ -1220,5 +1259,8 @@
             errorState.classList.remove('hidden');
         }
     </script>
+
+    <!-- Simple Messaging Service -->
+    <script src="simple-messaging.js"></script>
 </body>
 </html>

@@ -727,14 +727,18 @@
                             ` : ''}
 
                             <!-- Action Buttons -->
-                            <div class="flex space-x-3">
+                            <div class="flex space-x-2">
+                                <button onclick="event.stopPropagation(); contactTeacher('${tutor.user_id}', '${tutor.name}')"
+                                        class="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                                    Contact
+                                </button>
                                 <button onclick="event.stopPropagation(); window.open('profile.html?id=${tutor.id}', '_blank')"
-                                        class="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                                        class="flex-1 bg-indigo-600 text-white px-3 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
                                     Book Lesson
                                 </button>
                                 <button onclick="event.stopPropagation(); window.open('profile.html?id=${tutor.id}', '_blank')"
-                                        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
-                                    View Profile
+                                        class="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
+                                    Profile
                                 </button>
                             </div>
                         </div>
@@ -898,6 +902,33 @@
             }
         }
 
+        // Contact teacher function
+        async function contactTeacher(tutorUserId, tutorName) {
+            try {
+                // Check if user is authenticated
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    alert('Please log in to contact teachers');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // Initialize messaging service
+                const messaging = new SimpleMessaging(supabase);
+                await messaging.initialize();
+
+                // Get or create chat
+                const chatId = await messaging.getOrCreateChat(tutorUserId);
+
+                // Redirect to messages page
+                window.location.href = `messages.html?chat=${chatId}`;
+
+            } catch (error) {
+                console.error('Error contacting teacher:', error);
+                alert('Failed to start conversation. Please try again.');
+            }
+        }
+
         // Logout function
         async function handleLogout() {
             try {
@@ -910,8 +941,12 @@
             }
         }
 
-        // Make logout function globally available
+        // Make functions globally available
         window.handleLogout = handleLogout;
+        window.contactTeacher = contactTeacher;
     </script>
+
+    <!-- Simple Messaging Service -->
+    <script src="simple-messaging.js"></script>
 </body>
 </html>
