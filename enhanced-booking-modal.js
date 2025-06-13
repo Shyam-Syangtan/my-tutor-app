@@ -489,17 +489,38 @@ class EnhancedBookingModal {
         bookBtn.disabled = !this.selectedTimeSlot;
     }
 
-    // Book selected slot
+    // Book selected slot - Enhanced with better error handling and user feedback
     async bookSelectedSlot() {
         if (!this.selectedTimeSlot || !this.currentUser) {
+            console.error('❌ [BOOKING] Missing required data:', {
+                selectedTimeSlot: this.selectedTimeSlot,
+                currentUser: this.currentUser
+            });
             return;
         }
 
         const { date, time } = this.selectedTimeSlot;
         const endTime = this.getEndTime(time);
 
+        // Show loading state
+        const bookBtn = document.getElementById('bookLessonBtn');
+        const originalText = bookBtn.textContent;
+        bookBtn.disabled = true;
+        bookBtn.textContent = 'Booking...';
+
         try {
-            console.log('📝 Creating lesson request:', { date, time, endTime });
+            console.log('📝 [BOOKING] Creating lesson request:', {
+                date,
+                time,
+                endTime,
+                tutorId: this.tutorId,
+                studentId: this.currentUser.id
+            });
+
+            // Validate required fields
+            if (!this.tutorId || !this.currentUser.id) {
+                throw new Error('Missing tutor ID or student ID');
+            }
 
             const { data, error } = await this.supabase
                 .from('lesson_requests')
@@ -510,32 +531,51 @@ class EnhancedBookingModal {
                     requested_start_time: time,
                     requested_end_time: endTime,
                     status: 'pending',
-                    student_message: 'Lesson booking request via enhanced booking system'
+                    student_message: document.getElementById('studentMessage')?.value || 'Lesson booking request via enhanced booking system'
                 }])
                 .select()
                 .single();
 
             if (error) {
+                console.error('❌ [BOOKING] Database error:', error);
                 throw error;
             }
 
-            console.log('✅ Lesson request created:', data);
-            
-            // Show success message
-            this.showSuccessMessage('Lesson request sent! The tutor will review and respond soon.');
-            
+            console.log('✅ [BOOKING] Lesson request created successfully:', data);
+
+            // Show success message with details
+            const formattedDate = this.formatDate(new Date(date));
+            const formattedTime = this.formatTime(time);
+            this.showSuccessMessage(`✅ Lesson request sent for ${formattedDate} at ${formattedTime}! The tutor will review and respond soon.`);
+
             // Close modal
             this.closeModal();
-            
+
             // Trigger refresh of parent booking system
             if (window.bookingSystem && typeof window.bookingSystem.loadBookingData === 'function') {
+                console.log('🔄 [BOOKING] Refreshing booking data...');
                 await window.bookingSystem.loadBookingData();
                 window.bookingSystem.renderAvailabilityGrid('availabilityContainer');
             }
 
         } catch (error) {
-            console.error('💥 Error creating lesson request:', error);
-            this.showErrorMessage('Failed to send lesson request. Please try again.');
+            console.error('💥 [BOOKING] Error creating lesson request:', error);
+
+            // Show specific error message
+            let errorMessage = 'Failed to send lesson request. Please try again.';
+            if (error.message.includes('duplicate')) {
+                errorMessage = 'You already have a request for this time slot.';
+            } else if (error.message.includes('permission')) {
+                errorMessage = 'Permission denied. Please log in again.';
+            } else if (error.message.includes('network')) {
+                errorMessage = 'Network error. Please check your connection.';
+            }
+
+            this.showErrorMessage(errorMessage);
+        } finally {
+            // Reset button state
+            bookBtn.disabled = false;
+            bookBtn.textContent = originalText;
         }
     }
 
