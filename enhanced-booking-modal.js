@@ -16,11 +16,41 @@ class EnhancedBookingModal {
 
     // Initialize the modal system
     async initialize(tutorId, currentUser, availabilityData, lessonRequests) {
+        console.log('🚀 [MODAL] Initializing enhanced booking modal...');
+        console.log('🚀 [MODAL] Initialization parameters:', {
+            tutorId,
+            currentUserId: currentUser?.id,
+            currentUserEmail: currentUser?.email,
+            availabilityDataKeys: Object.keys(availabilityData || {}),
+            lessonRequestsDataKeys: Object.keys(lessonRequests || {}),
+            supabaseAvailable: !!this.supabase
+        });
+
         this.tutorId = tutorId;
         this.currentUser = currentUser;
         this.availabilityData = availabilityData;
         this.lessonRequests = lessonRequests;
+
+        console.log('✅ [MODAL] Enhanced booking modal initialized with:', {
+            tutorId: this.tutorId,
+            currentUser: this.currentUser?.id,
+            availabilitySlots: Object.keys(this.availabilityData).length,
+            lessonRequests: Object.keys(this.lessonRequests).length
+        });
+
         this.createModalHTML();
+
+        // Verify initialization
+        const modal = document.getElementById('enhancedBookingModal');
+        const bookBtn = document.getElementById('bookLessonBtn');
+
+        console.log('🔍 [MODAL] Post-initialization check:', {
+            modalExists: !!modal,
+            bookButtonExists: !!bookBtn,
+            tutorIdSet: !!this.tutorId,
+            currentUserSet: !!this.currentUser,
+            supabaseSet: !!this.supabase
+        });
     }
 
     // Create the modal HTML structure
@@ -307,6 +337,13 @@ class EnhancedBookingModal {
     // Open modal for specific date
     openModal(date) {
         console.log('🎯 [MODAL] Opening enhanced modal for date:', date);
+        console.log('🎯 [MODAL] Current modal state:', {
+            currentUser: this.currentUser?.id,
+            tutorId: this.tutorId,
+            supabase: !!this.supabase,
+            availabilityData: Object.keys(this.availabilityData || {}).length,
+            lessonRequests: Object.keys(this.lessonRequests || {}).length
+        });
 
         this.selectedDate = new Date(date);
         this.selectedTimeSlot = null;
@@ -339,17 +376,7 @@ class EnhancedBookingModal {
             // Re-attach book button listener to ensure it's working
             setTimeout(() => {
                 this.reattachBookButtonListener();
-
-                const bookBtn = document.getElementById('bookLessonBtn');
-                const footer = modal.querySelector('.border-t-4.border-red-300');
-
-                console.log('🔍 [MODAL] After opening - Book button visible:', bookBtn?.offsetHeight > 0 ? 'YES' : 'NO');
-                console.log('🔍 [MODAL] After opening - Footer visible:', footer?.offsetHeight > 0 ? 'YES' : 'NO');
-
-                if (footer) {
-                    const rect = footer.getBoundingClientRect();
-                    console.log('🔍 [MODAL] Footer position:', { top: rect.top, bottom: rect.bottom, height: rect.height });
-                }
+                this.debugModalState();
             }, 100);
         } else {
             console.error('❌ [MODAL] Modal element not found!');
@@ -359,33 +386,120 @@ class EnhancedBookingModal {
         document.body.style.overflow = 'hidden';
     }
 
+    // Debug modal state for troubleshooting
+    debugModalState() {
+        const modal = document.getElementById('enhancedBookingModal');
+        const bookBtn = document.getElementById('bookLessonBtn');
+        const footer = modal?.querySelector('.border-t-4.border-red-300');
+
+        console.log('🔍 [MODAL] Debug modal state:');
+        console.log('  - Modal element:', modal ? 'FOUND' : 'NOT FOUND');
+        console.log('  - Book button element:', bookBtn ? 'FOUND' : 'NOT FOUND');
+        console.log('  - Footer element:', footer ? 'FOUND' : 'NOT FOUND');
+
+        if (bookBtn) {
+            console.log('  - Button visible:', bookBtn.offsetHeight > 0 ? 'YES' : 'NO');
+            console.log('  - Button disabled:', bookBtn.disabled);
+            console.log('  - Button text:', bookBtn.textContent);
+            console.log('  - Button classes:', bookBtn.className);
+
+            // Test if button is clickable
+            const rect = bookBtn.getBoundingClientRect();
+            console.log('  - Button position:', {
+                top: rect.top,
+                left: rect.left,
+                width: rect.width,
+                height: rect.height,
+                visible: rect.width > 0 && rect.height > 0
+            });
+        }
+
+        if (footer) {
+            const rect = footer.getBoundingClientRect();
+            console.log('  - Footer position:', { top: rect.top, bottom: rect.bottom, height: rect.height });
+        }
+
+        // Test button click programmatically
+        if (bookBtn) {
+            console.log('🧪 [MODAL] Testing button click programmatically...');
+            setTimeout(() => {
+                try {
+                    bookBtn.click();
+                    console.log('✅ [MODAL] Programmatic click succeeded');
+                } catch (error) {
+                    console.error('❌ [MODAL] Programmatic click failed:', error);
+                }
+            }, 1000);
+        }
+    }
+
     // Re-attach book button listener to ensure it's working
     reattachBookButtonListener() {
+        console.log('🔄 [MODAL] Starting book button re-attachment process...');
+
         const bookBtn = document.getElementById('bookLessonBtn');
         if (bookBtn) {
-            console.log('🔄 [MODAL] Re-attaching book button listener');
+            console.log('🔄 [MODAL] Book button found, proceeding with re-attachment');
+            console.log('🔄 [MODAL] Button current state:', {
+                disabled: bookBtn.disabled,
+                textContent: bookBtn.textContent,
+                className: bookBtn.className,
+                parentNode: bookBtn.parentNode?.tagName
+            });
 
             // Remove any existing listeners by cloning the button
             const newBookBtn = bookBtn.cloneNode(true);
             bookBtn.parentNode.replaceChild(newBookBtn, bookBtn);
 
-            // Add the click listener
+            console.log('🔄 [MODAL] Button cloned and replaced');
+
+            // Add the click listener with comprehensive debugging
             newBookBtn.addEventListener('click', async (event) => {
+                console.log('🔘 [MODAL] *** BUTTON CLICKED *** (re-attached listener)');
+                console.log('🔘 [MODAL] Event details:', {
+                    type: event.type,
+                    target: event.target.tagName,
+                    currentTarget: event.currentTarget.tagName,
+                    bubbles: event.bubbles,
+                    cancelable: event.cancelable
+                });
+
                 event.preventDefault();
                 event.stopPropagation();
-                console.log('🔘 [MODAL] Book lesson button clicked! (re-attached listener)');
+
+                console.log('🔘 [MODAL] About to call bookSelectedSlot()');
+                console.log('🔘 [MODAL] Current context:', {
+                    selectedTimeSlot: this.selectedTimeSlot,
+                    currentUser: this.currentUser?.id,
+                    tutorId: this.tutorId,
+                    supabaseAvailable: !!this.supabase
+                });
 
                 try {
                     await this.bookSelectedSlot();
+                    console.log('✅ [MODAL] bookSelectedSlot() completed successfully');
                 } catch (error) {
                     console.error('💥 [MODAL] Error in re-attached button click handler:', error);
                     this.showErrorMessage('An error occurred while booking. Please try again.');
                 }
             });
 
-            console.log('✅ [MODAL] Book button listener re-attached successfully');
+            // Also add a test listener to verify the button is working
+            newBookBtn.addEventListener('mousedown', () => {
+                console.log('🖱️ [MODAL] Button mousedown detected');
+            });
+
+            newBookBtn.addEventListener('mouseup', () => {
+                console.log('🖱️ [MODAL] Button mouseup detected');
+            });
+
+            console.log('✅ [MODAL] Book button listener re-attached successfully with debugging');
         } else {
             console.error('❌ [MODAL] Book button not found for re-attachment');
+            console.log('❌ [MODAL] Available elements with "book" in ID:');
+            document.querySelectorAll('[id*="book"]').forEach(el => {
+                console.log('  -', el.id, el.tagName, el.textContent?.substring(0, 20));
+            });
         }
     }
 
@@ -701,7 +815,9 @@ class EnhancedBookingModal {
 
     // Book selected slot - Enhanced with better error handling and user feedback
     async bookSelectedSlot() {
-        console.log('🚀 [BOOKING] bookSelectedSlot() method called');
+        console.log('🚀🚀🚀 [BOOKING] *** bookSelectedSlot() method called ***');
+        console.log('🚀 [BOOKING] Method execution started at:', new Date().toISOString());
+        console.log('🚀 [BOOKING] Call stack:', new Error().stack);
 
         // Comprehensive validation
         if (!this.selectedTimeSlot) {
