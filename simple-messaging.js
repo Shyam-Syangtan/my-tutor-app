@@ -227,6 +227,9 @@ class SimpleMessaging {
 
         console.log('🔔 Subscribing to ALL messages (client-side filtering) for user:', this.currentUser.id);
 
+        // Store callback for reconnection
+        this.lastOnMessageCallback = onMessage;
+
         // Unsubscribe from previous global subscription
         this.unsubscribeFromAllMessages();
 
@@ -252,8 +255,20 @@ class SimpleMessaging {
                 }
             })
             .subscribe((status) => {
-                console.log('🔔 Global subscription status:', status);
+                console.log('🔔 Global subscription status changed:', status);
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ Successfully subscribed to real-time messages');
+                } else if (status === 'CLOSED') {
+                    console.error('❌ Subscription closed - attempting to reconnect...');
+                    setTimeout(() => this.subscribeToAllUserMessages(onMessage), 2000);
+                } else if (status === 'CHANNEL_ERROR') {
+                    console.error('❌ Subscription error - attempting to reconnect...');
+                    setTimeout(() => this.subscribeToAllUserMessages(onMessage), 5000);
+                }
             });
+
+        // Add subscription health monitoring
+        this.startSubscriptionHealthCheck();
 
         return this.globalSubscription;
     }
@@ -261,6 +276,14 @@ class SimpleMessaging {
     // Check if a message is for the current user
     async isMessageForUser(message) {
         try {
+            console.log('🔍 Checking if message is for user:', {
+                messageId: message.id,
+                chatId: message.chat_id,
+                senderId: message.sender_id,
+                currentUserId: this.currentUser.id,
+                content: message.content.substring(0, 50) + '...'
+            });
+
             // Check if the message's chat involves the current user
             const { data: chat, error } = await this.supabase
                 .from('chats')
@@ -268,18 +291,28 @@ class SimpleMessaging {
                 .eq('id', message.chat_id)
                 .single();
 
-            if (error || !chat) {
+            if (error) {
+                console.error('❌ Database error fetching chat:', error);
+                return false;
+            }
+
+            if (!chat) {
                 console.log('❌ Could not find chat for message:', message.chat_id);
                 return false;
             }
 
             const isUserInChat = chat.user1_id === this.currentUser.id || chat.user2_id === this.currentUser.id;
-            console.log('🔍 Message chat check:', {
+            const isSentByUser = message.sender_id === this.currentUser.id;
+
+            console.log('🔍 Message chat analysis:', {
                 chatId: message.chat_id,
                 user1: chat.user1_id,
                 user2: chat.user2_id,
                 currentUser: this.currentUser.id,
-                isUserInChat
+                senderId: message.sender_id,
+                isUserInChat,
+                isSentByUser,
+                shouldProcess: isUserInChat
             });
 
             return isUserInChat;
@@ -337,6 +370,51 @@ class SimpleMessaging {
         this.unsubscribeFromAllMessages();
         this.unsubscribeFromChat();
         this.messageHandlers.clear();
+        this.stopSubscriptionHealthCheck();
+    }
+
+    // Start subscription health monitoring
+    startSubscriptionHealthCheck() {
+        // Clear any existing health check
+        this.stopSubscriptionHealthCheck();
+
+        console.log('🏥 Starting subscription health monitoring...');
+        this.healthCheckInterval = setInterval(() => {
+            if (this.globalSubscription) {
+                const state = this.globalSubscription.state;
+                console.log('🏥 Subscription health check - State:', state);
+
+                if (state === 'closed' || state === 'errored') {
+                    console.error('❌ Subscription unhealthy, attempting reconnection...');
+                    this.reconnectSubscription();
+                }
+            }
+        }, 30000); // Check every 30 seconds
+    }
+
+    // Stop subscription health monitoring
+    stopSubscriptionHealthCheck() {
+        if (this.healthCheckInterval) {
+            clearInterval(this.healthCheckInterval);
+            this.healthCheckInterval = null;
+            console.log('🏥 Stopped subscription health monitoring');
+        }
+    }
+
+    // Reconnect subscription if it fails
+    async reconnectSubscription() {
+        console.log('🔄 Attempting to reconnect subscription...');
+        try {
+            this.unsubscribeFromAllMessages();
+            // Wait a moment before reconnecting
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Note: We need to store the onMessage callback to reconnect properly
+            if (this.lastOnMessageCallback) {
+                await this.subscribeToAllUserMessages(this.lastOnMessageCallback);
+            }
+        } catch (error) {
+            console.error('❌ Failed to reconnect subscription:', error);
+        }
     }
 
     // Contact a teacher (create chat and redirect)

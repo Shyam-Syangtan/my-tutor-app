@@ -37,8 +37,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         // Set up global real-time subscription for all user messages
         console.log('🔔 Setting up global real-time subscription...');
+        updateSubscriptionIndicator('connecting');
         await messaging.subscribeToAllUserMessages(handleNewMessage);
         console.log('✅ Global subscription setup complete');
+
+        // Monitor subscription status
+        monitorSubscriptionStatus();
 
         // Check for chat ID in URL params
         const urlParams = new URLSearchParams(window.location.search);
@@ -87,8 +91,25 @@ async function loadUserChats() {
 // Refresh global subscription (call when new chats are created)
 async function refreshGlobalSubscription() {
     console.log('🔄 Refreshing global subscription...');
+    updateSubscriptionIndicator('connecting');
     await messaging.subscribeToAllUserMessages(handleNewMessage);
 }
+
+// Test message delivery (for debugging)
+window.testMessageDelivery = function() {
+    console.log('🧪 Testing message delivery...');
+    console.log('Current subscription state:', messaging?.globalSubscription?.state);
+    console.log('Current user:', messaging?.currentUser?.id);
+    console.log('Current chat:', currentChatId);
+
+    if (currentChatId && messaging) {
+        const testMessage = `Test message at ${new Date().toLocaleTimeString()}`;
+        sendMessage();
+        document.getElementById('messageText').value = testMessage;
+    } else {
+        console.log('❌ No active chat or messaging service');
+    }
+};
 
 // Display chats in sidebar
 function displayChats(chats) {
@@ -243,28 +264,43 @@ function displayMessages(messages) {
 
 // Handle new message from real-time subscription
 function handleNewMessage(message) {
-    console.log('📨 handleNewMessage called:', {
-        message,
+    const timestamp = new Date().toISOString();
+    console.log(`📨 [${timestamp}] handleNewMessage called:`, {
+        messageId: message.id,
+        chatId: message.chat_id,
+        senderId: message.sender_id,
+        content: message.content.substring(0, 50) + '...',
         currentChatId,
         messageForCurrentChat: message.chat_id === currentChatId,
         currentUserId: messaging?.currentUser?.id
     });
 
+    // Always update chat list first (for messages in other chats)
+    loadUserChats();
+
+    // Only display in UI if it's for the currently open chat
     if (message.chat_id === currentChatId) {
         const messagesList = document.getElementById('messagesList');
+        if (!messagesList) {
+            console.error('❌ Messages list element not found');
+            return;
+        }
+
         const isSent = message.sender_id === messaging.currentUser.id;
         const messageClass = isSent ? 'message-sent text-white ml-auto' : 'message-received mr-auto';
         const justifyClass = isSent ? 'justify-end' : 'justify-start';
         const time = formatTime(new Date(message.created_at));
 
-        console.log('💬 Adding message to UI:', {
+        console.log(`💬 [${timestamp}] Adding message to UI:`, {
+            messageId: message.id,
             isSent,
             content: message.content,
-            time
+            time,
+            chatId: message.chat_id
         });
 
         const messageHTML = `
-            <div class="flex ${justifyClass}">
+            <div class="flex ${justifyClass}" data-message-id="${message.id}">
                 <div class="message-bubble ${messageClass} px-4 py-2 rounded-lg">
                     <p class="text-sm">${escapeHtml(message.content)}</p>
                     <p class="text-xs opacity-75 mt-1">${time}</p>
@@ -274,13 +310,31 @@ function handleNewMessage(message) {
 
         messagesList.insertAdjacentHTML('beforeend', messageHTML);
         scrollToBottom();
-        console.log('✅ Message added to UI successfully');
-    } else {
-        console.log('📨 Message not for current chat, ignoring');
-    }
+        console.log(`✅ [${timestamp}] Message ${message.id} added to UI successfully`);
 
-    // Refresh chat list to update latest message
-    loadUserChats();
+        // Show a brief visual confirmation for received messages
+        if (!isSent) {
+            showMessageDeliveryConfirmation();
+        }
+    } else {
+        console.log(`📨 [${timestamp}] Message for different chat (${message.chat_id}), updating chat list only`);
+    }
+}
+
+// Show brief visual confirmation for message delivery
+function showMessageDeliveryConfirmation() {
+    // Create a small notification
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-3 py-1 rounded text-sm z-50';
+    notification.textContent = '📨 New message';
+    document.body.appendChild(notification);
+
+    // Remove after 2 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 2000);
 }
 
 // Send a message
@@ -391,6 +445,65 @@ function handleLogout() {
         supabase.auth.signOut();
         window.location.href = 'index.html';
     }
+}
+
+// Update subscription status indicator
+function updateSubscriptionIndicator(status) {
+    const indicator = document.getElementById('subscriptionIndicator');
+    if (!indicator) return;
+
+    const dot = indicator.querySelector('.w-2');
+    const text = indicator.querySelector('span');
+
+    switch (status) {
+        case 'connecting':
+            dot.className = 'w-2 h-2 bg-yellow-400 rounded-full animate-pulse';
+            text.textContent = 'Connecting...';
+            text.className = 'text-xs text-yellow-600';
+            break;
+        case 'connected':
+            dot.className = 'w-2 h-2 bg-green-500 rounded-full';
+            text.textContent = 'Real-time ON';
+            text.className = 'text-xs text-green-600';
+            break;
+        case 'disconnected':
+            dot.className = 'w-2 h-2 bg-red-500 rounded-full';
+            text.textContent = 'Disconnected';
+            text.className = 'text-xs text-red-600';
+            break;
+        case 'error':
+            dot.className = 'w-2 h-2 bg-red-500 rounded-full animate-pulse';
+            text.textContent = 'Connection Error';
+            text.className = 'text-xs text-red-600';
+            break;
+    }
+}
+
+// Monitor subscription status
+function monitorSubscriptionStatus() {
+    setInterval(() => {
+        if (messaging && messaging.globalSubscription) {
+            const state = messaging.globalSubscription.state;
+            console.log('🔍 Subscription state check:', state);
+
+            switch (state) {
+                case 'joined':
+                    updateSubscriptionIndicator('connected');
+                    break;
+                case 'closed':
+                case 'errored':
+                    updateSubscriptionIndicator('error');
+                    break;
+                case 'joining':
+                    updateSubscriptionIndicator('connecting');
+                    break;
+                default:
+                    updateSubscriptionIndicator('disconnected');
+            }
+        } else {
+            updateSubscriptionIndicator('disconnected');
+        }
+    }, 5000); // Check every 5 seconds
 }
 
 // Cleanup on page unload
