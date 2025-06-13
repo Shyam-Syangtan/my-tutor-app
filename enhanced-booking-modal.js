@@ -52,9 +52,17 @@ class EnhancedBookingModal {
                     <div class="flex h-[70vh]">
                         <!-- Time Slots Sidebar -->
                         <div class="w-32 bg-gray-50 border-r border-gray-200 flex flex-col">
-                            <div class="p-3 border-b border-gray-200 flex-shrink-0">
+                            <!-- Header to match calendar navigation height -->
+                            <div class="p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0" style="height: 72px;">
                                 <div class="text-xs font-medium text-gray-600 text-center">UTC+08:00</div>
                             </div>
+
+                            <!-- Days header spacer to match calendar days header -->
+                            <div class="border-b border-gray-200 bg-gray-50 flex-shrink-0" style="height: 48px;">
+                                <div class="text-xs font-medium text-gray-500 text-center py-3">TIME</div>
+                            </div>
+
+                            <!-- Time slots aligned with calendar grid -->
                             <div id="timeSlotsList" class="overflow-y-auto flex-1" style="scrollbar-width: none; -ms-overflow-style: none;">
                                 <!-- Time slots will be generated here -->
                             </div>
@@ -63,7 +71,7 @@ class EnhancedBookingModal {
                         <!-- Calendar Grid -->
                         <div class="flex-1 flex flex-col overflow-hidden">
                             <!-- Week Navigation -->
-                            <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0">
+                            <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50 flex-shrink-0" style="height: 72px;">
                                 <button id="prevWeekBtn" class="flex items-center space-x-1 text-gray-600 hover:text-gray-900 transition-colors">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -81,7 +89,7 @@ class EnhancedBookingModal {
                             </div>
 
                             <!-- Days Header -->
-                            <div id="daysHeader" class="grid grid-cols-7 border-b border-gray-200 bg-gray-50 flex-shrink-0">
+                            <div id="daysHeader" class="grid grid-cols-7 border-b border-gray-200 bg-gray-50 flex-shrink-0" style="height: 48px;">
                                 <!-- Day headers will be generated here -->
                             </div>
 
@@ -317,13 +325,13 @@ class EnhancedBookingModal {
     generateDaysHeader() {
         const daysHeader = document.getElementById('daysHeader');
         const days = ['FRI', 'SAT', 'SUN', 'MON', 'TUE', 'WED', 'THU'];
-        
+
         daysHeader.innerHTML = days.map((day, index) => {
             const date = new Date(this.currentWeekStart);
             date.setDate(date.getDate() + index);
-            
+
             return `
-                <div class="p-3 text-center border-r border-gray-200 last:border-r-0">
+                <div class="text-center border-r border-gray-200 last:border-r-0 flex flex-col justify-center h-full">
                     <div class="font-semibold text-sm text-gray-900">${day}</div>
                     <div class="text-xs text-gray-500">${date.getDate()}</div>
                 </div>
