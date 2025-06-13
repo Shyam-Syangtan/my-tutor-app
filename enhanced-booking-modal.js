@@ -27,9 +27,9 @@ class EnhancedBookingModal {
     createModalHTML() {
         const modalHTML = `
             <div id="enhancedBookingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-                <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+                <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col">
                     <!-- Modal Header -->
-                    <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                    <div class="flex justify-between items-center p-6 border-b border-gray-200 flex-shrink-0">
                         <div class="flex items-center space-x-3">
                             <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
                                 <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,7 +49,7 @@ class EnhancedBookingModal {
                     </div>
 
                     <!-- Modal Content -->
-                    <div class="flex h-[70vh]">
+                    <div class="flex flex-1 min-h-0">
                         <!-- Time Slots Sidebar -->
                         <div class="w-32 bg-gray-50 border-r border-gray-100 flex flex-col" style="border-width: 0.5px;">
                             <!-- Header to match calendar navigation height -->
@@ -103,7 +103,7 @@ class EnhancedBookingModal {
                     </div>
 
                     <!-- Legend -->
-                    <div class="p-4 border-t border-gray-200 bg-gray-50">
+                    <div class="p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
                         <div class="flex justify-center space-x-6 text-xs">
                             <div class="flex items-center space-x-2">
                                 <div class="w-4 h-4 bg-green-400 rounded"></div>
@@ -125,17 +125,17 @@ class EnhancedBookingModal {
                     </div>
 
                     <!-- Modal Footer -->
-                    <div class="flex justify-between items-center p-6 border-t-2 border-gray-300 bg-gray-50 min-h-[80px]">
-                        <div id="selectedSlotInfo" class="text-sm text-gray-700 font-medium">
+                    <div class="flex justify-between items-center p-6 border-t-4 border-red-300 bg-red-50 min-h-[100px] flex-shrink-0">
+                        <div id="selectedSlotInfo" class="text-sm text-gray-800 font-semibold">
                             Select a time slot to continue
                         </div>
-                        <div class="flex space-x-3">
+                        <div class="flex space-x-4">
                             <button id="modalCancelBtn"
-                                    class="px-5 py-2 border-2 border-gray-400 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium">
+                                    class="px-6 py-3 border-2 border-gray-500 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-semibold text-sm">
                                 Cancel
                             </button>
                             <button id="bookLessonBtn"
-                                    class="px-8 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-bold shadow-lg border-2 border-red-600"
+                                    class="px-10 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-bold shadow-xl border-2 border-red-700 text-sm"
                                     disabled>
                                 📚 Book lesson
                             </button>
@@ -150,12 +150,26 @@ class EnhancedBookingModal {
             document.body.insertAdjacentHTML('beforeend', modalHTML);
             this.attachEventListeners();
 
-            // Debug: Check if button was created
+            // Debug: Check if modal elements were created
+            const modal = document.getElementById('enhancedBookingModal');
             const bookBtn = document.getElementById('bookLessonBtn');
+            const cancelBtn = document.getElementById('modalCancelBtn');
+            const footer = modal?.querySelector('.border-t-4.border-red-300');
+
+            console.log('🔘 [MODAL] Modal created:', modal ? 'YES' : 'NO');
+            console.log('🔘 [MODAL] Footer created:', footer ? 'YES' : 'NO');
             console.log('🔘 [MODAL] Book lesson button created:', bookBtn ? 'YES' : 'NO');
+            console.log('🔘 [MODAL] Cancel button created:', cancelBtn ? 'YES' : 'NO');
+
             if (bookBtn) {
                 console.log('🔘 [MODAL] Button text:', bookBtn.textContent);
                 console.log('🔘 [MODAL] Button classes:', bookBtn.className);
+                console.log('🔘 [MODAL] Button visible:', bookBtn.offsetHeight > 0 ? 'YES' : 'NO');
+            }
+
+            if (footer) {
+                console.log('🔘 [MODAL] Footer classes:', footer.className);
+                console.log('🔘 [MODAL] Footer visible:', footer.offsetHeight > 0 ? 'YES' : 'NO');
             }
         }
     }
@@ -299,6 +313,20 @@ class EnhancedBookingModal {
         if (modal) {
             modal.classList.remove('hidden');
             console.log('✅ [MODAL] Modal displayed successfully');
+
+            // Debug: Check footer visibility after modal is shown
+            setTimeout(() => {
+                const bookBtn = document.getElementById('bookLessonBtn');
+                const footer = modal.querySelector('.border-t-4.border-red-300');
+
+                console.log('🔍 [MODAL] After opening - Book button visible:', bookBtn?.offsetHeight > 0 ? 'YES' : 'NO');
+                console.log('🔍 [MODAL] After opening - Footer visible:', footer?.offsetHeight > 0 ? 'YES' : 'NO');
+
+                if (footer) {
+                    const rect = footer.getBoundingClientRect();
+                    console.log('🔍 [MODAL] Footer position:', { top: rect.top, bottom: rect.bottom, height: rect.height });
+                }
+            }, 100);
         } else {
             console.error('❌ [MODAL] Modal element not found!');
         }
@@ -510,22 +538,29 @@ class EnhancedBookingModal {
 
     // Select a time slot
     selectTimeSlot(date, time) {
+        console.log('🎯 [MODAL] Time slot selected:', { date, time });
+
         // Remove previous selection
         document.querySelectorAll('[data-selected="true"]').forEach(el => {
             el.removeAttribute('data-selected');
             el.classList.remove('ring-2', 'ring-indigo-500', 'ring-offset-1');
         });
-        
+
         // Add selection to clicked slot
         const slot = document.querySelector(`[data-date="${date}"][data-time="${time}"]`);
         if (slot) {
             slot.setAttribute('data-selected', 'true');
             slot.classList.add('ring-2', 'ring-indigo-500', 'ring-offset-1');
+            console.log('✅ [MODAL] Slot visual selection applied');
+        } else {
+            console.error('❌ [MODAL] Could not find slot element to select');
         }
-        
+
         this.selectedTimeSlot = { date, time };
         this.updateSelectedSlotInfo();
         this.updateBookButton();
+
+        console.log('✅ [MODAL] Time slot selection complete');
     }
 
     // Update selected slot info
@@ -543,7 +578,12 @@ class EnhancedBookingModal {
     // Update book button state
     updateBookButton() {
         const bookBtn = document.getElementById('bookLessonBtn');
-        bookBtn.disabled = !this.selectedTimeSlot;
+        if (bookBtn) {
+            bookBtn.disabled = !this.selectedTimeSlot;
+            console.log('🔘 [MODAL] Book button updated - disabled:', bookBtn.disabled, 'selectedSlot:', this.selectedTimeSlot);
+        } else {
+            console.error('❌ [MODAL] Book button not found when trying to update!');
+        }
     }
 
     // Book selected slot - Enhanced with better error handling and user feedback
