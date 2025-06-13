@@ -55,7 +55,7 @@ async function loadLessonRequests() {
             .from('lesson_requests')
             .select(`
                 *,
-                student:student_id (
+                student:users!student_id (
                     email
                 )
             `)

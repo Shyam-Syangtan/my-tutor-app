@@ -29,20 +29,51 @@ class StudentBookingSystem {
 
         const success = await this.loadBookingData();
 
-        // Initialize enhanced booking modal
-        if (success && typeof EnhancedBookingModal !== 'undefined') {
-            this.enhancedModal = new EnhancedBookingModal(this.supabase);
-            await this.enhancedModal.initialize(
-                this.selectedTutor,
-                this.currentUser,
-                this.availabilityData,
-                this.lessonRequestsData || {}
-            );
-            console.log('✅ [INIT] Enhanced modal initialized');
-        }
+        // Initialize enhanced booking modal with retry mechanism
+        await this.initializeEnhancedModal(success);
 
         console.log('🚀 [INIT] Initialization result:', success);
         return success;
+    }
+
+    // Initialize enhanced modal with retry mechanism
+    async initializeEnhancedModal(success) {
+        if (!success) {
+            console.log('⚠️ [BOOKING] Booking data load failed, skipping enhanced modal');
+            return;
+        }
+
+        // Wait for EnhancedBookingModal to be available (up to 3 seconds)
+        let attempts = 0;
+        const maxAttempts = 30; // 30 attempts * 100ms = 3 seconds
+
+        console.log('🔄 [BOOKING] Checking for EnhancedBookingModal availability...');
+
+        while (attempts < maxAttempts && typeof EnhancedBookingModal === 'undefined') {
+            console.log(`🔄 [BOOKING] Waiting for EnhancedBookingModal... (attempt ${attempts + 1}/${maxAttempts})`);
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+        }
+
+        if (typeof EnhancedBookingModal !== 'undefined') {
+            try {
+                console.log('🚀 [BOOKING] EnhancedBookingModal found, initializing...');
+                this.enhancedModal = new EnhancedBookingModal(this.supabase);
+                await this.enhancedModal.initialize(
+                    this.selectedTutor,
+                    this.currentUser,
+                    this.availabilityData,
+                    this.lessonRequestsData || {}
+                );
+                console.log('✅ [BOOKING] Enhanced modal initialized successfully');
+            } catch (error) {
+                console.error('❌ [BOOKING] Enhanced modal initialization failed:', error);
+                this.enhancedModal = null;
+            }
+        } else {
+            console.log('⚠️ [BOOKING] Enhanced modal not available after waiting, will use fallback');
+            this.enhancedModal = null;
+        }
     }
 
     // Get start of current week (Sunday)
@@ -323,22 +354,43 @@ class StudentBookingSystem {
 
     // Select a time slot for booking - now opens enhanced modal
     async selectTimeSlot(date, startTime, endTime) {
+        console.log('🎯 [BOOKING] selectTimeSlot called with:', { date, startTime, endTime });
+        console.log('🎯 [BOOKING] Current user:', this.currentUser?.id);
+        console.log('🎯 [BOOKING] Enhanced modal available:', !!this.enhancedModal);
+        console.log('🎯 [BOOKING] Enhanced modal type:', typeof this.enhancedModal);
+
         if (!this.currentUser) {
             alert('Please log in to book a lesson.');
             return;
         }
 
         // Use enhanced modal if available, otherwise fall back to simple confirm
-        if (this.enhancedModal) {
-            console.log('🎯 [BOOKING] Opening enhanced modal for date:', date);
-            this.enhancedModal.openModal(date);
+        if (this.enhancedModal && typeof this.enhancedModal.openModal === 'function') {
+            console.log('✅ [BOOKING] Opening enhanced modal for date:', date);
+            try {
+                this.enhancedModal.openModal(date);
+            } catch (error) {
+                console.error('❌ [BOOKING] Error opening enhanced modal:', error);
+                console.log('🔄 [BOOKING] Falling back to simple booking');
+                this.fallbackToSimpleBooking(date, startTime, endTime);
+            }
         } else {
             console.log('⚠️ [BOOKING] Enhanced modal not available, using simple booking');
-            const confirmed = confirm(`Book a lesson on ${this.formatDate(new Date(date))} at ${this.formatTime(startTime.substring(0, 5))}?`);
+            console.log('⚠️ [BOOKING] Enhanced modal state:', {
+                exists: !!this.enhancedModal,
+                hasOpenModal: this.enhancedModal && typeof this.enhancedModal.openModal === 'function',
+                EnhancedBookingModalDefined: typeof EnhancedBookingModal !== 'undefined'
+            });
+            this.fallbackToSimpleBooking(date, startTime, endTime);
+        }
+    }
 
-            if (confirmed) {
-                await this.createLessonRequest(date, startTime, endTime);
-            }
+    // Fallback to simple booking method
+    async fallbackToSimpleBooking(date, startTime, endTime) {
+        const confirmed = confirm(`Book a lesson on ${this.formatDate(new Date(date))} at ${this.formatTime(startTime.substring(0, 5))}?`);
+
+        if (confirmed) {
+            await this.createLessonRequest(date, startTime, endTime);
         }
     }
 
