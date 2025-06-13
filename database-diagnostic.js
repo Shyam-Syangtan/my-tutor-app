@@ -1,6 +1,7 @@
 /**
- * Database Diagnostic Tool for Phase 2
+ * Database Diagnostic Tool for Phase 2 - Enhanced Version
  * Run this in browser console to check database setup
+ * Updated: Comprehensive table structure analysis
  */
 
 // Supabase Configuration

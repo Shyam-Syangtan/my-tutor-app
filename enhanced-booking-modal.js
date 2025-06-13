@@ -135,9 +135,9 @@ class EnhancedBookingModal {
                                 Cancel
                             </button>
                             <button id="bookLessonBtn"
-                                    class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     disabled>
-                                Confirm Lesson
+                                Book lesson
                             </button>
                         </div>
                     </div>
@@ -262,21 +262,38 @@ class EnhancedBookingModal {
 
     // Open modal for specific date
     openModal(date) {
+        console.log('🎯 [MODAL] Opening enhanced modal for date:', date);
+
         this.selectedDate = new Date(date);
         this.selectedTimeSlot = null;
         // Start from current day for student booking (7-day view starting today)
         this.currentWeekStart = new Date();
 
         // Update modal title
-        document.getElementById('modalTitle').textContent = 'Select Time Slot';
-        document.getElementById('modalSubtitle').textContent = this.formatDate(this.selectedDate);
+        const modalTitle = document.getElementById('modalTitle');
+        const modalSubtitle = document.getElementById('modalSubtitle');
+
+        if (modalTitle) {
+            modalTitle.textContent = 'Select Time Slot';
+        }
+        if (modalSubtitle) {
+            modalSubtitle.textContent = this.formatDate(this.selectedDate);
+        }
+
+        console.log('🎯 [MODAL] Generating time slots and calendar...');
 
         // Generate time slots and calendar
         this.generateTimeSlots();
         this.generateCalendar();
 
         // Show modal
-        document.getElementById('enhancedBookingModal').classList.remove('hidden');
+        const modal = document.getElementById('enhancedBookingModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            console.log('✅ [MODAL] Modal displayed successfully');
+        } else {
+            console.error('❌ [MODAL] Modal element not found!');
+        }
 
         // Disable body scroll
         document.body.style.overflow = 'hidden';
@@ -292,7 +309,14 @@ class EnhancedBookingModal {
 
     // Generate 30-minute time slots for full 24-hour format (1:00 AM - 12:00 AM / 24:00)
     generateTimeSlots() {
+        console.log('🕐 [MODAL] Generating time slots...');
+
         const timeSlotsList = document.getElementById('timeSlotsList');
+        if (!timeSlotsList) {
+            console.error('❌ [MODAL] timeSlotsList element not found!');
+            return;
+        }
+
         const timeSlots = [];
 
         // Generate 30-minute intervals for full 24-hour format (01:00 to 24:00)
@@ -305,15 +329,21 @@ class EnhancedBookingModal {
             }
         }
 
+        console.log('🕐 [MODAL] Generated', timeSlots.length, 'time slots');
+
         timeSlotsList.innerHTML = timeSlots.map(time => `
             <div class="text-xs text-gray-600 text-center border-b border-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-center" style="height: 32px; min-height: 32px; border-width: 0.5px;">
                 ${this.formatTime(time + ':00')}
             </div>
         `).join('');
+
+        console.log('✅ [MODAL] Time slots rendered successfully');
     }
 
     // Generate calendar grid
     generateCalendar() {
+        console.log('📅 [MODAL] Generating calendar...');
+
         this.generateDaysHeader();
         this.generateCalendarGrid();
         this.updateWeekRange();
@@ -323,6 +353,8 @@ class EnhancedBookingModal {
             this.setupSynchronizedScrolling();
             this.attachNavigationListeners();
         }, 100);
+
+        console.log('✅ [MODAL] Calendar generated successfully');
     }
 
     // Attach navigation listeners specifically
@@ -378,7 +410,14 @@ class EnhancedBookingModal {
 
     // Generate calendar grid with time slots
     generateCalendarGrid() {
+        console.log('📊 [MODAL] Generating calendar grid...');
+
         const calendarGrid = document.getElementById('calendarGrid');
+        if (!calendarGrid) {
+            console.error('❌ [MODAL] calendarGrid element not found!');
+            return;
+        }
+
         const timeSlots = [];
 
         // Generate 30-minute intervals for full 24-hour format (01:00 to 24:00)
@@ -390,6 +429,10 @@ class EnhancedBookingModal {
                 timeSlots.push(timeString);
             }
         }
+
+        console.log('📊 [MODAL] Generated', timeSlots.length, 'time slots for grid');
+        console.log('📊 [MODAL] Availability data:', Object.keys(this.availabilityData).length, 'slots');
+        console.log('📊 [MODAL] Lesson requests data:', Object.keys(this.lessonRequests || {}).length, 'requests');
 
         let gridHTML = '';
 
@@ -414,25 +457,31 @@ class EnhancedBookingModal {
         });
 
         calendarGrid.innerHTML = gridHTML;
+        console.log('✅ [MODAL] Calendar grid rendered with', timeSlots.length * 7, 'slots');
     }
 
     // Get slot status based on availability and requests
     getSlotStatus(dayOfWeek, time, dateString) {
         const availKey = `${dayOfWeek}-${time}`;
         const requestKey = `${dateString}-${time}`;
-        
+
+        console.log('🔍 [STATUS] Checking slot:', { dayOfWeek, time, dateString, availKey, requestKey });
+
         // Check if there's a pending request
-        if (this.lessonRequests[requestKey]) {
+        if (this.lessonRequests && this.lessonRequests[requestKey]) {
             const request = this.lessonRequests[requestKey];
+            console.log('📋 [STATUS] Found lesson request:', request);
             if (request.status === 'pending') return 'pending';
             if (request.status === 'approved') return 'confirmed';
         }
-        
+
         // Check if slot is available
-        if (this.availabilityData[availKey] && this.availabilityData[availKey].is_available) {
+        if (this.availabilityData && this.availabilityData[availKey] && this.availabilityData[availKey].is_available) {
+            console.log('✅ [STATUS] Slot is available:', this.availabilityData[availKey]);
             return 'available';
         }
-        
+
+        console.log('❌ [STATUS] Slot unavailable');
         return 'unavailable';
     }
 
