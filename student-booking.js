@@ -61,15 +61,35 @@ class StudentBookingSystem {
             try {
                 console.log('🚀 [BOOKING] EnhancedBookingModal found, initializing...');
                 this.enhancedModal = new EnhancedBookingModal(this.supabase);
+
+                console.log('🚀 [BOOKING] Calling enhanced modal initialize with:', {
+                    tutorId: this.selectedTutor,
+                    currentUserId: this.currentUser?.id,
+                    availabilityKeys: Object.keys(this.availabilityData || {}),
+                    lessonRequestsKeys: Object.keys(this.lessonRequestsData || {})
+                });
+
                 await this.enhancedModal.initialize(
                     this.selectedTutor,
                     this.currentUser,
                     this.availabilityData,
                     this.lessonRequestsData || {}
                 );
+
                 console.log('✅ [BOOKING] Enhanced modal initialized successfully');
+
+                // Verify the modal was created
+                const modalElement = document.getElementById('enhancedBookingModal');
+                const bookButton = document.getElementById('bookLessonBtn');
+                console.log('🔍 [BOOKING] Post-initialization verification:', {
+                    modalExists: !!modalElement,
+                    bookButtonExists: !!bookButton,
+                    modalHidden: modalElement?.classList.contains('hidden')
+                });
+
             } catch (error) {
                 console.error('❌ [BOOKING] Enhanced modal initialization failed:', error);
+                console.error('❌ [BOOKING] Error stack:', error.stack);
                 this.enhancedModal = null;
             }
         } else {
@@ -384,20 +404,44 @@ class StudentBookingSystem {
             console.log('✅ [BOOKING] Opening enhanced modal for date:', date);
             try {
                 this.enhancedModal.openModal(date);
+                return; // Successfully opened enhanced modal
             } catch (error) {
                 console.error('❌ [BOOKING] Error opening enhanced modal:', error);
                 console.log('🔄 [BOOKING] Falling back to simple booking');
                 this.fallbackToSimpleBooking(date, startTime, endTime);
+                return;
             }
-        } else {
-            console.log('⚠️ [BOOKING] Enhanced modal not available, using simple booking');
-            console.log('⚠️ [BOOKING] Enhanced modal state:', {
-                exists: !!this.enhancedModal,
-                hasOpenModal: this.enhancedModal && typeof this.enhancedModal.openModal === 'function',
-                EnhancedBookingModalDefined: typeof EnhancedBookingModal !== 'undefined'
-            });
-            this.fallbackToSimpleBooking(date, startTime, endTime);
         }
+
+        // Try to reinitialize enhanced modal if it's not available
+        console.log('⚠️ [BOOKING] Enhanced modal not available, checking if we can reinitialize...');
+        console.log('⚠️ [BOOKING] Enhanced modal state:', {
+            exists: !!this.enhancedModal,
+            hasOpenModal: this.enhancedModal && typeof this.enhancedModal.openModal === 'function',
+            EnhancedBookingModalDefined: typeof EnhancedBookingModal !== 'undefined'
+        });
+
+        if (typeof EnhancedBookingModal !== 'undefined' && !this.enhancedModal) {
+            console.log('🔄 [BOOKING] Attempting to reinitialize enhanced modal...');
+            try {
+                this.enhancedModal = new EnhancedBookingModal(this.supabase);
+                await this.enhancedModal.initialize(
+                    this.selectedTutor,
+                    this.currentUser,
+                    this.availabilityData,
+                    this.lessonRequestsData || {}
+                );
+                console.log('✅ [BOOKING] Enhanced modal reinitialized, trying to open...');
+                this.enhancedModal.openModal(date);
+                return; // Successfully reinitialized and opened
+            } catch (error) {
+                console.error('❌ [BOOKING] Reinitialization failed:', error);
+            }
+        }
+
+        // Fall back to simple booking
+        console.log('🔄 [BOOKING] Using simple booking fallback');
+        this.fallbackToSimpleBooking(date, startTime, endTime);
     }
 
     // Fallback to simple booking method

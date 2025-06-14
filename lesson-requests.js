@@ -51,14 +51,28 @@ async function loadLessonRequests() {
     try {
         console.log('Loading lesson requests for tutor:', currentUser.id);
         
+        // First, let's try a simple query without joins to see if the table exists
+        console.log('🔍 [DEBUG] Testing basic lesson_requests query...');
+        const { data: testData, error: testError } = await supabase
+            .from('lesson_requests')
+            .select('*')
+            .eq('tutor_id', currentUser.id)
+            .limit(1);
+
+        if (testError) {
+            console.error('❌ [DEBUG] Basic query failed:', testError);
+            if (testError.message.includes('relation "lesson_requests" does not exist')) {
+                throw new Error('The lesson_requests table does not exist. Please create it first.');
+            }
+            throw testError;
+        }
+
+        console.log('✅ [DEBUG] Basic query succeeded, now trying with user data...');
+
+        // Now try the full query with user information
         const { data, error } = await supabase
             .from('lesson_requests')
-            .select(`
-                *,
-                student:users!student_id (
-                    email
-                )
-            `)
+            .select('*')
             .eq('tutor_id', currentUser.id)
             .order('created_at', { ascending: false });
 
@@ -66,8 +80,35 @@ async function loadLessonRequests() {
             throw error;
         }
 
-        lessonRequests = data || [];
-        console.log('Loaded lesson requests:', lessonRequests);
+        // Get student information separately to avoid join issues
+        const requestsWithStudents = [];
+        for (const request of (data || [])) {
+            try {
+                const { data: studentData, error: studentError } = await supabase
+                    .from('users')
+                    .select('email')
+                    .eq('id', request.student_id)
+                    .single();
+
+                requestsWithStudents.push({
+                    ...request,
+                    student: studentData || { email: 'Unknown Student' }
+                });
+            } catch (studentError) {
+                console.warn('Could not load student data for request:', request.id);
+                requestsWithStudents.push({
+                    ...request,
+                    student: { email: 'Unknown Student' }
+                });
+            }
+        }
+
+        if (error) {
+            throw error;
+        }
+
+        lessonRequests = requestsWithStudents || [];
+        console.log('Loaded lesson requests with student data:', lessonRequests);
         
         // Update pending count
         const pendingCount = lessonRequests.filter(req => req.status === 'pending').length;

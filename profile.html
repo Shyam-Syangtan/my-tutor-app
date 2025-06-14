@@ -951,6 +951,11 @@
                     console.log('✅ [PROFILE] Booking system initialized successfully');
                     // Render the availability grid
                     bookingSystem.renderAvailabilityGrid('availabilityContainer');
+
+                    // Add debug button for testing enhanced modal after a delay
+                    setTimeout(() => {
+                        addDebugButton();
+                    }, 3000);
                 } else {
                     console.error('❌ [PROFILE] Booking system initialization failed');
                     // Show error message
@@ -1276,6 +1281,50 @@
             } catch (error) {
                 console.error('❌ Error contacting teacher:', error);
                 alert('Failed to start conversation. Please try again.');
+            }
+        }
+
+        // Add debug button for testing enhanced modal
+        function addDebugButton() {
+            console.log('🔧 [DEBUG] Adding debug button for enhanced modal testing');
+
+            const debugButton = document.createElement('button');
+            debugButton.innerHTML = '🔧 Test Enhanced Modal';
+            debugButton.className = 'fixed bottom-4 left-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50 text-sm';
+            debugButton.onclick = () => testEnhancedModal();
+            document.body.appendChild(debugButton);
+        }
+
+        // Test enhanced modal function
+        function testEnhancedModal() {
+            console.log('🧪 [DEBUG] Testing enhanced modal...');
+            console.log('🧪 [DEBUG] Booking system:', bookingSystem);
+            console.log('🧪 [DEBUG] Enhanced modal:', bookingSystem?.enhancedModal);
+            console.log('🧪 [DEBUG] EnhancedBookingModal class:', typeof EnhancedBookingModal);
+
+            if (bookingSystem && bookingSystem.enhancedModal) {
+                console.log('✅ [DEBUG] Enhanced modal exists, trying to open...');
+                try {
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    const dateStr = tomorrow.toISOString().split('T')[0];
+                    bookingSystem.enhancedModal.openModal(dateStr);
+                    console.log('✅ [DEBUG] Enhanced modal opened successfully');
+                } catch (error) {
+                    console.error('❌ [DEBUG] Error opening enhanced modal:', error);
+                }
+            } else {
+                console.log('⚠️ [DEBUG] Enhanced modal not available, trying to initialize...');
+                if (typeof EnhancedBookingModal !== 'undefined') {
+                    try {
+                        const testModal = new EnhancedBookingModal(supabase);
+                        console.log('✅ [DEBUG] Test modal created:', testModal);
+                    } catch (error) {
+                        console.error('❌ [DEBUG] Error creating test modal:', error);
+                    }
+                } else {
+                    console.error('❌ [DEBUG] EnhancedBookingModal class not available');
+                }
             }
         }
 
