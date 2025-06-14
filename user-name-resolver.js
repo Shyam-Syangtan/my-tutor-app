@@ -62,23 +62,74 @@ class UserNameResolver {
             }
         }
 
-        // Strategy 2: Try users table lookup
+        // Strategy 2: Try safe database function
         try {
-            const { data: userData, error } = await this.supabase
-                .from('users')
-                .select('email')
-                .eq('id', userId)
-                .single();
+            const { data: functionResult, error } = await this.supabase
+                .rpc('safe_get_username', { user_uuid: userId });
 
-            if (!error && userData?.email) {
-                userName = userData.email.split('@')[0];
-                console.log(`✅ [RESOLVER] Users table resolved: ${userName} for ${userId.substring(0, 8)}...`);
+            if (!error && functionResult && functionResult !== 'User') {
+                userName = functionResult;
+                console.log(`✅ [RESOLVER] Safe function resolved: ${userName} for ${userId.substring(0, 8)}...`);
                 return userName;
             } else {
-                console.warn(`⚠️ [RESOLVER] Users table lookup failed for ${userId.substring(0, 8)}...:`, error?.message);
+                console.warn(`⚠️ [RESOLVER] Safe function lookup failed for ${userId.substring(0, 8)}...:`, error?.message);
             }
         } catch (error) {
-            console.warn(`⚠️ [RESOLVER] Users table query exception:`, error.message);
+            console.warn(`⚠️ [RESOLVER] Safe function query exception:`, error.message);
+        }
+
+        // Strategy 3: Try alternative database function
+        try {
+            const { data: functionResult, error } = await this.supabase
+                .rpc('get_user_display_name', { user_uuid: userId });
+
+            if (!error && functionResult) {
+                userName = functionResult;
+                console.log(`✅ [RESOLVER] Alt function resolved: ${userName} for ${userId.substring(0, 8)}...`);
+                return userName;
+            } else {
+                console.warn(`⚠️ [RESOLVER] Alt function lookup failed for ${userId.substring(0, 8)}...:`, error?.message);
+            }
+        } catch (error) {
+            console.warn(`⚠️ [RESOLVER] Alt function query exception:`, error.message);
+        }
+
+        // Strategy 4: Try tutors table lookup (for tutors)
+        try {
+            const { data: tutorData, error } = await this.supabase
+                .from('tutors')
+                .select('name, email')
+                .eq('user_id', userId)
+                .single();
+
+            if (!error && tutorData) {
+                userName = tutorData.name || tutorData.email?.split('@')[0] || 'Tutor';
+                console.log(`✅ [RESOLVER] Tutors table resolved: ${userName} for ${userId.substring(0, 8)}...`);
+                return userName;
+            } else {
+                console.warn(`⚠️ [RESOLVER] Tutors table lookup failed for ${userId.substring(0, 8)}...:`, error?.message);
+            }
+        } catch (error) {
+            console.warn(`⚠️ [RESOLVER] Tutors table query exception:`, error.message);
+        }
+
+        // Strategy 5: Try students table lookup (for students)
+        try {
+            const { data: studentData, error } = await this.supabase
+                .from('students')
+                .select('name, email')
+                .eq('user_id', userId)
+                .single();
+
+            if (!error && studentData) {
+                userName = studentData.name || studentData.email?.split('@')[0] || 'Student';
+                console.log(`✅ [RESOLVER] Students table resolved: ${userName} for ${userId.substring(0, 8)}...`);
+                return userName;
+            } else {
+                console.warn(`⚠️ [RESOLVER] Students table lookup failed for ${userId.substring(0, 8)}...:`, error?.message);
+            }
+        } catch (error) {
+            console.warn(`⚠️ [RESOLVER] Students table query exception:`, error.message);
         }
 
         // Strategy 3: Try tutors table if role is tutor
