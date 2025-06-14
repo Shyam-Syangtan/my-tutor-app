@@ -16,7 +16,7 @@ DROP COLUMN IF EXISTS file_type;
 
 -- Step 3: Drop enhanced messaging functions
 DROP FUNCTION IF EXISTS public.get_unread_count(UUID, UUID);
-DROP FUNCTION IF EXISTS public.mark_messages_as_read(UUID, UUID);
+DROP FUNCTION IF EXISTS public.marshik_messages_as_read(UUID, UUID);
 DROP FUNCTION IF EXISTS public.cleanup_old_typing_indicators();
 DROP FUNCTION IF EXISTS public.trigger_cleanup_typing_indicators();
 DROP FUNCTION IF EXISTS public.get_current_user_id();
