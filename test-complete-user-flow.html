@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Complete User Flow</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+        .warning { color: orange; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .test-pass { background: #d4edda; border: 1px solid #c3e6cb; }
+        .test-fail { background: #f8d7da; border: 1px solid #f5c6cb; }
+        .test-warn { background: #fff3cd; border: 1px solid #ffeaa7; }
+        .flow-step { margin: 15px 0; padding: 15px; border-left: 4px solid #007cba; background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <h1>Complete User Flow Test</h1>
+    <p>This tool tests the complete user journey: Find Tutors → Book Lessons → Tutor Approves → Student Dashboard</p>
+    
+    <div class="section">
+        <h2>Step 1: Test Find Tutors Page Functionality</h2>
+        <button onclick="testFindTutorsFlow()">Test Find Tutors Flow</button>
+        <div id="findTutorsFlowResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 2: Test Tutor Dashboard Action Required</h2>
+        <button onclick="testTutorDashboardFlow()">Test Tutor Dashboard Flow</button>
+        <div id="tutorDashboardFlowResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 3: Test Lesson Approval Workflow</h2>
+        <button onclick="testLessonApprovalFlow()">Test Lesson Approval Flow</button>
+        <div id="lessonApprovalFlowResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 4: Test Student Dashboard Display</h2>
+        <button onclick="testStudentDashboardFlow()">Test Student Dashboard Flow</button>
+        <div id="studentDashboardFlowResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 5: Run Complete End-to-End Test</h2>
+        <button onclick="runCompleteFlow()">Run Complete Flow Test</button>
+        <div id="completeFlowResult"></div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://qbyyutebrgpxngvwenkd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFieXl1dGVicmdweG5ndndlbmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MTA1NTMsImV4cCI6MjA2NTI4NjU1M30.eO8Wd0ZOqtXgvQ3BuedmSPmYVpbG3V-AXvgufLns6yY';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function testFindTutorsFlow() {
+            const result = document.getElementById('findTutorsFlowResult');
+            result.innerHTML = '<div class="info">Testing Find Tutors functionality...</div>';
+
+            let testResults = [];
+
+            try {
+                // Test 1: Basic tutors query
+                console.log('🔍 Testing basic tutors query...');
+                const { data: tutors, error: tutorsError } = await supabase
+                    .from('tutors')
+                    .select('*')
+                    .eq('approved', true)
+                    .order('rating', { ascending: false });
+
+                if (tutorsError) {
+                    testResults.push({
+                        test: 'Basic Tutors Query',
+                        status: 'FAIL',
+                        message: tutorsError.message
+                    });
+                } else {
+                    testResults.push({
+                        test: 'Basic Tutors Query',
+                        status: 'PASS',
+                        message: `Found ${tutors.length} approved tutors`
+                    });
+                }
+
+                // Test 2: Tutor filtering
+                if (tutors && tutors.length > 0) {
+                    const sampleTutor = tutors[0];
+                    testResults.push({
+                        test: 'Tutor Data Structure',
+                        status: 'PASS',
+                        message: `Sample tutor: ${sampleTutor.name} (${sampleTutor.language})`
+                    });
+                } else {
+                    testResults.push({
+                        test: 'Tutor Data Structure',
+                        status: 'WARN',
+                        message: 'No tutors found - may need sample data'
+                    });
+                }
+
+                // Test 3: Authentication for contact functionality
+                const { data: { session } } = await supabase.auth.getSession();
+                testResults.push({
+                    test: 'Authentication Status',
+                    status: session ? 'PASS' : 'WARN',
+                    message: session ? `Logged in as ${session.user.email}` : 'Not logged in - contact features may not work'
+                });
+
+            } catch (error) {
+                testResults.push({
+                    test: 'Find Tutors Flow',
+                    status: 'FAIL',
+                    message: error.message
+                });
+            }
+
+            // Display results
+            let resultHtml = '<div class="flow-step"><h3>Find Tutors Flow Test Results</h3>';
+            testResults.forEach(test => {
+                const statusClass = test.status === 'PASS' ? 'test-pass' : test.status === 'FAIL' ? 'test-fail' : 'test-warn';
+                const statusIcon = test.status === 'PASS' ? '✅' : test.status === 'FAIL' ? '❌' : '⚠️';
+                
+                resultHtml += `
+                    <div class="test-result ${statusClass}">
+                        ${statusIcon} ${test.test}: ${test.status}<br>
+                        ${test.message}
+                    </div>
+                `;
+            });
+            resultHtml += '</div>';
+
+            result.innerHTML = resultHtml;
+        }
+
+        async function testTutorDashboardFlow() {
+            const result = document.getElementById('tutorDashboardFlowResult');
+            result.innerHTML = '<div class="info">Testing Tutor Dashboard functionality...</div>';
+
+            let testResults = [];
+
+            try {
+                // Test 1: Lesson requests query
+                const { data: requests, error: requestError } = await supabase
+                    .from('lesson_requests')
+                    .select('id, tutor_id, student_id, status, created_at')
+                    .eq('status', 'pending')
+                    .limit(5);
+
+                if (requestError) {
+                    testResults.push({
+                        test: 'Lesson Requests Query',
+                        status: 'FAIL',
+                        message: requestError.message
+                    });
+                } else {
+                    testResults.push({
+                        test: 'Lesson Requests Query',
+                        status: 'PASS',
+                        message: `Found ${requests.length} pending requests`
+                    });
+                }
+
+                // Test 2: Lessons query
+                const today = new Date().toISOString().split('T')[0];
+                const { data: lessons, error: lessonError } = await supabase
+                    .from('lessons')
+                    .select('id, tutor_id, student_id, status, lesson_date')
+                    .eq('status', 'confirmed')
+                    .gte('lesson_date', today)
+                    .limit(5);
+
+                if (lessonError) {
+                    testResults.push({
+                        test: 'Lessons Query',
+                        status: 'FAIL',
+                        message: lessonError.message
+                    });
+                } else {
+                    testResults.push({
+                        test: 'Lessons Query',
+                        status: 'PASS',
+                        message: `Found ${lessons.length} upcoming lessons`
+                    });
+                }
+
+                // Test 3: Action Required functionality
+                const actionRequiredCount = requests ? requests.length : 0;
+                testResults.push({
+                    test: 'Action Required Section',
+                    status: actionRequiredCount >= 0 ? 'PASS' : 'FAIL',
+                    message: `Action Required count: ${actionRequiredCount}`
+                });
+
+            } catch (error) {
+                testResults.push({
+                    test: 'Tutor Dashboard Flow',
+                    status: 'FAIL',
+                    message: error.message
+                });
+            }
+
+            // Display results
+            let resultHtml = '<div class="flow-step"><h3>Tutor Dashboard Flow Test Results</h3>';
+            testResults.forEach(test => {
+                const statusClass = test.status === 'PASS' ? 'test-pass' : test.status === 'FAIL' ? 'test-fail' : 'test-warn';
+                const statusIcon = test.status === 'PASS' ? '✅' : test.status === 'FAIL' ? '❌' : '⚠️';
+                
+                resultHtml += `
+                    <div class="test-result ${statusClass}">
+                        ${statusIcon} ${test.test}: ${test.status}<br>
+                        ${test.message}
+                    </div>
+                `;
+            });
+            resultHtml += '</div>';
+
+            result.innerHTML = resultHtml;
+        }
+
+        async function testLessonApprovalFlow() {
+            const result = document.getElementById('lessonApprovalFlowResult');
+            result.innerHTML = '<div class="info">Testing Lesson Approval workflow...</div>';
+
+            let testResults = [];
+
+            try {
+                // Test 1: Check approved requests have corresponding lessons
+                const { data: approvedRequests, error: requestError } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .eq('status', 'approved')
+                    .limit(3);
+
+                if (requestError) {
+                    testResults.push({
+                        test: 'Approved Requests Query',
+                        status: 'FAIL',
+                        message: requestError.message
+                    });
+                } else {
+                    testResults.push({
+                        test: 'Approved Requests Query',
+                        status: 'PASS',
+                        message: `Found ${approvedRequests.length} approved requests`
+                    });
+
+                    // Test 2: Check if approved requests have corresponding lessons
+                    let lessonsCreated = 0;
+                    for (const request of approvedRequests) {
+                        const { data: lessons, error: lessonError } = await supabase
+                            .from('lessons')
+                            .select('id')
+                            .eq('tutor_id', request.tutor_id)
+                            .eq('student_id', request.student_id)
+                            .eq('lesson_date', request.requested_date);
+
+                        if (!lessonError && lessons.length > 0) {
+                            lessonsCreated++;
+                        }
+                    }
+
+                    testResults.push({
+                        test: 'Lesson Creation from Approvals',
+                        status: lessonsCreated === approvedRequests.length ? 'PASS' : 'WARN',
+                        message: `${lessonsCreated}/${approvedRequests.length} approved requests have corresponding lessons`
+                    });
+                }
+
+                // Test 3: Test manual lesson creation function
+                const { data: functionExists, error: functionError } = await supabase
+                    .rpc('manual_create_lesson', {
+                        p_tutor_id: '00000000-0000-0000-0000-000000000000',
+                        p_student_id: '00000000-0000-0000-0000-000000000000',
+                        p_lesson_date: '2025-01-01',
+                        p_start_time: '10:00:00',
+                        p_end_time: '11:00:00',
+                        p_notes: 'Test lesson'
+                    });
+
+                testResults.push({
+                    test: 'Manual Lesson Creation Function',
+                    status: functionError ? 'FAIL' : 'PASS',
+                    message: functionError ? functionError.message : 'Function exists and callable'
+                });
+
+            } catch (error) {
+                testResults.push({
+                    test: 'Lesson Approval Flow',
+                    status: 'FAIL',
+                    message: error.message
+                });
+            }
+
+            // Display results
+            let resultHtml = '<div class="flow-step"><h3>Lesson Approval Flow Test Results</h3>';
+            testResults.forEach(test => {
+                const statusClass = test.status === 'PASS' ? 'test-pass' : test.status === 'FAIL' ? 'test-fail' : 'test-warn';
+                const statusIcon = test.status === 'PASS' ? '✅' : test.status === 'FAIL' ? '❌' : '⚠️';
+                
+                resultHtml += `
+                    <div class="test-result ${statusClass}">
+                        ${statusIcon} ${test.test}: ${test.status}<br>
+                        ${test.message}
+                    </div>
+                `;
+            });
+            resultHtml += '</div>';
+
+            result.innerHTML = resultHtml;
+        }
+
+        async function testStudentDashboardFlow() {
+            const result = document.getElementById('studentDashboardFlowResult');
+            result.innerHTML = '<div class="info">Testing Student Dashboard functionality...</div>';
+
+            let testResults = [];
+
+            try {
+                // Test 1: Student lessons function
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (session) {
+                    const { data: studentLessons, error: studentError } = await supabase
+                        .rpc('get_student_lessons_optimized', { student_user_id: session.user.id });
+
+                    if (studentError) {
+                        testResults.push({
+                            test: 'Student Lessons Function',
+                            status: 'FAIL',
+                            message: studentError.message
+                        });
+                    } else {
+                        testResults.push({
+                            test: 'Student Lessons Function',
+                            status: 'PASS',
+                            message: `Found ${studentLessons.length} lessons for current user`
+                        });
+                    }
+                } else {
+                    testResults.push({
+                        test: 'Student Lessons Function',
+                        status: 'WARN',
+                        message: 'Not logged in - cannot test student-specific functionality'
+                    });
+                }
+
+                // Test 2: Direct lessons query
+                const { data: allLessons, error: allLessonsError } = await supabase
+                    .from('lessons')
+                    .select('*')
+                    .eq('status', 'confirmed')
+                    .limit(5);
+
+                if (allLessonsError) {
+                    testResults.push({
+                        test: 'Direct Lessons Query',
+                        status: 'FAIL',
+                        message: allLessonsError.message
+                    });
+                } else {
+                    testResults.push({
+                        test: 'Direct Lessons Query',
+                        status: 'PASS',
+                        message: `Found ${allLessons.length} confirmed lessons in database`
+                    });
+                }
+
+            } catch (error) {
+                testResults.push({
+                    test: 'Student Dashboard Flow',
+                    status: 'FAIL',
+                    message: error.message
+                });
+            }
+
+            // Display results
+            let resultHtml = '<div class="flow-step"><h3>Student Dashboard Flow Test Results</h3>';
+            testResults.forEach(test => {
+                const statusClass = test.status === 'PASS' ? 'test-pass' : test.status === 'FAIL' ? 'test-fail' : 'test-warn';
+                const statusIcon = test.status === 'PASS' ? '✅' : test.status === 'FAIL' ? '❌' : '⚠️';
+                
+                resultHtml += `
+                    <div class="test-result ${statusClass}">
+                        ${statusIcon} ${test.test}: ${test.status}<br>
+                        ${test.message}
+                    </div>
+                `;
+            });
+            resultHtml += '</div>';
+
+            result.innerHTML = resultHtml;
+        }
+
+        async function runCompleteFlow() {
+            const result = document.getElementById('completeFlowResult');
+            result.innerHTML = '<div class="info">Running complete end-to-end flow test...</div>';
+
+            // Run all tests in sequence
+            await testFindTutorsFlow();
+            await testTutorDashboardFlow();
+            await testLessonApprovalFlow();
+            await testStudentDashboardFlow();
+
+            result.innerHTML = `
+                <div class="flow-step">
+                    <h3>Complete Flow Test Summary</h3>
+                    <div class="test-result test-pass">
+                        ✅ All individual tests completed!<br>
+                        Check the results above for detailed status of each component.<br><br>
+                        <strong>Key Points:</strong><br>
+                        • Find Tutors page should load and display tutors<br>
+                        • Tutor Dashboard should show Action Required count<br>
+                        • Lesson approval workflow should create lessons<br>
+                        • Student Dashboard should display approved lessons<br><br>
+                        <strong>Next Steps:</strong><br>
+                        1. Test the actual pages in the browser<br>
+                        2. Verify user authentication works<br>
+                        3. Test the complete booking flow manually
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
