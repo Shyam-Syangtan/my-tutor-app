@@ -236,32 +236,44 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Step 5: Test the flexible functions
+-- Step 5: Test the flexible functions (safe approach)
 DO $$
 DECLARE
     test_student_id UUID;
     lesson_count INTEGER;
+    has_student_id BOOLEAN;
 BEGIN
-    -- Get a student ID for testing
-    SELECT id INTO test_student_id 
-    FROM auth.users 
-    WHERE id IN (SELECT DISTINCT student_id FROM public.lessons)
-    LIMIT 1;
-    
-    IF test_student_id IS NOT NULL THEN
-        -- Test the flexible function
-        SELECT COUNT(*) INTO lesson_count
-        FROM public.get_student_lessons_flexible(test_student_id);
-        
-        RAISE NOTICE 'Found % lessons for student % using flexible function', lesson_count, test_student_id;
-        
-        -- Test upcoming lessons function
-        SELECT COUNT(*) INTO lesson_count
-        FROM public.get_student_upcoming_lessons_flexible(test_student_id);
-        
-        RAISE NOTICE 'Found % upcoming lessons for student %', lesson_count, test_student_id;
+    -- Check if student_id column exists before testing
+    SELECT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'lessons' AND column_name = 'student_id' AND table_schema = 'public'
+    ) INTO has_student_id;
+
+    IF has_student_id THEN
+        -- Get a student ID for testing
+        SELECT id INTO test_student_id
+        FROM auth.users
+        WHERE id IN (SELECT DISTINCT student_id FROM public.lessons)
+        LIMIT 1;
+
+        IF test_student_id IS NOT NULL THEN
+            -- Test the flexible function
+            SELECT COUNT(*) INTO lesson_count
+            FROM public.get_student_lessons_flexible(test_student_id);
+
+            RAISE NOTICE 'Found % lessons for student % using flexible function', lesson_count, test_student_id;
+
+            -- Test upcoming lessons function
+            SELECT COUNT(*) INTO lesson_count
+            FROM public.get_student_upcoming_lessons_flexible(test_student_id);
+
+            RAISE NOTICE 'Found % upcoming lessons for student %', lesson_count, test_student_id;
+        ELSE
+            RAISE NOTICE 'No students with lessons found for testing';
+        END IF;
     ELSE
-        RAISE NOTICE 'No students with lessons found for testing';
+        RAISE NOTICE 'student_id column does not exist - skipping function tests';
+        RAISE NOTICE 'Please check your table structure and create appropriate functions';
     END IF;
 END $$;
 

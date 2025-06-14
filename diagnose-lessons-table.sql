@@ -22,26 +22,61 @@ WHERE table_name = 'lessons'
 AND table_schema = 'public'
 ORDER BY ordinal_position;
 
--- Step 3: Show sample data (if any exists)
+-- Step 3: Show sample data (if any exists) - safe approach
 DO $$
 DECLARE
     lesson_count INTEGER;
+    table_exists BOOLEAN;
 BEGIN
-    SELECT COUNT(*) INTO lesson_count FROM public.lessons;
-    RAISE NOTICE 'Total lessons in table: %', lesson_count;
-    
-    IF lesson_count > 0 THEN
-        RAISE NOTICE 'Sample lesson data will be shown below';
+    -- Check if table exists first
+    SELECT EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_name = 'lessons' AND table_schema = 'public'
+    ) INTO table_exists;
+
+    IF table_exists THEN
+        SELECT COUNT(*) INTO lesson_count FROM public.lessons;
+        RAISE NOTICE 'Total lessons in table: %', lesson_count;
+
+        IF lesson_count > 0 THEN
+            RAISE NOTICE 'Sample lesson data will be shown below';
+        ELSE
+            RAISE NOTICE 'No lesson data found - table is empty';
+        END IF;
     ELSE
-        RAISE NOTICE 'No lesson data found - table is empty';
+        RAISE NOTICE 'Lessons table does not exist';
     END IF;
 END $$;
 
--- Step 4: Show sample lessons (first 3 rows)
-SELECT 
+-- Step 4: Show sample lessons (first 3 rows) - safe approach
+DO $$
+DECLARE
+    table_exists BOOLEAN;
+    lesson_count INTEGER;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1 FROM information_schema.tables
+        WHERE table_name = 'lessons' AND table_schema = 'public'
+    ) INTO table_exists;
+
+    IF table_exists THEN
+        SELECT COUNT(*) INTO lesson_count FROM public.lessons;
+        IF lesson_count > 0 THEN
+            RAISE NOTICE 'Sample lesson data available - check query results below';
+        ELSE
+            RAISE NOTICE 'No sample data - table is empty';
+        END IF;
+    ELSE
+        RAISE NOTICE 'Cannot show sample data - table does not exist';
+    END IF;
+END $$;
+
+-- Only run this if table exists and has data
+SELECT
     'SAMPLE LESSON DATA' as section,
     *
-FROM public.lessons 
+FROM public.lessons
+WHERE EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'lessons' AND table_schema = 'public')
 LIMIT 3;
 
 -- Step 5: Check for foreign key relationships
