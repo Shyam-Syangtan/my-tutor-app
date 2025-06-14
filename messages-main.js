@@ -423,6 +423,15 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function showTypingIndicator(show) {
+    // Optional typing indicator - can be enhanced later
+    if (show) {
+        console.log('📝 User is typing...');
+    } else {
+        console.log('📝 User stopped typing');
+    }
+}
+
 function showErrorState() {
     document.getElementById('loadingState').classList.add('hidden');
     document.getElementById('messagesContainer').classList.add('hidden');

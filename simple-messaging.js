@@ -259,11 +259,9 @@ class SimpleMessaging {
                 if (status === 'SUBSCRIBED') {
                     console.log('✅ Successfully subscribed to real-time messages');
                 } else if (status === 'CLOSED') {
-                    console.error('❌ Subscription closed - attempting to reconnect...');
-                    setTimeout(() => this.subscribeToAllUserMessages(onMessage), 2000);
+                    console.error('❌ Subscription closed - will not auto-reconnect to prevent loops');
                 } else if (status === 'CHANNEL_ERROR') {
-                    console.error('❌ Subscription error - attempting to reconnect...');
-                    setTimeout(() => this.subscribeToAllUserMessages(onMessage), 5000);
+                    console.error('❌ Subscription error - will not auto-retry to prevent loops');
                 }
             });
 
