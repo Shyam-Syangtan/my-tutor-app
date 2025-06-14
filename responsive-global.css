@@ -49,16 +49,16 @@
     --color-secondary-dark: #BDBDBD;
     --color-secondary-darker: #9E9E9E;
 
-    /* Accent Colors - Verified Green & Availability Green */
-    --color-accent: #4CAF50;
-    --color-accent-light: #8BC34A;
-    --color-accent-dark: #388E3C;
-    --color-accent-darker: #2E7D32;
+    /* Accent Colors - Warm Orange Touches */
+    --color-accent: #FF6B35;
+    --color-accent-light: #FF8C42;
+    --color-accent-dark: #E55A2B;
+    --color-accent-darker: #CC4E24;
 
-    /* Background Colors - Very Light Grey Theme */
-    --color-background: #F5F6FA;
+    /* Background Colors - Ultra Light Grey Theme */
+    --color-background: #FAFBFC;
     --color-background-light: #FFFFFF;
-    --color-background-dark: #F0F1F5;
+    --color-background-dark: #F5F6FA;
     --color-surface: #FFFFFF;
     --color-surface-light: #FEFEFE;
     --color-surface-dark: #F8F9FA;
@@ -70,10 +70,10 @@
     --color-text-light: #CCCCCC;
     --color-text-inverse: #FFFFFF;
 
-    /* Status Colors (Light Grey Theme) */
-    --color-success: #4CAF50;
-    --color-success-light: #81C784;
-    --color-success-dark: #388E3C;
+    /* Status Colors (Orange Accent Theme) */
+    --color-success: #FF6B35;
+    --color-success-light: #FF8C42;
+    --color-success-dark: #E55A2B;
 
     --color-warning: #FFC107;
     --color-warning-light: #FFD54F;
@@ -89,8 +89,8 @@
 
     /* Special Colors */
     --color-star-rating: #FFC107;
-    --color-availability: #8BC34A;
-    --color-verified: #4CAF50;
+    --color-availability: #FF8C42;
+    --color-verified: #FF6B35;
     --color-accent-text: #00C2C2;
 
     /* Border Colors - Light Grey Tones */
