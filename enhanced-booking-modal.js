@@ -3,6 +3,9 @@
  * Creates iTalki-style detailed time slot selection popup
  */
 
+// Debug: Log that script is loading
+console.log('📥 [ENHANCED-MODAL] Script loading started...');
+
 class EnhancedBookingModal {
     constructor(supabaseClient) {
         this.supabase = supabaseClient;
@@ -1008,7 +1011,6 @@ class EnhancedBookingModal {
             }
         }
     }
-    }
 
     // Week navigation
     previousWeek() {
@@ -1199,3 +1201,6 @@ function initializeGlobalEnhancedModal() {
         console.error('❌ [MODAL] Error initializing global enhanced modal:', error);
     }
 }
+
+// Debug: Log that script loaded completely
+console.log('✅ [ENHANCED-MODAL] Script loaded completely - EnhancedBookingModal class available:', typeof EnhancedBookingModal);

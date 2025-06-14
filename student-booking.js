@@ -364,41 +364,109 @@ class StudentBookingSystem {
         }
     }
 
-    // Select a time slot for booking - DIRECT ENHANCED MODAL ONLY
+    // Select a time slot for booking - FORCE ENHANCED MODAL ONLY
     async selectTimeSlot(date, startTime, endTime) {
-        console.log('🎯 [BOOKING] Slot clicked - opening enhanced modal for:', date);
+        console.log('🎯 [BOOKING] Slot clicked - FORCING enhanced modal for:', date);
 
         if (!this.currentUser) {
             alert('Please log in to book a lesson.');
             return;
         }
 
-        // FORCE CREATE AND OPEN ENHANCED MODAL - NO FALLBACK
-        try {
-            console.log('🚀 [BOOKING] Creating enhanced modal...');
+        // FORCE ENHANCED MODAL - Check multiple ways to access the class
+        console.log('🔍 [BOOKING] Checking for EnhancedBookingModal class...');
+        console.log('🔍 [BOOKING] typeof EnhancedBookingModal:', typeof EnhancedBookingModal);
+        console.log('🔍 [BOOKING] window.EnhancedBookingModal:', typeof window.EnhancedBookingModal);
 
-            // Create new enhanced modal instance
-            const modal = new EnhancedBookingModal(this.supabase);
+        let ModalClass = null;
 
-            // Initialize with current data
-            await modal.initialize(
-                this.selectedTutor,
-                this.currentUser,
-                this.availabilityData || {},
-                this.lessonRequestsData || {}
-            );
+        // Try to find the class in different ways
+        if (typeof EnhancedBookingModal !== 'undefined') {
+            ModalClass = EnhancedBookingModal;
+            console.log('✅ [BOOKING] Found EnhancedBookingModal in global scope');
+        } else if (typeof window.EnhancedBookingModal !== 'undefined') {
+            ModalClass = window.EnhancedBookingModal;
+            console.log('✅ [BOOKING] Found EnhancedBookingModal in window');
+        } else {
+            // Force load the enhanced modal script if not found
+            console.log('🔄 [BOOKING] EnhancedBookingModal not found, attempting to load script...');
+            await this.loadEnhancedModalScript();
 
-            // Open modal for the selected date
-            modal.openModal(date);
-
-            console.log('✅ [BOOKING] Enhanced modal opened successfully');
-
-        } catch (error) {
-            console.error('❌ [BOOKING] Enhanced modal failed:', error);
-
-            // If enhanced modal fails, create a simple booking modal instead of browser confirm
-            this.createSimpleBookingModal(date, startTime, endTime);
+            // Try again after loading
+            if (typeof EnhancedBookingModal !== 'undefined') {
+                ModalClass = EnhancedBookingModal;
+                console.log('✅ [BOOKING] EnhancedBookingModal loaded successfully');
+            } else if (typeof window.EnhancedBookingModal !== 'undefined') {
+                ModalClass = window.EnhancedBookingModal;
+                console.log('✅ [BOOKING] EnhancedBookingModal loaded in window');
+            }
         }
+
+        if (ModalClass) {
+            try {
+                console.log('🚀 [BOOKING] Creating enhanced modal instance...');
+
+                // Create new enhanced modal instance
+                const modal = new ModalClass(this.supabase);
+
+                // Initialize with current data
+                await modal.initialize(
+                    this.selectedTutor,
+                    this.currentUser,
+                    this.availabilityData || {},
+                    this.lessonRequestsData || {}
+                );
+
+                // Open modal for the selected date
+                modal.openModal(date);
+
+                console.log('✅ [BOOKING] Enhanced modal opened successfully');
+                return;
+
+            } catch (error) {
+                console.error('❌ [BOOKING] Enhanced modal creation failed:', error);
+                console.error('❌ [BOOKING] Error details:', error.message, error.stack);
+            }
+        }
+
+        // If we get here, enhanced modal completely failed
+        console.error('💥 [BOOKING] ENHANCED MODAL COMPLETELY FAILED - This should not happen!');
+        alert('Enhanced booking modal failed to load. Please refresh the page and try again.');
+    }
+
+    // Force load enhanced modal script
+    async loadEnhancedModalScript() {
+        return new Promise((resolve, reject) => {
+            console.log('📥 [BOOKING] Force loading enhanced modal script...');
+
+            // Check if script already exists
+            const existingScript = document.querySelector('script[src*="enhanced-booking-modal.js"]');
+            if (existingScript) {
+                console.log('📥 [BOOKING] Script already exists, waiting for class...');
+                // Wait a bit for the class to be defined
+                setTimeout(() => {
+                    resolve();
+                }, 500);
+                return;
+            }
+
+            // Create and load script
+            const script = document.createElement('script');
+            script.src = 'enhanced-booking-modal.js?v=' + Date.now(); // Force fresh load
+            script.onload = () => {
+                console.log('✅ [BOOKING] Enhanced modal script loaded');
+                // Wait a bit for the class to be defined
+                setTimeout(() => {
+                    resolve();
+                }, 100);
+            };
+            script.onerror = () => {
+                console.error('❌ [BOOKING] Failed to load enhanced modal script');
+                reject(new Error('Failed to load enhanced modal script'));
+            };
+
+            document.head.appendChild(script);
+        });
     }
 
     // Create simple booking modal (NO browser confirm)
