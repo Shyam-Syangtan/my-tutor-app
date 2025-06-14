@@ -59,32 +59,119 @@ async function loadTutorLessons() {
             console.warn('Function approach failed, using direct query:', functionError);
 
             // Fallback to direct query with proper JOIN
-            const { data: lessonsData, error: lessonsError } = await supabase
-                .from('lessons')
-                .select(`
-                    *,
-                    student:student_id (
-                        id,
-                        email,
-                        raw_user_meta_data
-                    )
-                `)
-                .eq('tutor_id', currentUser.id)
-                .order('lesson_date', { ascending: true })
-                .order('start_time', { ascending: true });
+            let lessonsData = null;
+            let lessonsError = null;
 
-            if (lessonsError) {
-                console.error('Error loading lessons:', lessonsError);
-                showErrorMessage('Failed to load lessons.');
-                return;
+            // Try JOIN approach first
+            try {
+                console.log('🔍 [TUTOR] Trying JOIN with auth.users...');
+                const result = await supabase
+                    .from('lessons')
+                    .select(`
+                        *,
+                        student:student_id (
+                            id,
+                            email,
+                            raw_user_meta_data
+                        )
+                    `)
+                    .eq('tutor_id', currentUser.id)
+                    .order('lesson_date', { ascending: true })
+                    .order('start_time', { ascending: true });
+
+                lessonsData = result.data;
+                lessonsError = result.error;
+                console.log('🔍 [TUTOR] JOIN attempt result:', { data: lessonsData, error: lessonsError });
+            } catch (joinError) {
+                console.warn('⚠️ [TUTOR] JOIN approach failed:', joinError);
+                lessonsError = joinError;
             }
 
-            lessons = lessonsData || [];
+            if (lessonsError || !lessonsData || lessonsData.length === 0) {
+                console.warn('⚠️ [TUTOR] JOIN query failed or no data, trying fallback:', lessonsError?.message);
+
+                // Fallback: Get lessons without JOIN, then fetch student data manually
+                try {
+                    console.log('🔄 [TUTOR] Trying fallback approach - lessons without JOIN...');
+                    const { data: basicLessons, error: basicError } = await supabase
+                        .from('lessons')
+                        .select('*')
+                        .eq('tutor_id', currentUser.id)
+                        .order('lesson_date', { ascending: true })
+                        .order('start_time', { ascending: true });
+
+                    if (basicError) {
+                        throw basicError;
+                    }
+
+                    console.log('✅ [TUTOR] Basic lessons query successful, found', basicLessons?.length || 0, 'lessons');
+
+                    // Manually fetch student data for each lesson
+                    const lessonsWithStudents = [];
+                    for (const lesson of (basicLessons || [])) {
+                        try {
+                            console.log('🔍 [TUTOR] Fetching student data for lesson', lesson.id, 'student_id:', lesson.student_id);
+
+                            const { data: studentData, error: studentError } = await supabase
+                                .from('auth.users')
+                                .select('id, email, raw_user_meta_data')
+                                .eq('id', lesson.student_id)
+                                .single();
+
+                            if (studentError) {
+                                console.warn('⚠️ [TUTOR] Could not fetch student from auth.users:', studentError);
+                                const studentName = lesson.student_id?.substring(0, 8) || 'Student';
+                                lessonsWithStudents.push({
+                                    ...lesson,
+                                    student: {
+                                        id: lesson.student_id,
+                                        email: 'unknown@email.com',
+                                        raw_user_meta_data: { name: studentName }
+                                    }
+                                });
+                            } else {
+                                console.log('✅ [TUTOR] Successfully fetched student data:', {
+                                    studentId: lesson.student_id,
+                                    studentEmail: studentData?.email,
+                                    studentName: studentData?.raw_user_meta_data?.name
+                                });
+
+                                lessonsWithStudents.push({
+                                    ...lesson,
+                                    student: studentData
+                                });
+                            }
+                        } catch (studentFetchError) {
+                            console.warn('⚠️ [TUTOR] Exception fetching student data for lesson:', lesson.id, studentFetchError);
+                            lessonsWithStudents.push({
+                                ...lesson,
+                                student: {
+                                    id: lesson.student_id,
+                                    email: 'unknown@email.com',
+                                    raw_user_meta_data: { name: 'Unknown Student' }
+                                }
+                            });
+                        }
+                    }
+
+                    lessons = lessonsWithStudents;
+                    console.log('✅ [TUTOR] Lessons loaded via fallback manual fetch:', lessons.length);
+                } catch (fallbackError) {
+                    console.error('❌ [TUTOR] Fallback approach also failed:', fallbackError);
+                    showErrorMessage('Failed to load lessons.');
+                    return;
+                }
+            } else {
+                lessons = lessonsData || [];
+                console.log('✅ [TUTOR] Lessons loaded via direct query:', lessons.length);
+                console.log('🔍 [TUTOR] Raw lesson data from database:', lessons);
+            }
         } else {
             lessons = functionData || [];
+            console.log('✅ [TUTOR] Lessons loaded via function:', lessons.length);
         }
 
-        console.log('Loaded lessons:', lessons.length);
+        console.log('📊 [TUTOR] Total lessons loaded:', lessons.length);
 
         // Update stats and render
         updateStats();
@@ -173,10 +260,14 @@ function renderLessons() {
 
     container.innerHTML = filteredLessons.map(lesson => {
         const studentData = lesson.student;
+
+        console.log('🔍 [TUTOR] Raw student data for lesson', lesson.id, ':', studentData);
+        console.log('🔍 [TUTOR] Student raw_user_meta_data:', studentData?.raw_user_meta_data);
+
         const studentName = studentData?.raw_user_meta_data?.name ||
                            studentData?.raw_user_meta_data?.full_name ||
                            studentData?.email?.split('@')[0] ||
-                           'Student';
+                           'Unknown Student';
         const studentEmail = lesson.student_email || lesson.student?.email || 'Unknown Student';
         const isPast = isPastLesson(lesson.lesson_date, lesson.start_time);
 
@@ -184,7 +275,8 @@ function renderLessons() {
             lessonId: lesson.id,
             studentId: lesson.student_id,
             studentEmail: studentData?.email,
-            studentName: studentName
+            studentName: studentName,
+            rawMetaData: studentData?.raw_user_meta_data
         });
         
         return `
