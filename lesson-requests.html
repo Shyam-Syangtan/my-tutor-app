@@ -8,12 +8,240 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+
+        /* Request Card Animations */
         .request-card {
-            transition: all 0.2s;
+            transition: all 0.2s ease-in-out;
         }
         .request-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Mobile-First Responsive Design */
+
+        /* Mobile (320px - 767px) */
+        @media (max-width: 767px) {
+            /* Navigation adjustments */
+            .nav-content {
+                flex-direction: column;
+                gap: 0.5rem;
+                padding: 0.75rem 1rem;
+            }
+
+            .nav-left {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .nav-right {
+                width: 100%;
+                justify-content: space-between;
+                font-size: 0.875rem;
+            }
+
+            /* Header adjustments */
+            .page-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                width: 100%;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .pending-counter {
+                order: 1;
+            }
+
+            .refresh-btn {
+                order: 2;
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Filter tabs - horizontal scroll on mobile */
+            .filter-tabs-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .filter-tabs {
+                min-width: max-content;
+                padding: 0 1rem;
+            }
+
+            .filter-tab {
+                white-space: nowrap;
+                padding: 0.75rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            /* Request cards - full width stack */
+            .request-card {
+                margin: 0 -0.5rem;
+                border-radius: 0.75rem;
+            }
+
+            .card-header {
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: flex-start;
+            }
+
+            .student-info {
+                width: 100%;
+            }
+
+            .status-badge {
+                align-self: flex-end;
+            }
+
+            /* Info grid - single column on mobile */
+            .info-grid {
+                grid-template-columns: 1fr !important;
+                gap: 0.75rem;
+            }
+
+            /* Action buttons - full width stack */
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .action-btn {
+                width: 100%;
+                padding: 0.875rem 1rem;
+                font-size: 1rem;
+                font-weight: 600;
+                justify-content: center;
+            }
+
+            /* Modal adjustments */
+            .modal-content {
+                margin: 1rem;
+                max-width: calc(100vw - 2rem);
+            }
+        }
+
+        /* Tablet (768px - 1023px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            /* Navigation stays horizontal but more compact */
+            .nav-content {
+                padding: 0.875rem 1.5rem;
+            }
+
+            /* Header adjustments */
+            .page-header {
+                flex-direction: row;
+                align-items: center;
+            }
+
+            .header-actions {
+                flex-direction: row;
+                gap: 1rem;
+            }
+
+            /* Filter tabs */
+            .filter-tab {
+                padding: 0.875rem 1.25rem;
+            }
+
+            /* Request cards - optimize for tablet width */
+            .card-header {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+
+            /* Info grid - 2 columns on tablet */
+            .info-grid {
+                grid-template-columns: 1fr 1fr !important;
+                gap: 1rem;
+            }
+
+            .info-grid > div:last-child {
+                grid-column: 1 / -1;
+            }
+
+            /* Action buttons - horizontal on tablet */
+            .action-buttons {
+                flex-direction: row;
+                justify-content: flex-end;
+                gap: 0.75rem;
+            }
+
+            .action-btn {
+                min-width: 120px;
+                padding: 0.75rem 1.5rem;
+            }
+        }
+
+        /* Desktop (1024px+) */
+        @media (min-width: 1024px) {
+            /* Enhanced hover effects for desktop */
+            .request-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.12);
+            }
+
+            .action-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+
+            /* Optimal spacing for large screens */
+            .page-container {
+                max-width: 1200px;
+            }
+
+            /* Info grid - 3 columns on desktop */
+            .info-grid {
+                grid-template-columns: 1fr 1fr 1fr !important;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .action-btn {
+                min-height: 48px;
+                font-size: 1rem;
+            }
+
+            .filter-tab {
+                min-height: 48px;
+                padding: 0.75rem 1rem;
+            }
+
+            .refresh-btn {
+                min-height: 48px;
+            }
+        }
+
+        /* Accessibility improvements */
+        @media (prefers-reduced-motion: reduce) {
+            .request-card,
+            .action-btn {
+                transition: none;
+            }
+
+            .request-card:hover,
+            .action-btn:hover {
+                transform: none;
+            }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .request-card {
+                border-width: 2px;
+            }
+
+            .action-btn {
+                border-width: 2px;
+            }
         }
     </style>
 </head>
@@ -21,16 +249,16 @@
     <!-- Navigation -->
     <nav class="bg-white shadow-sm border-b">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center space-x-8">
-                    <a href="#" class="text-2xl font-bold text-indigo-600">IndianTutors</a>
-                    <button onclick="goBackToTutorDashboard()" class="text-gray-600 hover:text-indigo-600 transition-colors">
+            <div class="nav-content flex justify-between items-center min-h-16">
+                <div class="nav-left flex items-center space-x-4 sm:space-x-8">
+                    <a href="#" class="text-xl sm:text-2xl font-bold text-indigo-600">IndianTutors</a>
+                    <button onclick="goBackToTutorDashboard()" class="text-sm sm:text-base text-gray-600 hover:text-indigo-600 transition-colors">
                         ← Back to Dashboard
                     </button>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <span id="userEmail" class="text-gray-600">Loading...</span>
-                    <button onclick="handleLogout()" class="text-red-600 hover:text-red-700">Logout</button>
+                <div class="nav-right flex items-center space-x-2 sm:space-x-4">
+                    <span id="userEmail" class="text-gray-600 text-sm sm:text-base truncate max-w-32 sm:max-w-none">Loading...</span>
+                    <button onclick="handleLogout()" class="text-red-600 hover:text-red-700 text-sm sm:text-base">Logout</button>
                 </div>
             </div>
         </div>
@@ -45,19 +273,19 @@
     </div>
 
     <!-- Main Content -->
-    <div id="mainContent" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 hidden">
+    <div id="mainContent" class="page-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 hidden">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">Lesson Requests</h1>
-                <p class="text-gray-600">Review and manage student booking requests</p>
+        <div class="page-header flex justify-between items-center mb-6">
+            <div class="header-info">
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Lesson Requests</h1>
+                <p class="text-sm sm:text-base text-gray-600 mt-1">Review and manage student booking requests</p>
             </div>
-            <div class="flex items-center space-x-4">
-                <div class="bg-white px-4 py-2 rounded-lg shadow-sm border">
-                    <span class="text-sm text-gray-600">Pending: </span>
+            <div class="header-actions flex items-center space-x-4">
+                <div class="pending-counter bg-white px-3 sm:px-4 py-2 rounded-lg shadow-sm border">
+                    <span class="text-xs sm:text-sm text-gray-600">Pending: </span>
                     <span id="pendingCount" class="font-semibold text-indigo-600">0</span>
                 </div>
-                <button onclick="refreshRequests()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium">
+                <button onclick="refreshRequests()" class="refresh-btn bg-indigo-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium text-sm sm:text-base transition-colors">
                     Refresh
                 </button>
             </div>
@@ -66,20 +294,22 @@
         <!-- Filter Tabs -->
         <div class="bg-white rounded-lg shadow-sm border mb-6">
             <div class="border-b border-gray-200">
-                <nav class="flex space-x-8 px-6">
-                    <button class="filter-tab active py-4 text-sm font-medium border-b-2 border-indigo-500 text-indigo-600" data-filter="pending">
-                        Pending Requests
-                    </button>
-                    <button class="filter-tab py-4 text-sm font-medium text-gray-500 hover:text-gray-700" data-filter="approved">
-                        Approved
-                    </button>
-                    <button class="filter-tab py-4 text-sm font-medium text-gray-500 hover:text-gray-700" data-filter="declined">
-                        Declined
-                    </button>
-                    <button class="filter-tab py-4 text-sm font-medium text-gray-500 hover:text-gray-700" data-filter="all">
-                        All Requests
-                    </button>
-                </nav>
+                <div class="filter-tabs-container">
+                    <nav class="filter-tabs flex space-x-4 sm:space-x-8 px-4 sm:px-6">
+                        <button class="filter-tab active py-3 sm:py-4 text-sm font-medium border-b-2 border-indigo-500 text-indigo-600 transition-colors" data-filter="pending">
+                            Pending Requests
+                        </button>
+                        <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors" data-filter="approved">
+                            Approved
+                        </button>
+                        <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors" data-filter="declined">
+                            Declined
+                        </button>
+                        <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors" data-filter="all">
+                            All Requests
+                        </button>
+                    </nav>
+                </div>
             </div>
         </div>
 
@@ -97,16 +327,16 @@
     </div>
 
     <!-- Confirmation Modal -->
-    <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-            <div class="p-6">
+    <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden p-4">
+        <div class="modal-content bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-4 sm:p-6">
                 <h3 id="modalTitle" class="text-lg font-semibold text-gray-900 mb-4"></h3>
-                <p id="modalMessage" class="text-gray-600 mb-6"></p>
-                <div class="flex justify-end space-x-3">
-                    <button onclick="closeConfirmationModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                <p id="modalMessage" class="text-gray-600 mb-6 text-sm sm:text-base"></p>
+                <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                    <button onclick="closeConfirmationModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg sm:order-1 transition-colors">
                         Cancel
                     </button>
-                    <button id="confirmButton" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                    <button id="confirmButton" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 sm:order-2 transition-colors">
                         Confirm
                     </button>
                 </div>
@@ -118,6 +348,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Lesson Requests JavaScript -->
-    <script src="lesson-requests.js?v=7&t=20250614-names"></script>
+    <script src="lesson-requests.js?v=8&t=20250614-responsive"></script>
 </body>
 </html>

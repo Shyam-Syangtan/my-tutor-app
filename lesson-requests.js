@@ -203,69 +203,69 @@ function renderLessonRequests() {
     emptyState.classList.add('hidden');
     
     container.innerHTML = filteredRequests.map(request => `
-        <div class="request-card bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex justify-between items-start mb-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
-                        <span class="text-indigo-600 font-semibold">
+        <div class="card request-card bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <div class="card-header flex justify-between items-start mb-4">
+                <div class="student-info flex items-center space-x-3">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                        <span class="text-indigo-600 font-semibold text-sm sm:text-base">
                             ${request.student?.email ? request.student.email.substring(0, 2).toUpperCase() : 'ST'}
                         </span>
                     </div>
                     <div>
-                        <h3 class="font-semibold text-gray-900">
+                        <h3 class="font-semibold text-gray-900 text-sm sm:text-base">
                             ${request.student?.email || 'Student'}
                         </h3>
-                        <p class="text-sm text-gray-500">
+                        <p class="text-xs sm:text-sm text-gray-500">
                             Requested ${formatDate(request.created_at)}
                         </p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-2">
+                <div class="status-badge flex items-center space-x-2">
                     ${getStatusBadge(request.status)}
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div class="info-grid responsive-grid grid-1 md:grid-3 gap-3 sm:gap-4 mb-4">
                 <div class="bg-gray-50 rounded-lg p-3">
-                    <div class="text-sm text-gray-600 mb-1">Date</div>
-                    <div class="font-semibold text-gray-900">
+                    <div class="text-xs sm:text-sm text-gray-600 mb-1">Date</div>
+                    <div class="font-semibold text-gray-900 text-sm sm:text-base">
                         ${formatLessonDate(request.requested_date)}
                     </div>
                 </div>
                 <div class="bg-gray-50 rounded-lg p-3">
-                    <div class="text-sm text-gray-600 mb-1">Time</div>
-                    <div class="font-semibold text-gray-900">
+                    <div class="text-xs sm:text-sm text-gray-600 mb-1">Time</div>
+                    <div class="font-semibold text-gray-900 text-sm sm:text-base">
                         ${formatTime(request.requested_start_time)} - ${formatTime(request.requested_end_time)}
                     </div>
                 </div>
                 <div class="bg-gray-50 rounded-lg p-3">
-                    <div class="text-sm text-gray-600 mb-1">Duration</div>
-                    <div class="font-semibold text-gray-900">1 hour</div>
+                    <div class="text-xs sm:text-sm text-gray-600 mb-1">Duration</div>
+                    <div class="font-semibold text-gray-900 text-sm sm:text-base">1 hour</div>
                 </div>
             </div>
 
             ${request.student_message ? `
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                    <div class="text-sm text-blue-800 font-medium mb-1">Student Message:</div>
-                    <div class="text-blue-700">${request.student_message}</div>
+                    <div class="text-xs sm:text-sm text-blue-800 font-medium mb-1">Student Message:</div>
+                    <div class="text-blue-700 text-sm sm:text-base">${request.student_message}</div>
                 </div>
             ` : ''}
 
             ${request.tutor_response ? `
                 <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
-                    <div class="text-sm text-gray-600 font-medium mb-1">Your Response:</div>
-                    <div class="text-gray-700">${request.tutor_response}</div>
+                    <div class="text-xs sm:text-sm text-gray-600 font-medium mb-1">Your Response:</div>
+                    <div class="text-gray-700 text-sm sm:text-base">${request.tutor_response}</div>
                 </div>
             ` : ''}
 
             ${request.status === 'pending' ? `
-                <div class="flex justify-end space-x-3">
-                    <button onclick="handleRequestAction('${request.id}', 'declined')" 
-                            class="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors">
+                <div class="action-buttons flex justify-end space-x-3">
+                    <button onclick="handleRequestAction('${request.id}', 'declined')"
+                            class="action-btn btn btn-secondary px-3 sm:px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors text-sm sm:text-base">
                         Decline
                     </button>
-                    <button onclick="handleRequestAction('${request.id}', 'approved')" 
-                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    <button onclick="handleRequestAction('${request.id}', 'approved')"
+                            class="action-btn btn btn-success px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base">
                         Approve
                     </button>
                 </div>

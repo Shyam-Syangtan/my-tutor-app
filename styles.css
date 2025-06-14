@@ -336,7 +336,8 @@ body {
     }
 }
 
-@media (max-width: 768px) {
+/* Enhanced Mobile Responsive Design */
+@media (max-width: 767px) {
     /* Mobile styles - show mobile menu button, hide desktop nav */
     .nav-container {
         padding: 0 1rem;
@@ -351,42 +352,139 @@ body {
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
+        font-size: 1.25rem;
     }
 
     .hero {
-        padding: 6rem 0 2rem;
+        padding: 4rem 0 2rem;
     }
 
     .hero-container {
         grid-template-columns: 1fr;
-        gap: 2rem;
+        gap: 1.5rem;
         text-align: center;
+        padding: 0 1rem;
     }
 
     .hero-title {
-        font-size: 2.5rem;
+        font-size: 2rem;
+        line-height: 1.2;
+        margin-bottom: 1rem;
     }
 
     .hero-features {
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
+        gap: 1rem;
     }
 
     .hero-features li {
         justify-content: center;
+        font-size: 0.9rem;
+        padding: 0.5rem;
+    }
+
+    .feature-icon {
+        font-size: 1.25rem;
+        margin-right: 0.5rem;
     }
 
     .cta-button {
         width: 100%;
-        max-width: 300px;
+        max-width: 320px;
         margin: 0 auto;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
     }
 
     .languages-grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
     }
 
     .languages-title {
-        font-size: 2rem;
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .language-pill {
+        padding: 0.75rem;
+        text-align: center;
+    }
+
+    .language-name {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .tutor-count {
+        font-size: 0.75rem;
+    }
+
+    /* Hero image adjustments */
+    .hero-image {
+        order: -1;
+        margin-bottom: 1rem;
+    }
+
+    .hero-illustration {
+        max-width: 280px;
+        margin: 0 auto;
+    }
+}
+
+/* Tablet Responsive Design */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .hero-container {
+        gap: 2rem;
+        padding: 0 1.5rem;
+    }
+
+    .hero-title {
+        font-size: 2.75rem;
+    }
+
+    .languages-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    .cta-button {
+        max-width: 280px;
+    }
+}
+
+/* Small Mobile Devices */
+@media (max-width: 480px) {
+    .hero {
+        padding: 3rem 0 1.5rem;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+    }
+
+    .hero-features {
+        gap: 0.75rem;
+    }
+
+    .hero-features li {
+        font-size: 0.85rem;
+        padding: 0.4rem;
+    }
+
+    .languages-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .language-pill {
+        padding: 1rem;
+    }
+
+    .cta-button {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.95rem;
     }
 }
 
@@ -597,27 +695,91 @@ body {
     text-decoration: underline;
 }
 
-/* Modal Responsive Design */
-@media (max-width: 480px) {
+/* Enhanced Modal Responsive Design */
+@media (max-width: 767px) {
+    .modal-overlay {
+        padding: 1rem;
+    }
+
     .modal-content {
-        margin: 0.5rem;
+        margin: 0;
         max-width: none;
-        border-radius: var(--border-radius);
+        border-radius: 0.75rem;
+        max-height: 90vh;
+        overflow-y: auto;
     }
 
     .modal-header {
-        padding: 1.5rem 1.5rem 1rem;
+        padding: 1.25rem 1.25rem 1rem;
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
     }
 
     .modal-title {
-        font-size: 1.5rem;
+        font-size: 1.375rem;
+        line-height: 1.3;
     }
 
     .modal-body {
-        padding: 1.5rem;
+        padding: 1.25rem;
     }
 
     .modal-footer {
-        padding: 1rem 1.5rem 1.5rem;
+        padding: 1rem 1.25rem 1.25rem;
+        position: sticky;
+        bottom: 0;
+        background: white;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .google-login-btn {
+        width: 100%;
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+        font-weight: 600;
+        justify-content: center;
+    }
+
+    .modal-subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .terms-text {
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-overlay {
+        padding: 0.5rem;
+    }
+
+    .modal-content {
+        border-radius: 0.5rem;
+    }
+
+    .modal-header {
+        padding: 1rem 1rem 0.75rem;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+
+    .modal-footer {
+        padding: 0.75rem 1rem 1rem;
+    }
+
+    .google-login-btn {
+        padding: 1rem;
+        font-size: 0.95rem;
     }
 }

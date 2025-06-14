@@ -12,25 +12,28 @@
     <!-- Google Sign-In (handled by Supabase) -->
 
     <!-- Custom Styles -->
+    <link rel="stylesheet" href="responsive-global.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
-                <h2>IndianTutors</h2>
-            </div>
-            <div class="nav-links">
-                <a href="#teachers" class="nav-link">Find a Teacher</a>
-                <button class="nav-btn login-btn" onclick="openLoginModal()">Log in</button>
+    <nav class="responsive-nav navbar">
+        <div class="responsive-container nav-container">
+            <div class="nav-content">
+                <div class="nav-left">
+                    <a href="#" class="nav-logo">IndianTutors</a>
+                </div>
+                <div class="nav-right nav-links">
+                    <a href="#teachers" class="nav-link">Find a Teacher</a>
+                    <button class="btn btn-primary nav-btn login-btn" onclick="openLoginModal()">Log in</button>
+                </div>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="hero-container">
+        <div class="responsive-container hero-container">
             <div class="hero-content">
                 <h1 class="hero-title">Become fluent in any Indian language</h1>
                 <ul class="hero-features">
@@ -47,7 +50,7 @@
                         Flexible schedules and prices
                     </li>
                 </ul>
-                <button class="cta-button" onclick="openLoginModal()">
+                <button class="btn btn-primary cta-button btn-full-mobile" onclick="openLoginModal()">
                     <span class="google-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -80,9 +83,9 @@
 
     <!-- Languages Section -->
     <section class="languages">
-        <div class="languages-container">
+        <div class="responsive-container languages-container">
             <h2 class="languages-title">Popular Indian Languages</h2>
-            <div class="languages-grid">
+            <div class="responsive-grid grid-4 grid-mobile-2 languages-grid">
                 <div class="language-pill">
                     <span class="language-name">Hindi</span>
                     <span class="tutor-count">1,247 tutors</span>
@@ -135,7 +138,7 @@
             <div class="modal-body">
                 <p class="modal-subtitle">Start your language learning journey today</p>
 
-                <button class="google-login-btn" onclick="handleGoogleLogin()">
+                <button class="btn btn-primary google-login-btn btn-full-mobile" onclick="handleGoogleLogin()">
                     <div class="google-icon-wrapper">
                         <svg width="20" height="20" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
