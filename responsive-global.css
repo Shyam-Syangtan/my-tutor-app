@@ -36,12 +36,12 @@
     --text-3xl: 1.875rem;
     --text-4xl: 2.25rem;
 
-    /* COMPREHENSIVE ITALKI-INSPIRED WARM COLOR THEME */
-    /* Primary Colors - Warm Coral/Red Accents */
-    --color-primary: #FF3B30;
-    --color-primary-light: #FF5A50;
-    --color-primary-dark: #E6342A;
-    --color-primary-darker: #CC2E24;
+    /* COMPREHENSIVE TEAL PROFESSIONAL COLOR THEME */
+    /* Primary Colors - Teal Professional Accents */
+    --color-primary: #00C2B3;
+    --color-primary-light: #00D4C4;
+    --color-primary-dark: #00A89B;
+    --color-primary-darker: #008E82;
 
     /* Secondary Colors - Teal/Blue-Grey */
     --color-secondary: #007B83;
@@ -55,10 +55,10 @@
     --color-accent-dark: #008E86;
     --color-accent-darker: #007770;
 
-    /* Background Colors - Clean Light Theme */
-    --color-background: #F5F6FA;
+    /* Background Colors - White Mist Theme */
+    --color-background: #FAFBFC;
     --color-background-light: #FFFFFF;
-    --color-background-dark: #EBEDF2;
+    --color-background-dark: #F5F6FA;
     --color-surface: #FFFFFF;
     --color-surface-light: #FEFEFE;
     --color-surface-dark: #F8F9FA;
@@ -79,9 +79,9 @@
     --color-warning-light: #FFD54F;
     --color-warning-dark: #FFA000;
 
-    --color-error: #FF3B30;
-    --color-error-light: #FF5A50;
-    --color-error-dark: #E6342A;
+    --color-error: #DC2626;
+    --color-error-light: #EF4444;
+    --color-error-dark: #B91C1C;
 
     --color-info: #00A59C;
     --color-info-light: #00C2B7;

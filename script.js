@@ -215,11 +215,11 @@ function showNotification(message, type = 'info') {
             }
 
             .notification-error {
-                background: linear-gradient(135deg, #FF3B30 0%, #E6342A 100%);
+                background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
             }
 
             .notification-info {
-                background: linear-gradient(135deg, #00A59C 0%, #008E86 100%);
+                background: linear-gradient(135deg, #00C2B3 0%, #00A89B 100%);
             }
             
             @keyframes slideIn {
