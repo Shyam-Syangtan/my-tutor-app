@@ -11,6 +11,7 @@ let supabase;
 let currentUser;
 let currentFilter = 'today';
 let lessons = [];
+let userNameResolver;
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', async function() {
@@ -26,7 +27,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         currentUser = session.user;
-        
+
+        // Initialize user name resolver
+        userNameResolver = new window.UserNameResolver(supabase, {
+            getCurrentUser: () => currentUser,
+            getUserProfile: () => currentUser.user_metadata || {}
+        });
+
         // Update user info in nav
         document.getElementById('userEmail').textContent = currentUser.email;
 
@@ -51,137 +58,42 @@ async function loadTutorLessons() {
     try {
         console.log('Loading lessons for tutor:', currentUser.id);
 
-        // Try using the new database function first
-        const { data: functionData, error: functionError } = await supabase
-            .rpc('get_tutor_lessons_with_students', { tutor_user_id: currentUser.id });
+        // STABLE APPROACH - Simple query then resolve names
+        const { data: basicLessons, error: basicError } = await supabase
+            .from('lessons')
+            .select('*')
+            .eq('tutor_id', currentUser.id)
+            .order('lesson_date', { ascending: true })
+            .order('start_time', { ascending: true });
 
-        if (functionError) {
-            console.warn('Function approach failed, using direct query:', functionError);
+        if (basicError) {
+            throw basicError;
+        }
 
-            // Fallback to direct query with proper JOIN
-            let lessonsData = null;
-            let lessonsError = null;
+        console.log('✅ [TUTOR] Basic lessons query successful, found', basicLessons?.length || 0, 'lessons');
 
-            // Try JOIN approach first
-            try {
-                console.log('🔍 [TUTOR] Trying JOIN with auth.users...');
-                const result = await supabase
-                    .from('lessons')
-                    .select(`
-                        *,
-                        student:student_id (
-                            id,
-                            email,
-                            raw_user_meta_data
-                        )
-                    `)
-                    .eq('tutor_id', currentUser.id)
-                    .order('lesson_date', { ascending: true })
-                    .order('start_time', { ascending: true });
+        // Resolve student names using the stable resolver
+        if (basicLessons && basicLessons.length > 0) {
+            const studentIds = [...new Set(basicLessons.map(lesson => lesson.student_id))];
+            const studentNames = await userNameResolver.batchGetUserNames(studentIds, 'student');
 
-                lessonsData = result.data;
-                lessonsError = result.error;
-                console.log('🔍 [TUTOR] JOIN attempt result:', { data: lessonsData, error: lessonsError });
-            } catch (joinError) {
-                console.warn('⚠️ [TUTOR] JOIN approach failed:', joinError);
-                lessonsError = joinError;
-            }
-
-            if (lessonsError || !lessonsData || lessonsData.length === 0) {
-                console.warn('⚠️ [TUTOR] JOIN query failed or no data, trying fallback:', lessonsError?.message);
-
-                // Fallback: Get lessons without JOIN, then fetch student data manually
-                try {
-                    console.log('🔄 [TUTOR] Trying fallback approach - lessons without JOIN...');
-                    const { data: basicLessons, error: basicError } = await supabase
-                        .from('lessons')
-                        .select('*')
-                        .eq('tutor_id', currentUser.id)
-                        .order('lesson_date', { ascending: true })
-                        .order('start_time', { ascending: true });
-
-                    if (basicError) {
-                        throw basicError;
-                    }
-
-                    console.log('✅ [TUTOR] Basic lessons query successful, found', basicLessons?.length || 0, 'lessons');
-
-                    // Manually fetch student data for each lesson
-                    const lessonsWithStudents = [];
-                    for (const lesson of (basicLessons || [])) {
-                        try {
-                            console.log('🔍 [TUTOR] Fetching student data for lesson', lesson.id, 'student_id:', lesson.student_id);
-
-                            // Try users table first
-                            const { data: studentData, error: studentError } = await supabase
-                                .from('users')
-                                .select('id, email')
-                                .eq('id', lesson.student_id)
-                                .eq('role', 'student')
-                                .single();
-
-                            if (studentError) {
-                                console.warn('⚠️ [TUTOR] Could not fetch student from users table:', studentError);
-                                // Use a simple fallback name
-                                lessonsWithStudents.push({
-                                    ...lesson,
-                                    student: {
-                                        id: lesson.student_id,
-                                        email: 'unknown@email.com',
-                                        raw_user_meta_data: { name: 'Student' }
-                                    }
-                                });
-                            } else {
-                                console.log('✅ [TUTOR] Successfully fetched student data:', {
-                                    studentId: lesson.student_id,
-                                    studentEmail: studentData?.email
-                                });
-
-                                lessonsWithStudents.push({
-                                    ...lesson,
-                                    student: {
-                                        id: studentData.id,
-                                        email: studentData.email,
-                                        raw_user_meta_data: { name: studentData.email?.split('@')[0] || 'Student' }
-                                    }
-                                });
-                            }
-                        } catch (studentFetchError) {
-                            console.warn('⚠️ [TUTOR] Exception fetching student data for lesson:', lesson.id, studentFetchError);
-                            lessonsWithStudents.push({
-                                ...lesson,
-                                student: {
-                                    id: lesson.student_id,
-                                    email: 'unknown@email.com',
-                                    raw_user_meta_data: { name: 'Unknown Student' }
-                                }
-                            });
-                        }
-                    }
-
-                    lessons = lessonsWithStudents;
-                    console.log('✅ [TUTOR] Lessons loaded via fallback manual fetch:', lessons.length);
-                } catch (fallbackError) {
-                    console.error('❌ [TUTOR] Fallback approach also failed:', fallbackError);
-                    showErrorMessage('Failed to load lessons.');
-                    return;
-                }
-            } else {
-                lessons = lessonsData || [];
-                console.log('✅ [TUTOR] Lessons loaded via direct query:', lessons.length);
-                console.log('🔍 [TUTOR] Raw lesson data from database:', lessons);
-            }
-        } else {
-            // Transform function data to match expected format
-            lessons = (functionData || []).map(lesson => ({
+            // Transform lessons with resolved names
+            lessons = basicLessons.map(lesson => ({
                 ...lesson,
                 student: {
                     id: lesson.student_id,
-                    email: lesson.student_email,
-                    raw_user_meta_data: { name: lesson.student_name }
-                }
+                    email: 'student@example.com', // Placeholder
+                    raw_user_meta_data: {
+                        name: studentNames.get(lesson.student_id) || 'Student'
+                    }
+                },
+                student_email: 'student@example.com', // Placeholder
+                student_name: studentNames.get(lesson.student_id) || 'Student'
             }));
-            console.log('✅ [TUTOR] Lessons loaded via function:', lessons.length);
+
+            console.log('✅ [TUTOR] Student names resolved for', lessons.length, 'lessons');
+        } else {
+            lessons = [];
         }
 
         console.log('📊 [TUTOR] Total lessons loaded:', lessons.length);

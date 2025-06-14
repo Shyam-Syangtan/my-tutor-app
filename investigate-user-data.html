@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Data Investigation</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js?v=3"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 3px; }
+        .error { background: #ffe6e6; color: #d00; }
+        .success { background: #e6ffe6; color: #060; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+        button { padding: 10px 15px; margin: 5px; background: #007cba; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #005a87; }
+    </style>
+</head>
+<body>
+    <h1>🔍 User Data Investigation Tool</h1>
+    <p>This tool investigates the actual data structure to understand why user names aren't displaying.</p>
+
+    <div class="section">
+        <h2>1. Current User Info</h2>
+        <button onclick="checkCurrentUser()">Check Current User</button>
+        <div id="currentUserResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. Users Table Structure</h2>
+        <button onclick="checkUsersTable()">Check Users Table</button>
+        <div id="usersTableResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. Sample Lessons Data</h2>
+        <button onclick="checkLessonsData()">Check Lessons Data</button>
+        <div id="lessonsDataResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>4. User Profile Access Methods</h2>
+        <button onclick="testUserProfileAccess()">Test Profile Access</button>
+        <div id="profileAccessResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>5. Proposed Solution Test</h2>
+        <button onclick="testProposedSolution()">Test Proposed Solution</button>
+        <div id="proposedSolutionResult" class="result"></div>
+    </div>
+
+    <script>
+        let supabase;
+        let currentUser;
+
+        // Initialize when page loads
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await window.authHandler.init();
+                supabase = window.authHandler.supabase;
+                currentUser = window.authHandler.getCurrentUser();
+                
+                if (!currentUser) {
+                    document.body.innerHTML = '<h2>Please log in first</h2><a href="index.html">Go to Login</a>';
+                    return;
+                }
+                
+                console.log('Investigation tool initialized');
+            } catch (error) {
+                console.error('Failed to initialize:', error);
+            }
+        });
+
+        async function checkCurrentUser() {
+            const resultDiv = document.getElementById('currentUserResult');
+            try {
+                const user = window.authHandler.getCurrentUser();
+                const profile = window.authHandler.getUserProfile();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>Current User Data:</h3>
+                        <pre>${JSON.stringify(user, null, 2)}</pre>
+                        <h3>User Profile:</h3>
+                        <pre>${JSON.stringify(profile, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function checkUsersTable() {
+            const resultDiv = document.getElementById('usersTableResult');
+            try {
+                // Check table structure
+                const { data: structure, error: structError } = await supabase
+                    .rpc('get_table_structure', { table_name: 'users' })
+                    .catch(() => ({ data: null, error: { message: 'Function not available' } }));
+
+                // Get sample data
+                const { data: sampleData, error: sampleError } = await supabase
+                    .from('users')
+                    .select('*')
+                    .limit(5);
+
+                resultDiv.innerHTML = `
+                    <div class="${sampleError ? 'error' : 'success'}">
+                        <h3>Users Table Sample Data:</h3>
+                        ${sampleError ? 
+                            `<p>Error: ${sampleError.message}</p>` : 
+                            `<pre>${JSON.stringify(sampleData, null, 2)}</pre>`
+                        }
+                        
+                        <h3>Table Structure:</h3>
+                        ${structError ? 
+                            `<p>Structure check failed: ${structError.message}</p>` : 
+                            `<pre>${JSON.stringify(structure, null, 2)}</pre>`
+                        }
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function checkLessonsData() {
+            const resultDiv = document.getElementById('lessonsDataResult');
+            try {
+                const { data: lessons, error } = await supabase
+                    .from('lessons')
+                    .select('*')
+                    .limit(3);
+
+                if (error) throw error;
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>Sample Lessons Data:</h3>
+                        <pre>${JSON.stringify(lessons, null, 2)}</pre>
+                        
+                        <h3>Analysis:</h3>
+                        <p>Total lessons found: ${lessons?.length || 0}</p>
+                        ${lessons?.length > 0 ? `
+                            <p>Sample tutor_id: ${lessons[0].tutor_id}</p>
+                            <p>Sample student_id: ${lessons[0].student_id}</p>
+                        ` : '<p>No lessons found</p>'}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testUserProfileAccess() {
+            const resultDiv = document.getElementById('profileAccessResult');
+            try {
+                // Get a sample lesson to test with
+                const { data: lessons, error: lessonsError } = await supabase
+                    .from('lessons')
+                    .select('tutor_id, student_id')
+                    .limit(1);
+
+                if (lessonsError || !lessons?.length) {
+                    resultDiv.innerHTML = `<div class="error">No lessons found to test with</div>`;
+                    return;
+                }
+
+                const lesson = lessons[0];
+                const results = {};
+
+                // Method 1: Try to get user from auth
+                try {
+                    const { data: authUser } = await supabase.auth.getUser();
+                    results.authMethod = { success: true, data: authUser };
+                } catch (error) {
+                    results.authMethod = { success: false, error: error.message };
+                }
+
+                // Method 2: Try users table lookup
+                try {
+                    const { data: userData, error: userError } = await supabase
+                        .from('users')
+                        .select('*')
+                        .eq('id', lesson.tutor_id)
+                        .single();
+                    
+                    results.usersTableMethod = { 
+                        success: !userError, 
+                        data: userData, 
+                        error: userError?.message 
+                    };
+                } catch (error) {
+                    results.usersTableMethod = { success: false, error: error.message };
+                }
+
+                // Method 3: Try to access user metadata through client
+                try {
+                    const profile = window.authHandler.getUserProfile();
+                    results.clientProfileMethod = { success: true, data: profile };
+                } catch (error) {
+                    results.clientProfileMethod = { success: false, error: error.message };
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>User Profile Access Test Results:</h3>
+                        <pre>${JSON.stringify(results, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testProposedSolution() {
+            const resultDiv = document.getElementById('proposedSolutionResult');
+            try {
+                // Test the proposed solution approach
+                const { data: lessons, error: lessonsError } = await supabase
+                    .from('lessons')
+                    .select('*')
+                    .limit(2);
+
+                if (lessonsError || !lessons?.length) {
+                    resultDiv.innerHTML = `<div class="error">No lessons to test with</div>`;
+                    return;
+                }
+
+                // Create a user cache
+                const userCache = new Map();
+                
+                // Function to get user name
+                async function getUserName(userId) {
+                    if (userCache.has(userId)) {
+                        return userCache.get(userId);
+                    }
+
+                    // Try multiple methods
+                    let userName = 'Unknown User';
+
+                    // Method 1: Users table
+                    try {
+                        const { data: userData } = await supabase
+                            .from('users')
+                            .select('email')
+                            .eq('id', userId)
+                            .single();
+                        
+                        if (userData?.email) {
+                            userName = userData.email.split('@')[0];
+                        }
+                    } catch (error) {
+                        console.warn('Users table lookup failed:', error);
+                    }
+
+                    // Method 2: If current user, use profile
+                    if (userId === currentUser?.id) {
+                        const profile = window.authHandler.getUserProfile();
+                        userName = profile?.name || profile?.email?.split('@')[0] || userName;
+                    }
+
+                    userCache.set(userId, userName);
+                    return userName;
+                }
+
+                // Test the solution
+                const processedLessons = [];
+                for (const lesson of lessons) {
+                    const tutorName = await getUserName(lesson.tutor_id);
+                    const studentName = await getUserName(lesson.student_id);
+                    
+                    processedLessons.push({
+                        ...lesson,
+                        tutor_name: tutorName,
+                        student_name: studentName
+                    });
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>Proposed Solution Test Results:</h3>
+                        <pre>${JSON.stringify(processedLessons, null, 2)}</pre>
+                        
+                        <h3>User Cache:</h3>
+                        <pre>${JSON.stringify(Array.from(userCache.entries()), null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

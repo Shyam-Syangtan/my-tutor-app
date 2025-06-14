@@ -5,6 +5,7 @@ class StudentDashboard {
         this.availability = [];
         this.lessons = [];
         this.selectedAvailability = null;
+        this.userNameResolver = null; // Will be initialized in init()
         this.init();
     }
 
@@ -21,10 +22,17 @@ class StudentDashboard {
         }
 
         await this.loadUserInfo();
+
+        // Initialize user name resolver
+        this.userNameResolver = new window.UserNameResolver(
+            window.authHandler.supabase,
+            window.authHandler
+        );
+
         await this.loadData();
         this.setupEventListeners();
         this.renderTutors();
-        this.renderLessons();
+        await this.renderLessonsWithNames(); // Use new method with name resolution
         this.updateStats();
 
         // Periodic refresh disabled to prevent flickering
@@ -264,7 +272,8 @@ class StudentDashboard {
         }).join('');
     }
 
-    renderLessons() {
+    // New method that resolves user names properly
+    async renderLessonsWithNames() {
         const myLessons = document.getElementById('myLessons');
 
         // Filter for upcoming lessons with better date handling
@@ -282,13 +291,6 @@ class StudentDashboard {
         });
 
         console.log(`Rendering ${upcomingLessons.length} upcoming lessons out of ${this.lessons.length} total`);
-        console.log('All lessons:', this.lessons.map(l => ({
-            id: l.id?.substring(0, 8) + '...',
-            date: l.lesson_date,
-            time: l.start_time,
-            status: l.status,
-            tutor: l.tutor_name
-        })));
 
         if (upcomingLessons.length === 0) {
             myLessons.innerHTML = `
@@ -297,7 +299,82 @@ class StudentDashboard {
                     <p class="text-gray-500 text-sm">No upcoming lessons</p>
                     <p class="text-xs text-gray-400 mt-2">Approved lessons will appear here automatically</p>
                     <p class="text-xs text-gray-400 mt-1">Total lessons found: ${this.lessons.length}</p>
+                </div>
+            `;
+            return;
+        }
 
+        // Show loading state first
+        myLessons.innerHTML = `
+            <div class="text-center py-4">
+                <p class="text-gray-500">Loading lesson details...</p>
+            </div>
+        `;
+
+        try {
+            // Resolve tutor names for all lessons
+            const tutorIds = upcomingLessons.map(lesson => lesson.tutor_id);
+            const tutorNames = await this.userNameResolver.batchGetUserNames(tutorIds, 'tutor');
+
+            // Render lessons with resolved names
+            myLessons.innerHTML = upcomingLessons.map(lesson => {
+                const tutorName = tutorNames.get(lesson.tutor_id) || 'Tutor';
+                const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(tutorName)}&background=ffffff&color=3b82f6`;
+
+                return `
+                    <div class="booked-lesson rounded-lg p-4 mb-3 border-l-4 border-green-500">
+                        <div class="flex items-center space-x-3">
+                            <img src="${avatarUrl}"
+                                 alt="${tutorName}"
+                                 class="w-10 h-10 rounded-full object-cover">
+                            <div class="flex-1">
+                                <h4 class="font-medium text-sm text-gray-900">${tutorName}</h4>
+                                <p class="text-xs text-gray-600">${this.formatDate(lesson.lesson_date)} at ${this.formatTime(lesson.start_time)}</p>
+                                <p class="text-xs text-gray-500 capitalize">
+                                    ${lesson.lesson_type || 'conversation_practice'} lesson - ₹${lesson.price || 500}
+                                    <span class="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                                        ${lesson.status || 'confirmed'}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            console.log('✅ [STUDENT] Lessons rendered with resolved tutor names');
+        } catch (error) {
+            console.error('❌ [STUDENT] Error resolving tutor names:', error);
+            // Fallback to basic rendering
+            this.renderLessons();
+        }
+    }
+
+    // Keep original method as fallback
+    renderLessons() {
+        const myLessons = document.getElementById('myLessons');
+
+        // Filter for upcoming lessons with better date handling
+        const now = new Date();
+        const upcomingLessons = this.lessons.filter(lesson => {
+            if (!lesson.lesson_date || !lesson.start_time) return false;
+
+            try {
+                const lessonDateTime = new Date(lesson.lesson_date + 'T' + lesson.start_time);
+                return lessonDateTime > now && lesson.status === 'confirmed';
+            } catch (error) {
+                console.warn('Invalid lesson date/time:', lesson);
+                return false;
+            }
+        });
+
+        if (upcomingLessons.length === 0) {
+            myLessons.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-calendar-alt text-3xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-500 text-sm">No upcoming lessons</p>
+                    <p class="text-xs text-gray-400 mt-2">Approved lessons will appear here automatically</p>
+                    <p class="text-xs text-gray-400 mt-1">Total lessons found: ${this.lessons.length}</p>
                 </div>
             `;
             return;
@@ -305,7 +382,7 @@ class StudentDashboard {
 
         myLessons.innerHTML = upcomingLessons.map(lesson => {
             // Handle different data formats for tutor info
-            const tutorName = lesson.tutor_name || lesson.tutor?.name || lesson.tutor?.email || 'Unknown Tutor';
+            const tutorName = lesson.tutor_name || lesson.tutor?.name || lesson.tutor?.email || 'Tutor';
             const tutorPicture = lesson.tutor_profile_picture || lesson.tutor?.profile_picture || lesson.tutor?.photo_url;
             const avatarUrl = tutorPicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutorName)}&background=ffffff&color=3b82f6`;
 
