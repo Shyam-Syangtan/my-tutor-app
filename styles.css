@@ -3,7 +3,7 @@
     /* Indian Heritage Color Palette */
     --primary-color: #FF9933;
     --primary-hover: #E6851A;
-    --secondary-color: #B22222;
+    --secondary-color: #1e40af;
     --accent-color: #4CAF50;
     --text-primary: #333333;
     --text-secondary: #666666;
@@ -19,7 +19,7 @@
     --shadow-lg: 0 10px 15px -3px rgba(255, 153, 51, 0.2), 0 4px 6px -4px rgba(255, 153, 51, 0.1);
     --gradient-primary: linear-gradient(135deg, #FF9933 0%, #E6851A 100%);
     --gradient-secondary: linear-gradient(135deg, #FAF3E0 0%, #F5EDD6 100%);
-    --gradient-warm: linear-gradient(135deg, #FF9933 0%, #B22222 100%);
+    --gradient-warm: linear-gradient(135deg, #FF9933 0%, #4CAF50 100%);
 }
 
 /* Reset and Base Styles */

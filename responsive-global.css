@@ -43,11 +43,11 @@
     --color-primary-dark: #E6851A;
     --color-primary-darker: #CC7700;
 
-    /* Secondary Colors - Rich Maroon/Brick Red */
-    --color-secondary: #B22222;
-    --color-secondary-light: #D63333;
-    --color-secondary-dark: #8B1A1A;
-    --color-secondary-darker: #660000;
+    /* Secondary Colors - Deep Blue */
+    --color-secondary: #1e40af;
+    --color-secondary-light: #3b82f6;
+    --color-secondary-dark: #1e3a8a;
+    --color-secondary-darker: #1e3a8a;
 
     /* Accent Colors - Leaf Green */
     --color-accent: #4CAF50;
@@ -79,9 +79,9 @@
     --color-warning-light: #FFB366;
     --color-warning-dark: #E6851A;
 
-    --color-error: #B22222;
-    --color-error-light: #D63333;
-    --color-error-dark: #8B1A1A;
+    --color-error: #dc2626;
+    --color-error-light: #ef4444;
+    --color-error-dark: #b91c1c;
 
     --color-info: #2196F3;
     --color-info-light: #64B5F6;
@@ -101,7 +101,7 @@
     --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     --gradient-secondary: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
     --gradient-accent: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
-    --gradient-warm: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    --gradient-warm: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
 }
 
 /* GLOBAL RESPONSIVE UTILITIES */
@@ -265,11 +265,11 @@
     background: var(--color-secondary);
     color: var(--color-text-inverse);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(178, 34, 34, 0.3);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
 }
 
 .btn-danger {
-    background: var(--gradient-secondary);
+    background: var(--color-error);
     color: var(--color-text-inverse);
     border: 1px solid var(--color-error);
 }
@@ -277,7 +277,7 @@
 .btn-danger:hover {
     background: var(--color-error-dark);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(178, 34, 34, 0.4);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
 }
 
 .btn-success {
