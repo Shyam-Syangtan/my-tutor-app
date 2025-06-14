@@ -412,7 +412,7 @@ class StudentBookingSystem {
         }
     }
 
-    // Select a time slot for booking - simplified approach
+    // Select a time slot for booking - direct approach
     async selectTimeSlot(date, startTime, endTime) {
         console.log('🎯 [BOOKING] selectTimeSlot called with:', { date, startTime, endTime });
         console.log('🎯 [BOOKING] Current user:', this.currentUser?.id);
@@ -422,43 +422,59 @@ class StudentBookingSystem {
             return;
         }
 
-        // Try enhanced modal first, but with immediate fallback
-        console.log('🎯 [BOOKING] Checking enhanced modal availability...');
-        console.log('🎯 [BOOKING] EnhancedBookingModal class:', typeof EnhancedBookingModal);
-        console.log('🎯 [BOOKING] Enhanced modal instance:', !!this.enhancedModal);
+        // DIRECT TEST: Try to create and open enhanced modal immediately
+        console.log('🎯 [BOOKING] DIRECT TEST: Checking EnhancedBookingModal...');
+        console.log('🎯 [BOOKING] typeof EnhancedBookingModal:', typeof EnhancedBookingModal);
+        console.log('🎯 [BOOKING] window.EnhancedBookingModal:', typeof window.EnhancedBookingModal);
+        console.log('🎯 [BOOKING] Global scope check:', 'EnhancedBookingModal' in window);
 
-        if (typeof EnhancedBookingModal !== 'undefined' && this.enhancedModal && typeof this.enhancedModal.openModal === 'function') {
-            console.log('✅ [BOOKING] Enhanced modal available, trying to open...');
-            try {
-                this.enhancedModal.openModal(date);
-                console.log('✅ [BOOKING] Enhanced modal opened successfully');
-                return;
-            } catch (error) {
-                console.error('❌ [BOOKING] Enhanced modal failed to open:', error);
-            }
+        // Try multiple ways to access the class
+        let ModalClass = null;
+        if (typeof EnhancedBookingModal !== 'undefined') {
+            ModalClass = EnhancedBookingModal;
+            console.log('✅ [BOOKING] Found EnhancedBookingModal in global scope');
+        } else if (typeof window.EnhancedBookingModal !== 'undefined') {
+            ModalClass = window.EnhancedBookingModal;
+            console.log('✅ [BOOKING] Found EnhancedBookingModal in window object');
+        } else {
+            console.error('❌ [BOOKING] EnhancedBookingModal class not found anywhere');
+            console.log('❌ [BOOKING] Available globals:', Object.keys(window).filter(key =>
+                key.toLowerCase().includes('enhanced') ||
+                key.toLowerCase().includes('modal') ||
+                key.toLowerCase().includes('booking')
+            ));
         }
 
-        // If enhanced modal not available or failed, try to create a simple enhanced modal
-        if (typeof EnhancedBookingModal !== 'undefined') {
-            console.log('🔄 [BOOKING] Trying to create new enhanced modal instance...');
+        if (ModalClass) {
+            console.log('🚀 [BOOKING] Creating enhanced modal directly...');
             try {
-                const quickModal = new EnhancedBookingModal(this.supabase);
-                await quickModal.initialize(
+                const directModal = new ModalClass(this.supabase);
+                console.log('✅ [BOOKING] Enhanced modal instance created');
+
+                await directModal.initialize(
                     this.selectedTutor,
                     this.currentUser,
                     this.availabilityData || {},
                     this.lessonRequestsData || {}
                 );
-                quickModal.openModal(date);
-                console.log('✅ [BOOKING] Quick enhanced modal created and opened');
+                console.log('✅ [BOOKING] Enhanced modal initialized');
+
+                directModal.openModal(date);
+                console.log('✅ [BOOKING] Enhanced modal opened successfully');
                 return;
+
             } catch (error) {
-                console.error('❌ [BOOKING] Quick enhanced modal failed:', error);
+                console.error('❌ [BOOKING] Direct enhanced modal failed:', error);
+                console.error('❌ [BOOKING] Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
             }
         }
 
         // Final fallback to simple booking
-        console.log('🔄 [BOOKING] Using simple booking fallback');
+        console.log('🔄 [BOOKING] All enhanced modal attempts failed, using simple booking');
         this.fallbackToSimpleBooking(date, startTime, endTime);
     }
 

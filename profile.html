@@ -620,6 +620,25 @@
                 }
 
                 await loadReviews();
+
+                // Test enhanced modal availability before initializing booking system
+                console.log('🧪 [PROFILE] Testing enhanced modal availability...');
+                console.log('🧪 [PROFILE] EnhancedBookingModal class:', typeof EnhancedBookingModal);
+                console.log('🧪 [PROFILE] Window.EnhancedBookingModal:', typeof window.EnhancedBookingModal);
+
+                if (typeof EnhancedBookingModal !== 'undefined') {
+                    console.log('✅ [PROFILE] EnhancedBookingModal class is available');
+                    try {
+                        const testModal = new EnhancedBookingModal(supabase);
+                        console.log('✅ [PROFILE] EnhancedBookingModal instance created successfully');
+                    } catch (error) {
+                        console.error('❌ [PROFILE] Error creating EnhancedBookingModal instance:', error);
+                    }
+                } else {
+                    console.error('❌ [PROFILE] EnhancedBookingModal class is NOT available');
+                    console.log('❌ [PROFILE] Available global objects:', Object.keys(window).filter(key => key.includes('Enhanced') || key.includes('Modal') || key.includes('Booking')));
+                }
+
                 await initializeBookingSystem();
             } catch (error) {
                 console.error('Error loading tutor profile:', error);
@@ -1305,9 +1324,9 @@
     <script src="simple-messaging.js"></script>
 
     <!-- Enhanced Booking Modal (load first) -->
-    <script src="enhanced-booking-modal.js?v=17"></script>
+    <script src="enhanced-booking-modal.js?v=18"></script>
 
     <!-- Student Booking System (load after enhanced modal) -->
-    <script src="student-booking.js?v=11"></script>
+    <script src="student-booking.js?v=12"></script>
 </body>
 </html>
