@@ -1,5 +1,5 @@
--- Fix Unknown Student/Tutor Issue
--- This script ensures proper user data is available for lessons
+-- Fix Unknown Student/Tutor Issue - CORRECTED VERSION
+-- This script works with the actual table structure (no 'name' column)
 
 -- Step 1: Check current state
 SELECT 'Current lessons table structure:' as info;
@@ -20,7 +20,7 @@ SELECT id, email, role FROM public.users LIMIT 10;
 
 -- Step 3: Check lessons and their user references
 SELECT 'Lessons with user references:' as info;
-SELECT
+SELECT 
     l.id,
     l.tutor_id,
     l.student_id,
@@ -35,6 +35,7 @@ ORDER BY l.created_at DESC
 LIMIT 10;
 
 -- Step 4: Create a function to get lessons with proper user names
+-- This version extracts names from email addresses (before @)
 CREATE OR REPLACE FUNCTION public.get_lessons_with_users()
 RETURNS TABLE (
     lesson_id UUID,
@@ -67,9 +68,15 @@ BEGIN
         l.notes::TEXT,
         l.price,
         l.created_at,
-        COALESCE(t.email, 'unknown@tutor.com') as tutor_name,
+        COALESCE(
+            SPLIT_PART(t.email, '@', 1),
+            'Tutor'
+        ) as tutor_name,
         COALESCE(t.email, 'unknown@tutor.com') as tutor_email,
-        COALESCE(s.email, 'unknown@student.com') as student_name,
+        COALESCE(
+            SPLIT_PART(s.email, '@', 1),
+            'Student'
+        ) as student_name,
         COALESCE(s.email, 'unknown@student.com') as student_email
     FROM public.lessons l
     LEFT JOIN public.users t ON l.tutor_id = t.id AND t.role = 'tutor'
@@ -109,7 +116,10 @@ BEGIN
         l.notes::TEXT,
         l.price,
         l.created_at,
-        COALESCE(t.email, 'unknown@tutor.com') as tutor_name,
+        COALESCE(
+            SPLIT_PART(t.email, '@', 1),
+            'Tutor'
+        ) as tutor_name,
         COALESCE(t.email, 'unknown@tutor.com') as tutor_email
     FROM public.lessons l
     LEFT JOIN public.users t ON l.tutor_id = t.id AND t.role = 'tutor'
@@ -149,7 +159,10 @@ BEGIN
         l.notes::TEXT,
         l.price,
         l.created_at,
-        COALESCE(s.email, 'unknown@student.com') as student_name,
+        COALESCE(
+            SPLIT_PART(s.email, '@', 1),
+            'Student'
+        ) as student_name,
         COALESCE(s.email, 'unknown@student.com') as student_email
     FROM public.lessons l
     LEFT JOIN public.users s ON l.student_id = s.id AND s.role = 'student'

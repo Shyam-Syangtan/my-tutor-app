@@ -115,7 +115,7 @@ async function loadTutorLessons() {
                             // Try users table first
                             const { data: studentData, error: studentError } = await supabase
                                 .from('users')
-                                .select('id, email, name')
+                                .select('id, email')
                                 .eq('id', lesson.student_id)
                                 .eq('role', 'student')
                                 .single();
@@ -134,8 +134,7 @@ async function loadTutorLessons() {
                             } else {
                                 console.log('✅ [TUTOR] Successfully fetched student data:', {
                                     studentId: lesson.student_id,
-                                    studentEmail: studentData?.email,
-                                    studentName: studentData?.name
+                                    studentEmail: studentData?.email
                                 });
 
                                 lessonsWithStudents.push({
@@ -143,7 +142,7 @@ async function loadTutorLessons() {
                                     student: {
                                         id: studentData.id,
                                         email: studentData.email,
-                                        raw_user_meta_data: { name: studentData.name || studentData.email?.split('@')[0] || 'Student' }
+                                        raw_user_meta_data: { name: studentData.email?.split('@')[0] || 'Student' }
                                     }
                                 });
                             }

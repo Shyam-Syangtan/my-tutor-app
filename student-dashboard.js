@@ -303,7 +303,7 @@ class StudentDashboard {
                         // Try to get tutor names from users table (with role = 'tutor')
                         const { data: tutorUsers, error: tutorError } = await window.authHandler.supabase
                             .from('users')
-                            .select('id, email, name')
+                            .select('id, email')
                             .in('id', tutorIds)
                             .eq('role', 'tutor');
 
@@ -314,7 +314,7 @@ class StudentDashboard {
                             const tutorUser = tutorUsers?.find(u => u.id === lesson.tutor_id);
                             return {
                                 ...lesson,
-                                tutor_name: tutorUser?.name || tutorUser?.email?.split('@')[0] || 'Unknown Tutor',
+                                tutor_name: tutorUser?.email?.split('@')[0] || 'Unknown Tutor',
                                 tutor_email: tutorUser?.email || 'unknown@email.com'
                             };
                         });
