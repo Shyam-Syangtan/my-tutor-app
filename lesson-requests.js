@@ -259,11 +259,21 @@ async function updateRequestStatus(requestId, status) {
         // If approved, create a lesson record
         if (status === 'approved') {
             const request = lessonRequests.find(req => req.id === requestId);
-            await createLessonFromRequest(request);
+            try {
+                await createLessonFromRequest(request);
+                showSuccessMessage(`Lesson request ${status} successfully! Confirmed lesson has been created.`);
+            } catch (lessonError) {
+                console.error('Error creating lesson:', lessonError);
+                showErrorMessage(`Request approved, but failed to create confirmed lesson. Please check your lessons manually.`);
+                // Still show partial success since the request was approved
+                setTimeout(() => {
+                    showSuccessMessage(`Lesson request ${status} successfully! (Note: Manual lesson creation may be needed)`);
+                }, 2000);
+            }
+        } else {
+            showSuccessMessage(`Lesson request ${status} successfully!`);
         }
 
-        showSuccessMessage(`Lesson request ${status} successfully!`);
-        
         // Reload requests
         await loadLessonRequests();
 
@@ -284,27 +294,44 @@ async function createLessonFromRequest(request) {
             time: `${request.requested_start_time} - ${request.requested_end_time}`
         });
 
-        const { data: lessonData, error } = await supabase
-            .from('lessons')
-            .insert([{
-                tutor_id: request.tutor_id,
-                student_id: request.student_id,
-                lesson_date: request.requested_date,
-                start_time: request.requested_start_time,
-                end_time: request.requested_end_time,
-                status: 'confirmed',
-                lesson_type: 'conversation_practice',
-                notes: request.student_message || 'Lesson booked through calendar',
-                created_at: new Date().toISOString()
-            }])
-            .select()
-            .single();
+        // First try the manual function approach
+        const { data: functionResult, error: functionError } = await supabase
+            .rpc('manual_create_lesson', {
+                p_tutor_id: request.tutor_id,
+                p_student_id: request.student_id,
+                p_lesson_date: request.requested_date,
+                p_start_time: request.requested_start_time,
+                p_end_time: request.requested_end_time,
+                p_notes: request.student_message || 'Lesson booked through calendar'
+            });
 
-        if (error) {
-            throw error;
+        if (functionError) {
+            console.warn('Manual function failed, trying direct insert:', functionError);
+
+            // Fallback to direct insert
+            const { data: lessonData, error: insertError } = await supabase
+                .from('lessons')
+                .insert([{
+                    tutor_id: request.tutor_id,
+                    student_id: request.student_id,
+                    lesson_date: request.requested_date,
+                    start_time: request.requested_start_time,
+                    end_time: request.requested_end_time,
+                    status: 'confirmed',
+                    lesson_type: 'conversation_practice',
+                    notes: request.student_message || 'Lesson booked through calendar'
+                }])
+                .select()
+                .single();
+
+            if (insertError) {
+                throw insertError;
+            }
+
+            console.log('✅ [APPROVAL] Confirmed lesson created via direct insert:', lessonData);
+        } else {
+            console.log('✅ [APPROVAL] Confirmed lesson created via function:', functionResult);
         }
-
-        console.log('✅ [APPROVAL] Confirmed lesson created successfully:', lessonData);
 
         // Show additional success message about lesson creation
         setTimeout(() => {
