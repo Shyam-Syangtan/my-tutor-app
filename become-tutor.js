@@ -172,16 +172,24 @@ async function handleFormSubmission(e) {
         
         // Get form data
         const formData = new FormData(e.target);
+
+        // Process specialties - convert to array if it's a string
+        const specialtiesText = formData.get('specialties') || '';
+        const specialtiesArray = specialtiesText ?
+            specialtiesText.split(',').map(s => s.trim()).filter(s => s.length > 0) :
+            [];
+
         const tutorData = {
             user_id: currentUser.id,
             email: currentUser.email,
             name: formData.get('fullName'),
             bio: formData.get('bio'),
             language: selectedLanguages.join(', '),
+            languages: selectedLanguages, // Store as array
             experience: formData.get('experience'),
             rate: parseInt(formData.get('hourlyRate')),
             video_url: formData.get('videoUrl'),
-            specialties: formData.get('specialties') || null,
+            specialties: specialtiesArray, // Store as array
             availability: formData.get('availability') || null,
             approved: false, // Default to false, admin will approve
             rating: 0, // Default rating
