@@ -337,7 +337,7 @@ function showMessageDeliveryConfirmation() {
     }, 2000);
 }
 
-// Send a message
+// Send a message with enhanced features
 async function sendMessage() {
     const messageInput = document.getElementById('messageText');
     const content = messageInput.value.trim();
@@ -366,6 +366,9 @@ async function sendMessage() {
         alert('Please select a conversation first');
         return;
     }
+
+    // Show typing indicator
+    showTypingIndicator(true);
 
     try {
         console.log('📤 Sending message to chat:', currentChatId);
