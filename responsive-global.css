@@ -43,11 +43,11 @@
     --color-primary-dark: #E6851A;
     --color-primary-darker: #CC7700;
 
-    /* Secondary Colors - Deep Blue */
-    --color-secondary: #1e40af;
-    --color-secondary-light: #3b82f6;
-    --color-secondary-dark: #1e3a8a;
-    --color-secondary-darker: #1e3a8a;
+    /* Secondary Colors - Cream/Off-white */
+    --color-secondary: #FAF3E0;
+    --color-secondary-light: #FEFBF3;
+    --color-secondary-dark: #F5EDD6;
+    --color-secondary-darker: #F0E8D8;
 
     /* Accent Colors - Leaf Green */
     --color-accent: #4CAF50;
@@ -55,10 +55,10 @@
     --color-accent-dark: #388E3C;
     --color-accent-darker: #2E7D32;
 
-    /* Background Colors - Subtle Light Scheme */
-    --color-background: #f8fafc;
-    --color-background-light: #ffffff;
-    --color-background-dark: #f1f5f9;
+    /* Background Colors - Cream/Off-white */
+    --color-background: #FAF3E0;
+    --color-background-light: #FEFBF3;
+    --color-background-dark: #F5EDD6;
     --color-surface: #FFFFFF;
     --color-surface-light: #FEFEFE;
     --color-surface-dark: #F8F8F8;
@@ -87,10 +87,10 @@
     --color-info-light: #64B5F6;
     --color-info-dark: #1976D2;
 
-    /* Border Colors - Subtle */
-    --color-border: #e2e8f0;
-    --color-border-light: #f1f5f9;
-    --color-border-dark: #cbd5e1;
+    /* Border Colors - Cream Tones */
+    --color-border: #E0D4C1;
+    --color-border-light: #F0E8D8;
+    --color-border-dark: #D0C4B1;
 
     /* Shadow Colors */
     --shadow-light: rgba(255, 153, 51, 0.1);
@@ -257,15 +257,15 @@
 
 .btn-secondary {
     background: var(--color-surface);
-    color: var(--color-secondary);
-    border: 1px solid var(--color-secondary);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-dark);
 }
 
 .btn-secondary:hover {
     background: var(--color-secondary);
-    color: var(--color-text-inverse);
+    color: var(--color-text-primary);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+    box-shadow: 0 4px 12px rgba(208, 196, 177, 0.4);
 }
 
 .btn-danger {
