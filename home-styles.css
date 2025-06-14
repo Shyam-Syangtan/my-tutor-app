@@ -137,7 +137,7 @@
 .main-content {
     padding-top: 5rem;
     min-height: 100vh;
-    background: var(--secondary-color);
+    background: var(--background);
 }
 
 .dashboard-container {
@@ -484,7 +484,7 @@
 .sidebar-header {
     padding: 1.5rem;
     border-bottom: 1px solid var(--border-color);
-    background: var(--secondary-color);
+    background: var(--background-light);
 }
 
 .sidebar-profile {
@@ -550,7 +550,7 @@
 }
 
 .sidebar-link:hover {
-    background: var(--secondary-color);
+    background: var(--background);
     color: var(--text-primary);
 }
 
@@ -621,7 +621,7 @@
 }
 
 .mobile-menu-btn:hover {
-    background: var(--secondary-color);
+    background: var(--background);
 }
 
 .mobile-profile-avatar {
