@@ -8,19 +8,19 @@
 
 ---
 
-## 🛠️ **3-STEP FIX PROCESS:**
+## 🛠️ **3-STEP FIX PROCESS (UPDATED - FOREIGN KEY FIXED):**
 
 ### **Step 1: Fix Database Structure Issues**
 1. Go to **Supabase Dashboard** → **SQL Editor**
-2. Copy and paste **`fix-database-issues.sql`**
+2. Copy and paste **`fix-database-issues-v2.sql`** (the fixed version)
 3. Click **Run**
-4. Wait for: **"DATABASE ISSUES FIXED SUCCESSFULLY!"**
+4. Wait for: **"DATABASE ISSUES FIXED SUCCESSFULLY V2!"**
 
 ### **Step 2: Add Sample Data**
 1. In **Supabase SQL Editor**
-2. Copy and paste **`add-sample-data.sql`**
+2. Copy and paste **`add-sample-data-v2.sql`** (the fixed version)
 3. Click **Run**
-4. Wait for: **"SAMPLE DATA ADDED SUCCESSFULLY!"**
+4. Wait for: **"SAMPLE DATA ADDED SUCCESSFULLY V2!"**
 
 ### **Step 3: Test Functionality**
 1. Open your tutor marketplace application
@@ -32,16 +32,16 @@
 
 ## 🔍 **What Each Fix Does:**
 
-### **`fix-database-issues.sql` Fixes:**
+### **`fix-database-issues-v2.sql` Fixes:**
 - ✅ **Adds missing columns** (`approved`, `native_language`, `languages_spoken`, etc.)
 - ✅ **Updates RLS policies** to be less restrictive for legitimate access
-- ✅ **Fixes authentication issues** by ensuring user profiles exist
+- ✅ **Fixes foreign key constraint issues** by making user_id nullable
 - ✅ **Adds proper indexes** for performance
-- ✅ **Creates auto-profile creation** for new users
+- ✅ **Relaxes authentication requirements** for testing
 
-### **`add-sample-data.sql` Adds:**
+### **`add-sample-data-v2.sql` Adds:**
 - ✅ **8 realistic tutor profiles** with different languages
-- ✅ **Proper user accounts** for each tutor
+- ✅ **Sample data without foreign key violations**
 - ✅ **Sample reviews** and ratings
 - ✅ **Availability schedules** for booking tests
 - ✅ **Diverse language offerings** (Spanish, French, German, Japanese, etc.)
