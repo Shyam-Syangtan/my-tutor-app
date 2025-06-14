@@ -716,7 +716,7 @@
                                     <div class="flex items-center space-x-2 mb-1">
                                         <h3 class="text-lg font-semibold text-gray-900 truncate">${tutor.name}</h3>
                                         <span class="text-lg">${countryFlag}</span>
-                                        ${isProfessional ? '<span class="text-xs px-2 py-1 rounded-full text-white" style="background-color: #00C2B3;">Professional</span>' : ''}
+                                        ${isProfessional ? '<span class="text-xs px-2 py-1 rounded-full text-white font-medium" style="background-color: #007B83;">Professional</span>' : ''}
                                     </div>
                                     <p class="text-sm text-gray-600">${tutor.bio_headline || `${tutor.native_language || tutor.language} Teacher`}</p>
                                 </div>
@@ -728,11 +728,13 @@
 
                             <!-- Language Badges -->
                             <div class="flex flex-wrap gap-1 mb-3">
-                                <span class="text-xs px-2 py-1 rounded-full font-medium text-white" style="background-color: #00C2B3;">${tutor.native_language || tutor.language}</span>
-                                ${languages.slice(0, 2).map(lang =>
-                                    `<span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">${lang.language}</span>`
-                                ).join('')}
-                                ${languages.length > 2 ? `<span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">+${languages.length - 2}</span>` : ''}
+                                <span class="text-xs px-2 py-1 rounded-full font-medium text-white" style="background-color: #38B000;">${tutor.native_language || tutor.language}</span>
+                                ${languages.slice(0, 2).map((lang, index) => {
+                                    const colors = ['#FF6B35', '#007B83', '#FFC107'];
+                                    const bgColor = colors[index % colors.length];
+                                    return `<span class="text-xs px-2 py-1 rounded-full text-white font-medium" style="background-color: ${bgColor};">${lang.language}</span>`;
+                                }).join('')}
+                                ${languages.length > 2 ? `<span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full font-medium">+${languages.length - 2}</span>` : ''}
                             </div>
 
                             <!-- Stats -->
@@ -758,10 +760,12 @@
                             <!-- Tags -->
                             ${tags.length > 0 ? `
                                 <div class="flex flex-wrap gap-1 mb-4">
-                                    ${tags.slice(0, 3).map(tag =>
-                                        `<span class="text-xs px-2 py-1 rounded-full text-white" style="background-color: #00A59C;">${tag}</span>`
-                                    ).join('')}
-                                    ${tags.length > 3 ? `<span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">+${tags.length - 3}</span>` : ''}
+                                    ${tags.slice(0, 3).map((tag, index) => {
+                                        const tagColors = ['#FF6B35', '#007B83', '#FFC107'];
+                                        const bgColor = tagColors[index % tagColors.length];
+                                        return `<span class="text-xs px-2 py-1 rounded-full text-white font-medium" style="background-color: ${bgColor};">${tag}</span>`;
+                                    }).join('')}
+                                    ${tags.length > 3 ? `<span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full font-medium">+${tags.length - 3}</span>` : ''}
                                 </div>
                             ` : ''}
 
@@ -776,13 +780,16 @@
                                 </button>
                                 <button onclick="event.stopPropagation(); window.open('profile.html?id=${tutor.id}', '_blank')"
                                         class="flex-1 text-white px-3 py-2 rounded-lg transition-colors text-sm font-medium"
-                                        style="background-color: #00C2B3;"
-                                        onmouseover="this.style.backgroundColor='#00A89B'"
-                                        onmouseout="this.style.backgroundColor='#00C2B3'">
+                                        style="background-color: #38B000;"
+                                        onmouseover="this.style.backgroundColor='#2E8B00'"
+                                        onmouseout="this.style.backgroundColor='#38B000'">
                                     Book Lesson
                                 </button>
                                 <button onclick="event.stopPropagation(); window.open('profile.html?id=${tutor.id}', '_blank')"
-                                        class="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
+                                        class="px-3 py-2 border-2 text-sm font-medium rounded-lg transition-colors"
+                                        style="border-color: #007B83; color: #007B83;"
+                                        onmouseover="this.style.backgroundColor='#007B83'; this.style.color='white'"
+                                        onmouseout="this.style.backgroundColor='transparent'; this.style.color='#007B83'">
                                     Profile
                                 </button>
                             </div>
