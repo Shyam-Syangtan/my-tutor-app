@@ -276,7 +276,15 @@ async function updateRequestStatus(requestId, status) {
 // Create lesson record from approved request
 async function createLessonFromRequest(request) {
     try {
-        const { error } = await supabase
+        console.log('📅 [APPROVAL] Creating confirmed lesson from approved request:', {
+            requestId: request.id,
+            tutorId: request.tutor_id,
+            studentId: request.student_id,
+            date: request.requested_date,
+            time: `${request.requested_start_time} - ${request.requested_end_time}`
+        });
+
+        const { data: lessonData, error } = await supabase
             .from('lessons')
             .insert([{
                 tutor_id: request.tutor_id,
@@ -286,18 +294,34 @@ async function createLessonFromRequest(request) {
                 end_time: request.requested_end_time,
                 status: 'confirmed',
                 lesson_type: 'conversation_practice',
-                notes: request.student_message || 'Lesson booked through calendar'
-            }]);
+                notes: request.student_message || 'Lesson booked through calendar',
+                created_at: new Date().toISOString()
+            }])
+            .select()
+            .single();
 
         if (error) {
             throw error;
         }
 
-        console.log('Lesson created successfully');
+        console.log('✅ [APPROVAL] Confirmed lesson created successfully:', lessonData);
+
+        // Show additional success message about lesson creation
+        setTimeout(() => {
+            showSuccessMessage('Confirmed lesson has been added to both your and the student\'s upcoming lessons!');
+        }, 1500);
+
+        return lessonData;
 
     } catch (error) {
-        console.error('Error creating lesson:', error);
-        // Don't show error to user as the main action (approval) succeeded
+        console.error('❌ [APPROVAL] Error creating confirmed lesson:', error);
+
+        // Show error to user since this is important
+        setTimeout(() => {
+            showErrorMessage('Request approved, but failed to create confirmed lesson. Please check your lessons manually.');
+        }, 1000);
+
+        throw error;
     }
 }
 

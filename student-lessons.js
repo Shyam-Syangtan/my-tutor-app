@@ -52,43 +52,81 @@ async function loadStudentLessons() {
     try {
         console.log('Loading lessons for student:', currentUser.id);
         
-        // Load confirmed lessons
+        // Load confirmed lessons (with separate tutor data loading)
+        console.log('📚 [STUDENT] Loading confirmed lessons...');
         const { data: lessonsData, error: lessonsError } = await supabase
             .from('lessons')
-            .select(`
-                *,
-                tutor:users!tutor_id (
-                    email
-                )
-            `)
+            .select('*')
             .eq('student_id', currentUser.id)
             .order('lesson_date', { ascending: true })
             .order('start_time', { ascending: true });
 
         if (lessonsError) {
-            console.error('Error loading lessons:', lessonsError);
+            console.error('❌ [STUDENT] Error loading lessons:', lessonsError);
+            lessons = [];
         } else {
-            lessons = lessonsData || [];
-            console.log('Loaded lessons:', lessons.length);
+            console.log('✅ [STUDENT] Loaded lessons:', lessonsData?.length || 0);
+
+            // Load tutor information separately for each lesson
+            lessons = [];
+            for (const lesson of (lessonsData || [])) {
+                try {
+                    const { data: tutorData, error: tutorError } = await supabase
+                        .from('users')
+                        .select('email')
+                        .eq('id', lesson.tutor_id)
+                        .single();
+
+                    lessons.push({
+                        ...lesson,
+                        tutor: tutorData || { email: 'Unknown Tutor' }
+                    });
+                } catch (tutorError) {
+                    console.warn('Could not load tutor data for lesson:', lesson.id);
+                    lessons.push({
+                        ...lesson,
+                        tutor: { email: 'Unknown Tutor' }
+                    });
+                }
+            }
         }
 
-        // Load lesson requests (pending approval)
+        // Load lesson requests (pending approval) - with separate tutor data loading
+        console.log('📋 [STUDENT] Loading lesson requests...');
         const { data: requestsData, error: requestsError } = await supabase
             .from('lesson_requests')
-            .select(`
-                *,
-                tutor:users!tutor_id (
-                    email
-                )
-            `)
+            .select('*')
             .eq('student_id', currentUser.id)
             .order('created_at', { ascending: false });
 
         if (requestsError) {
-            console.error('Error loading lesson requests:', requestsError);
+            console.error('❌ [STUDENT] Error loading lesson requests:', requestsError);
+            lessonRequests = [];
         } else {
-            lessonRequests = requestsData || [];
-            console.log('Loaded lesson requests:', lessonRequests.length);
+            console.log('✅ [STUDENT] Loaded lesson requests:', requestsData?.length || 0);
+
+            // Load tutor information separately for each request
+            lessonRequests = [];
+            for (const request of (requestsData || [])) {
+                try {
+                    const { data: tutorData, error: tutorError } = await supabase
+                        .from('users')
+                        .select('email')
+                        .eq('id', request.tutor_id)
+                        .single();
+
+                    lessonRequests.push({
+                        ...request,
+                        tutor: tutorData || { email: 'Unknown Tutor' }
+                    });
+                } catch (tutorError) {
+                    console.warn('Could not load tutor data for request:', request.id);
+                    lessonRequests.push({
+                        ...request,
+                        tutor: { email: 'Unknown Tutor' }
+                    });
+                }
+            }
         }
         
         // Update stats and render
