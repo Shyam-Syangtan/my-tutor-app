@@ -269,6 +269,9 @@ function loadDashboardData() {
 
     // Load unread message count
     loadUnreadMessageCount();
+
+    // Setup real-time unread count updates
+    setupUnreadCountSubscription();
 }
 
 function updateUserProfile() {
@@ -493,7 +496,7 @@ async function loadUnreadMessageCount() {
         if (!currentUser || !supabase) return;
 
         const { data, error } = await supabase
-            .rpc('get_user_unread_count', { p_user_id: currentUser.id });
+            .rpc('messaging_get_unread_count', { user_uuid: currentUser.id });
 
         if (error) {
             console.warn('Could not load unread message count:', error.message);
@@ -501,28 +504,68 @@ async function loadUnreadMessageCount() {
         }
 
         const unreadCount = data || 0;
-        const badge = document.getElementById('tutorUnreadBadge');
-        const dropdownBadge = document.getElementById('tutorUnreadBadgeDropdown');
-
-        if (badge) {
-            if (unreadCount > 0) {
-                badge.textContent = unreadCount;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-
-        if (dropdownBadge) {
-            if (unreadCount > 0) {
-                dropdownBadge.textContent = unreadCount;
-                dropdownBadge.classList.remove('hidden');
-            } else {
-                dropdownBadge.classList.add('hidden');
-            }
-        }
+        updateUnreadBadges(unreadCount);
     } catch (error) {
         console.warn('Error loading unread message count:', error);
+    }
+}
+
+function updateUnreadBadges(unreadCount) {
+    const badge = document.getElementById('tutorUnreadBadge');
+    const dropdownBadge = document.getElementById('tutorUnreadBadgeDropdown');
+
+    if (badge) {
+        if (unreadCount > 0) {
+            badge.textContent = unreadCount;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+
+    if (dropdownBadge) {
+        if (unreadCount > 0) {
+            dropdownBadge.textContent = unreadCount;
+            dropdownBadge.classList.remove('hidden');
+        } else {
+            dropdownBadge.classList.add('hidden');
+        }
+    }
+}
+
+function setupUnreadCountSubscription() {
+    try {
+        if (!currentUser || !supabase) return;
+
+        // Subscribe to unread_messages changes for this user
+        const subscription = supabase
+            .channel(`unread_messages_${currentUser.id}`)
+            .on('postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'unread_messages',
+                    filter: `user_id=eq.${currentUser.id}`
+                },
+                (payload) => {
+                    console.log('📨 [TUTOR] Unread count changed:', payload);
+                    // Reload unread count when changes occur
+                    loadUnreadMessageCount();
+                }
+            )
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    console.log('✅ [TUTOR] Unread count subscription active');
+                } else if (status === 'CHANNEL_ERROR') {
+                    console.log('⚠️ [TUTOR] Unread count subscription failed');
+                }
+            });
+
+        // Add to active subscriptions for cleanup
+        activeSubscriptions.push(subscription);
+        console.log('✅ [TUTOR] Real-time unread count subscription setup');
+    } catch (error) {
+        console.warn('Error setting up unread count subscription:', error);
     }
 }
 

@@ -32,6 +32,9 @@ class StudentDashboard {
 
         // Load unread message count
         this.loadUnreadMessageCount();
+
+        // Setup real-time unread count updates
+        this.setupUnreadCountSubscription();
     }
 
     async loadUserInfo() {
@@ -516,7 +519,7 @@ class StudentDashboard {
             if (!currentUser) return;
 
             const { data, error } = await window.authHandler.supabase
-                .rpc('get_user_unread_count', { p_user_id: currentUser.id });
+                .rpc('messaging_get_unread_count', { user_uuid: currentUser.id });
 
             if (error) {
                 console.warn('Could not load unread message count:', error.message);
@@ -524,18 +527,57 @@ class StudentDashboard {
             }
 
             const unreadCount = data || 0;
-            const badge = document.getElementById('studentUnreadBadge');
-
-            if (badge) {
-                if (unreadCount > 0) {
-                    badge.textContent = unreadCount;
-                    badge.classList.remove('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                }
-            }
+            this.updateUnreadBadge(unreadCount);
         } catch (error) {
             console.warn('Error loading unread message count:', error);
+        }
+    }
+
+    updateUnreadBadge(unreadCount) {
+        const badge = document.getElementById('studentUnreadBadge');
+
+        if (badge) {
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+    }
+
+    setupUnreadCountSubscription() {
+        try {
+            const currentUser = window.authHandler.getCurrentUser();
+            if (!currentUser || !window.authHandler.supabase) return;
+
+            // Subscribe to unread_messages changes for this user
+            const subscription = window.authHandler.supabase
+                .channel(`unread_messages_${currentUser.id}`)
+                .on('postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'unread_messages',
+                        filter: `user_id=eq.${currentUser.id}`
+                    },
+                    (payload) => {
+                        console.log('📨 [STUDENT] Unread count changed:', payload);
+                        // Reload unread count when changes occur
+                        this.loadUnreadMessageCount();
+                    }
+                )
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') {
+                        console.log('✅ [STUDENT] Unread count subscription active');
+                    } else if (status === 'CHANNEL_ERROR') {
+                        console.log('⚠️ [STUDENT] Unread count subscription failed');
+                    }
+                });
+
+            console.log('✅ [STUDENT] Real-time unread count subscription setup');
+        } catch (error) {
+            console.warn('Error setting up unread count subscription:', error);
         }
     }
 
