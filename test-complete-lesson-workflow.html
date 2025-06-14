@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Complete Lesson Workflow</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+        .warning { color: orange; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+        .step { margin: 10px 0; padding: 10px; border-left: 3px solid #007cba; background: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Test Complete Lesson Workflow</h1>
+    <p>This tool tests the complete flow: Request → Approval → Lesson Creation → Student Dashboard Display</p>
+    
+    <div class="section">
+        <h2>Step 1: Apply Database Fixes</h2>
+        <button onclick="applyDatabaseFixes()">Apply Database Fixes</button>
+        <div id="fixesResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 2: Fix Existing Approved Requests</h2>
+        <button onclick="fixExistingRequests()">Fix Missing Lessons for Approved Requests</button>
+        <div id="existingResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 3: Test New Approval Workflow</h2>
+        <button onclick="testNewApproval()">Test New Request → Approval → Lesson Creation</button>
+        <div id="approvalResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 4: Test Student Dashboard Functions</h2>
+        <button onclick="testStudentDashboard()">Test Student Dashboard Lesson Loading</button>
+        <div id="dashboardResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 5: Complete End-to-End Test</h2>
+        <button onclick="testCompleteWorkflow()">Run Complete Workflow Test</button>
+        <div id="completeResult"></div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://qbyyutebrgpxngvwenkd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFieXl1dGVicmdweG5ndndlbmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MTA1NTMsImV4cCI6MjA2NTI4NjU1M30.eO8Wd0ZOqtXgvQ3BuedmSPmYVpbG3V-AXvgufLns6yY';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function applyDatabaseFixes() {
+            const result = document.getElementById('fixesResult');
+            result.innerHTML = '<div class="info">Applying database fixes...</div>';
+
+            try {
+                // Apply the complete database fix
+                const { data, error } = await supabase.rpc('exec_sql', {
+                    query: `
+                        -- Create improved trigger function for automatic lesson creation
+                        CREATE OR REPLACE FUNCTION public.create_lesson_from_request()
+                        RETURNS TRIGGER AS $$
+                        DECLARE
+                            lesson_exists BOOLEAN;
+                            lesson_id UUID;
+                        BEGIN
+                            -- Only create lesson if status changed to 'approved'
+                            IF NEW.status = 'approved' AND (OLD.status IS NULL OR OLD.status != 'approved') THEN
+                                -- Check if lesson already exists
+                                SELECT EXISTS (
+                                    SELECT 1 FROM public.lessons 
+                                    WHERE tutor_id = NEW.tutor_id 
+                                    AND student_id = NEW.student_id 
+                                    AND lesson_date = NEW.requested_date 
+                                    AND start_time = NEW.requested_start_time
+                                ) INTO lesson_exists;
+                                
+                                IF NOT lesson_exists THEN
+                                    BEGIN
+                                        INSERT INTO public.lessons (
+                                            tutor_id, student_id, lesson_date, start_time, end_time,
+                                            status, lesson_type, notes, price, created_at
+                                        ) VALUES (
+                                            NEW.tutor_id, NEW.student_id, NEW.requested_date,
+                                            NEW.requested_start_time, NEW.requested_end_time,
+                                            'confirmed', 'conversation_practice',
+                                            COALESCE(NEW.student_message, 'Lesson created from approved request'),
+                                            500.00, NOW()
+                                        ) RETURNING id INTO lesson_id;
+                                        
+                                        RAISE NOTICE 'Lesson created from approved request: % -> lesson: %', NEW.id, lesson_id;
+                                    EXCEPTION WHEN OTHERS THEN
+                                        RAISE WARNING 'Failed to create lesson from request %: %', NEW.id, SQLERRM;
+                                    END;
+                                ELSE
+                                    RAISE NOTICE 'Lesson already exists for request: %', NEW.id;
+                                END IF;
+                            END IF;
+                            
+                            RETURN NEW;
+                        END;
+                        $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+                        -- Create/Update the trigger
+                        DROP TRIGGER IF EXISTS on_lesson_request_approved ON public.lesson_requests;
+                        CREATE TRIGGER on_lesson_request_approved
+                            AFTER UPDATE ON public.lesson_requests
+                            FOR EACH ROW EXECUTE FUNCTION public.create_lesson_from_request();
+
+                        -- Create manual lesson creation function
+                        CREATE OR REPLACE FUNCTION public.manual_create_lesson(
+                            p_tutor_id UUID,
+                            p_student_id UUID,
+                            p_lesson_date DATE,
+                            p_start_time TIME,
+                            p_end_time TIME,
+                            p_notes TEXT DEFAULT NULL
+                        )
+                        RETURNS UUID AS $$
+                        DECLARE
+                            lesson_id UUID;
+                            lesson_exists BOOLEAN;
+                        BEGIN
+                            -- Check if lesson already exists
+                            SELECT EXISTS (
+                                SELECT 1 FROM public.lessons 
+                                WHERE tutor_id = p_tutor_id 
+                                AND student_id = p_student_id 
+                                AND lesson_date = p_lesson_date 
+                                AND start_time = p_start_time
+                            ) INTO lesson_exists;
+                            
+                            IF lesson_exists THEN
+                                -- Return the existing lesson ID
+                                SELECT id INTO lesson_id FROM public.lessons 
+                                WHERE tutor_id = p_tutor_id 
+                                AND student_id = p_student_id 
+                                AND lesson_date = p_lesson_date 
+                                AND start_time = p_start_time
+                                LIMIT 1;
+                                
+                                RETURN lesson_id;
+                            END IF;
+                            
+                            INSERT INTO public.lessons (
+                                tutor_id, student_id, lesson_date, start_time, end_time,
+                                status, lesson_type, notes, price, created_at
+                            ) VALUES (
+                                p_tutor_id, p_student_id, p_lesson_date, p_start_time, p_end_time,
+                                'confirmed', 'conversation_practice',
+                                COALESCE(p_notes, 'Lesson booked through calendar'),
+                                500.00, NOW()
+                            ) RETURNING id INTO lesson_id;
+                            
+                            RETURN lesson_id;
+                        END;
+                        $$ LANGUAGE plpgsql SECURITY DEFINER;
+                    `
+                });
+
+                if (error) throw error;
+
+                result.innerHTML = `
+                    <div class="success">✅ Database fixes applied successfully!</div>
+                    <div class="info">
+                        - Trigger function created/updated<br>
+                        - Manual lesson creation function created/updated<br>
+                        - Trigger attached to lesson_requests table
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error applying fixes: ${error.message}</div>`;
+            }
+        }
+
+        async function fixExistingRequests() {
+            const result = document.getElementById('existingResult');
+            result.innerHTML = '<div class="info">Checking and fixing existing approved requests...</div>';
+
+            try {
+                // Get approved requests without lessons
+                const { data: approvedRequests, error: requestError } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .eq('status', 'approved');
+
+                if (requestError) throw requestError;
+
+                let fixResults = [];
+                for (const request of approvedRequests) {
+                    // Check if lesson exists
+                    const { data: existingLessons, error: lessonError } = await supabase
+                        .from('lessons')
+                        .select('id')
+                        .eq('tutor_id', request.tutor_id)
+                        .eq('student_id', request.student_id)
+                        .eq('lesson_date', request.requested_date)
+                        .eq('start_time', request.requested_start_time);
+
+                    if (lessonError) throw lessonError;
+
+                    if (existingLessons.length === 0) {
+                        // Create missing lesson
+                        try {
+                            const { data: lessonId, error: createError } = await supabase
+                                .rpc('manual_create_lesson', {
+                                    p_tutor_id: request.tutor_id,
+                                    p_student_id: request.student_id,
+                                    p_lesson_date: request.requested_date,
+                                    p_start_time: request.requested_start_time,
+                                    p_end_time: request.requested_end_time,
+                                    p_notes: request.student_message || 'Lesson created from approved request'
+                                });
+
+                            if (createError) throw createError;
+
+                            fixResults.push({
+                                request_id: request.id.substring(0, 8) + '...',
+                                status: 'created',
+                                lesson_id: lessonId
+                            });
+                        } catch (createError) {
+                            fixResults.push({
+                                request_id: request.id.substring(0, 8) + '...',
+                                status: 'failed',
+                                error: createError.message
+                            });
+                        }
+                    } else {
+                        fixResults.push({
+                            request_id: request.id.substring(0, 8) + '...',
+                            status: 'exists',
+                            lesson_id: existingLessons[0].id
+                        });
+                    }
+                }
+
+                const created = fixResults.filter(r => r.status === 'created').length;
+                const existing = fixResults.filter(r => r.status === 'exists').length;
+                const failed = fixResults.filter(r => r.status === 'failed').length;
+
+                result.innerHTML = `
+                    <div class="success">✅ Existing requests processed!</div>
+                    <div class="info">
+                        Total approved requests: ${approvedRequests.length}<br>
+                        Lessons created: ${created}<br>
+                        Already existed: ${existing}<br>
+                        Failed: ${failed}
+                    </div>
+                    <h4>Details:</h4>
+                    <pre>${JSON.stringify(fixResults, null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testStudentDashboard() {
+            const result = document.getElementById('dashboardResult');
+            result.innerHTML = '<div class="info">Testing student dashboard functions...</div>';
+
+            try {
+                // Get a student ID from lessons
+                const { data: lessons, error: lessonError } = await supabase
+                    .from('lessons')
+                    .select('student_id')
+                    .limit(1);
+
+                if (lessonError) throw lessonError;
+                if (!lessons.length) {
+                    result.innerHTML = '<div class="warning">No lessons found to test with</div>';
+                    return;
+                }
+
+                const studentId = lessons[0].student_id;
+
+                // Test optimized function
+                const { data: optimizedData, error: optimizedError } = await supabase
+                    .rpc('get_student_lessons_optimized', { student_user_id: studentId });
+
+                // Test direct query
+                const { data: directData, error: directError } = await supabase
+                    .from('lessons')
+                    .select('*')
+                    .eq('student_id', studentId);
+
+                result.innerHTML = `
+                    <div class="success">✅ Student dashboard functions tested!</div>
+                    <div class="info">
+                        Student ID: ${studentId}<br>
+                        Optimized function: ${optimizedError ? 'Failed' : 'Success'} (${optimizedData?.length || 0} lessons)<br>
+                        Direct query: ${directError ? 'Failed' : 'Success'} (${directData?.length || 0} lessons)
+                    </div>
+                    ${optimizedError ? `<div class="error">Optimized function error: ${optimizedError.message}</div>` : ''}
+                    ${directError ? `<div class="error">Direct query error: ${directError.message}</div>` : ''}
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testCompleteWorkflow() {
+            const result = document.getElementById('completeResult');
+            result.innerHTML = '<div class="info">Running complete workflow test...</div>';
+
+            try {
+                // Step 1: Check approved requests and their lessons
+                const { data: approvedRequests, error: requestError } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .eq('status', 'approved')
+                    .limit(3);
+
+                if (requestError) throw requestError;
+
+                let workflowResults = [];
+                for (const request of approvedRequests) {
+                    // Check if lesson exists
+                    const { data: lessons, error: lessonError } = await supabase
+                        .from('lessons')
+                        .select('*')
+                        .eq('tutor_id', request.tutor_id)
+                        .eq('student_id', request.student_id)
+                        .eq('lesson_date', request.requested_date);
+
+                    if (lessonError) throw lessonError;
+
+                    // Test student dashboard function
+                    const { data: studentLessons, error: studentError } = await supabase
+                        .rpc('get_student_lessons_optimized', { student_user_id: request.student_id });
+
+                    workflowResults.push({
+                        request_id: request.id.substring(0, 8) + '...',
+                        request_date: request.requested_date,
+                        lesson_exists: lessons.length > 0,
+                        student_function_works: !studentError,
+                        student_lessons_count: studentError ? 0 : studentLessons.length
+                    });
+                }
+
+                const successCount = workflowResults.filter(r => r.lesson_exists && r.student_function_works).length;
+
+                result.innerHTML = `
+                    <div class="${successCount === workflowResults.length ? 'success' : 'warning'}">
+                        ✅ Complete workflow test results:
+                    </div>
+                    <div class="info">
+                        Total requests tested: ${workflowResults.length}<br>
+                        Fully working: ${successCount}<br>
+                        Success rate: ${Math.round((successCount / workflowResults.length) * 100)}%
+                    </div>
+                    <h4>Detailed Results:</h4>
+                    <pre>${JSON.stringify(workflowResults, null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testNewApproval() {
+            const result = document.getElementById('approvalResult');
+            result.innerHTML = '<div class="info">This test requires manual approval through the tutor dashboard.</div>';
+        }
+    </script>
+</body>
+</html>

@@ -276,32 +276,36 @@ async function updateRequestStatus(requestId, status) {
 
         console.log('Request updated successfully:', updatedRequest);
 
-        // If approved, wait a moment for the database trigger to create the lesson
+        // If approved, ensure lesson is created
         if (status === 'approved') {
-            console.log('Request approved, waiting for automatic lesson creation...');
-            showSuccessMessage(`Lesson request approved successfully! The lesson will appear in both dashboards shortly.`);
+            console.log('Request approved, ensuring lesson creation...');
+            showSuccessMessage(`Lesson request approved successfully! Creating lesson...`);
 
-            // Wait 3 seconds for the database trigger to work
-            setTimeout(async () => {
-                try {
-                    // Check if lesson was created by the trigger
-                    const lessonCreated = await checkLessonExists(currentRequest);
+            // Immediately try to create the lesson
+            try {
+                // First check if lesson already exists
+                const lessonExists = await checkLessonExists(currentRequest);
 
-                    if (lessonCreated) {
-                        console.log('✅ Lesson created successfully by database trigger');
+                if (lessonExists) {
+                    console.log('✅ Lesson already exists for this request');
+                    showSuccessMessage(`Lesson request approved! The lesson is now available in both dashboards.`);
+                } else {
+                    // Create lesson manually to ensure it exists
+                    console.log('📅 Creating lesson from approved request...');
+                    const lessonId = await createLessonFromRequest(currentRequest);
+
+                    if (lessonId) {
+                        console.log('✅ Lesson created successfully:', lessonId);
+                        showSuccessMessage(`Lesson request approved and lesson created! The lesson will appear in both dashboards.`);
                     } else {
-                        // Fallback: try to create lesson manually
-                        console.log('⚠️ Trigger did not create lesson, attempting manual creation...');
-                        try {
-                            await createLessonFromRequest(currentRequest);
-                            console.log('✅ Manual lesson creation successful');
-                        } catch (lessonError) {
-                            console.error('❌ Manual lesson creation also failed:', lessonError);
-                        }
+                        console.warn('⚠️ Lesson creation returned no ID, but may have succeeded');
+                        showSuccessMessage(`Lesson request approved! Please check if the lesson appears in both dashboards.`);
                     }
-                } catch (error) {
-                    console.error('Error in post-approval processing:', error);
                 }
+            } catch (lessonError) {
+                console.error('❌ Error in lesson creation:', lessonError);
+                showErrorMessage(`Request approved but lesson creation failed: ${lessonError.message}`);
+            }
             }, 3000);
         } else {
             showSuccessMessage(`Lesson request ${status} successfully!`);
@@ -352,16 +356,64 @@ async function createLessonFromRequest(request) {
             time: `${request.requested_start_time} - ${request.requested_end_time}`
         });
 
-        // Try the manual function approach
-        const { data: functionResult, error: functionError } = await supabase
-            .rpc('manual_create_lesson', {
-                p_tutor_id: request.tutor_id,
-                p_student_id: request.student_id,
-                p_lesson_date: request.requested_date,
-                p_start_time: request.requested_start_time,
-                p_end_time: request.requested_end_time,
-                p_notes: request.student_message || 'Lesson booked through calendar'
-            });
+        // First try the manual function approach
+        try {
+            const { data: functionResult, error: functionError } = await supabase
+                .rpc('manual_create_lesson', {
+                    p_tutor_id: request.tutor_id,
+                    p_student_id: request.student_id,
+                    p_lesson_date: request.requested_date,
+                    p_start_time: request.requested_start_time,
+                    p_end_time: request.requested_end_time,
+                    p_notes: request.student_message || 'Lesson booked through calendar'
+                });
+
+            if (functionError) {
+                if (functionError.message.includes('already exists')) {
+                    console.log('✅ Lesson already exists (from function)');
+                    return 'existing';
+                }
+                throw functionError;
+            }
+
+            if (functionResult) {
+                console.log('✅ Lesson created via function:', functionResult);
+                return functionResult;
+            }
+        } catch (funcError) {
+            console.warn('Function approach failed, trying direct insert:', funcError.message);
+
+            // Fallback to direct insert
+            const { data: insertResult, error: insertError } = await supabase
+                .from('lessons')
+                .insert({
+                    tutor_id: request.tutor_id,
+                    student_id: request.student_id,
+                    lesson_date: request.requested_date,
+                    start_time: request.requested_start_time,
+                    end_time: request.requested_end_time,
+                    status: 'confirmed',
+                    lesson_type: 'conversation_practice',
+                    notes: request.student_message || 'Lesson booked through calendar',
+                    price: 500.00,
+                    created_at: new Date().toISOString()
+                })
+                .select()
+                .single();
+
+            if (insertError) {
+                if (insertError.code === '23505') { // Unique constraint violation
+                    console.log('✅ Lesson already exists (from direct insert)');
+                    return 'existing';
+                }
+                throw insertError;
+            }
+
+            if (insertResult) {
+                console.log('✅ Lesson created via direct insert:', insertResult.id);
+                return insertResult.id;
+            }
+        }
 
         if (functionError) {
             console.warn('Manual function failed, trying direct insert:', functionError);

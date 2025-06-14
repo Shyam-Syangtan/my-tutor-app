@@ -60,6 +60,18 @@
         <div id="workflowResult"></div>
     </div>
 
+    <div class="section">
+        <h2>8. Fix Database Trigger</h2>
+        <button onclick="fixDatabaseTrigger()">Fix Lesson Creation Trigger</button>
+        <div id="fixResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>9. Manual Lesson Creation Test</h2>
+        <button onclick="testManualLessonCreation()">Test Manual Lesson Creation</button>
+        <div id="manualResult"></div>
+    </div>
+
     <script>
         // Supabase Configuration
         const SUPABASE_URL = 'https://qbyyutebrgpxngvwenkd.supabase.co';
@@ -361,6 +373,175 @@
                     <h4>Sample Lesson Data:</h4>
                     <pre>${JSON.stringify(directLessons.slice(0, 2), null, 2)}</pre>
                 `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function fixDatabaseTrigger() {
+            const result = document.getElementById('fixResult');
+            try {
+                result.innerHTML = '<div class="info">Fixing database trigger...</div>';
+
+                // Step 1: Create/Update the trigger function
+                const { data: triggerData, error: triggerError } = await supabase.rpc('exec_sql', {
+                    query: `
+                        -- Create improved trigger function
+                        CREATE OR REPLACE FUNCTION public.create_lesson_from_request()
+                        RETURNS TRIGGER AS $$
+                        DECLARE
+                            lesson_exists BOOLEAN;
+                        BEGIN
+                            -- Only create lesson if status changed to 'approved'
+                            IF NEW.status = 'approved' AND (OLD.status IS NULL OR OLD.status != 'approved') THEN
+                                -- Check if lesson already exists
+                                SELECT EXISTS (
+                                    SELECT 1 FROM public.lessons
+                                    WHERE tutor_id = NEW.tutor_id
+                                    AND student_id = NEW.student_id
+                                    AND lesson_date = NEW.requested_date
+                                    AND start_time = NEW.requested_start_time
+                                ) INTO lesson_exists;
+
+                                IF NOT lesson_exists THEN
+                                    INSERT INTO public.lessons (
+                                        tutor_id, student_id, lesson_date, start_time, end_time,
+                                        status, lesson_type, notes, price, created_at
+                                    ) VALUES (
+                                        NEW.tutor_id, NEW.student_id, NEW.requested_date,
+                                        NEW.requested_start_time, NEW.requested_end_time,
+                                        'confirmed', 'conversation_practice',
+                                        COALESCE(NEW.student_message, 'Lesson created from approved request'),
+                                        500.00, NOW()
+                                    );
+
+                                    RAISE NOTICE 'Lesson created from approved request: % for student: %', NEW.id, NEW.student_id;
+                                ELSE
+                                    RAISE NOTICE 'Lesson already exists for request: %', NEW.id;
+                                END IF;
+                            END IF;
+
+                            RETURN NEW;
+                        END;
+                        $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+                        -- Create/Update the trigger
+                        DROP TRIGGER IF EXISTS on_lesson_request_approved ON public.lesson_requests;
+                        CREATE TRIGGER on_lesson_request_approved
+                            AFTER UPDATE ON public.lesson_requests
+                            FOR EACH ROW EXECUTE FUNCTION public.create_lesson_from_request();
+                    `
+                });
+
+                if (triggerError) throw triggerError;
+
+                // Step 2: Create manual lesson creation function
+                const { data: manualData, error: manualError } = await supabase.rpc('exec_sql', {
+                    query: `
+                        CREATE OR REPLACE FUNCTION public.manual_create_lesson(
+                            p_tutor_id UUID,
+                            p_student_id UUID,
+                            p_lesson_date DATE,
+                            p_start_time TIME,
+                            p_end_time TIME,
+                            p_notes TEXT DEFAULT NULL
+                        )
+                        RETURNS UUID AS $$
+                        DECLARE
+                            lesson_id UUID;
+                            lesson_exists BOOLEAN;
+                        BEGIN
+                            -- Check if lesson already exists
+                            SELECT EXISTS (
+                                SELECT 1 FROM public.lessons
+                                WHERE tutor_id = p_tutor_id
+                                AND student_id = p_student_id
+                                AND lesson_date = p_lesson_date
+                                AND start_time = p_start_time
+                            ) INTO lesson_exists;
+
+                            IF lesson_exists THEN
+                                RAISE EXCEPTION 'Lesson already exists for this time slot';
+                            END IF;
+
+                            INSERT INTO public.lessons (
+                                tutor_id, student_id, lesson_date, start_time, end_time,
+                                status, lesson_type, notes, price, created_at
+                            ) VALUES (
+                                p_tutor_id, p_student_id, p_lesson_date, p_start_time, p_end_time,
+                                'confirmed', 'conversation_practice',
+                                COALESCE(p_notes, 'Lesson booked through calendar'),
+                                500.00, NOW()
+                            ) RETURNING id INTO lesson_id;
+
+                            RETURN lesson_id;
+                        END;
+                        $$ LANGUAGE plpgsql SECURITY DEFINER;
+                    `
+                });
+
+                if (manualError) throw manualError;
+
+                result.innerHTML = `
+                    <div class="success">✅ Database trigger and functions updated successfully!</div>
+                    <div class="info">
+                        - Trigger function created/updated<br>
+                        - Manual lesson creation function created/updated<br>
+                        - Trigger attached to lesson_requests table
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error fixing trigger: ${error.message}</div>`;
+            }
+        }
+
+        async function testManualLessonCreation() {
+            const result = document.getElementById('manualResult');
+            try {
+                // Get an approved request that doesn't have a lesson yet
+                const { data: approvedRequests, error: requestError } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .eq('status', 'approved')
+                    .limit(1);
+
+                if (requestError) throw requestError;
+                if (!approvedRequests.length) {
+                    result.innerHTML = '<div class="error">No approved requests found to test with</div>';
+                    return;
+                }
+
+                const request = approvedRequests[0];
+
+                // Try to create lesson manually
+                const { data: lessonId, error: createError } = await supabase
+                    .rpc('manual_create_lesson', {
+                        p_tutor_id: request.tutor_id,
+                        p_student_id: request.student_id,
+                        p_lesson_date: request.requested_date,
+                        p_start_time: request.requested_start_time,
+                        p_end_time: request.requested_end_time,
+                        p_notes: request.student_message || 'Test lesson creation'
+                    });
+
+                if (createError) {
+                    if (createError.message.includes('already exists')) {
+                        result.innerHTML = `
+                            <div class="success">✅ Manual creation function works!</div>
+                            <div class="info">Lesson already exists for this request (which is good!)</div>
+                        `;
+                    } else {
+                        throw createError;
+                    }
+                } else {
+                    result.innerHTML = `
+                        <div class="success">✅ Manual lesson creation successful!</div>
+                        <div class="info">
+                            Created lesson ID: ${lessonId}<br>
+                            For request: ${request.id}
+                        </div>
+                    `;
+                }
             } catch (error) {
                 result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
             }

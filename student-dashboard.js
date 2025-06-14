@@ -93,13 +93,80 @@ class StudentDashboard {
             const currentUser = window.authHandler.getCurrentUser();
             console.log('Loading lessons for student:', currentUser.id);
 
-            // Try using the optimized database function first
-            const { data: optimizedData, error: optimizedError } = await window.authHandler.supabase
-                .rpc('get_student_lessons_optimized', { student_user_id: currentUser.id });
+            // Try multiple approaches to load lessons
+            let lessonsData = null;
+            let loadMethod = '';
 
-            if (!optimizedError && optimizedData) {
-                this.lessons = optimizedData;
-                console.log('✅ Loaded lessons using optimized function:', this.lessons.length);
+            // Method 1: Try optimized function
+            try {
+                const { data: optimizedData, error: optimizedError } = await window.authHandler.supabase
+                    .rpc('get_student_lessons_optimized', { student_user_id: currentUser.id });
+
+                if (!optimizedError && optimizedData) {
+                    lessonsData = optimizedData;
+                    loadMethod = 'optimized function';
+                }
+            } catch (error) {
+                console.warn('Optimized function failed:', error.message);
+            }
+
+            // Method 2: Try final function if optimized failed
+            if (!lessonsData) {
+                try {
+                    const { data: finalData, error: finalError } = await window.authHandler.supabase
+                        .rpc('get_student_lessons_final', { student_user_id: currentUser.id });
+
+                    if (!finalError && finalData) {
+                        lessonsData = finalData;
+                        loadMethod = 'final function';
+                    }
+                } catch (error) {
+                    console.warn('Final function failed:', error.message);
+                }
+            }
+
+            // Method 3: Direct query as fallback
+            if (!lessonsData) {
+                try {
+                    const { data: directData, error: directError } = await window.authHandler.supabase
+                        .from('lessons')
+                        .select(`
+                            id, tutor_id, student_id, lesson_date, start_time, end_time,
+                            status, lesson_type, notes, price, created_at
+                        `)
+                        .eq('student_id', currentUser.id)
+                        .eq('status', 'confirmed')
+                        .order('lesson_date', { ascending: true });
+
+                    if (!directError && directData) {
+                        // Add tutor info manually for direct query
+                        for (let lesson of directData) {
+                            try {
+                                const { data: tutorData } = await window.authHandler.supabase
+                                    .from('tutors')
+                                    .select('name, photo_url')
+                                    .eq('user_id', lesson.tutor_id)
+                                    .single();
+
+                                lesson.tutor_name = tutorData?.name || 'Unknown Tutor';
+                                lesson.tutor_profile_picture = tutorData?.photo_url || null;
+                            } catch (tutorError) {
+                                lesson.tutor_name = 'Unknown Tutor';
+                                lesson.tutor_profile_picture = null;
+                            }
+                        }
+
+                        lessonsData = directData;
+                        loadMethod = 'direct query';
+                    }
+                } catch (error) {
+                    console.warn('Direct query failed:', error.message);
+                }
+            }
+
+            if (lessonsData) {
+                this.lessons = lessonsData;
+                console.log(`✅ Loaded ${this.lessons.length} lessons using ${loadMethod}`);
                 return;
             }
 
@@ -283,7 +350,7 @@ class StudentDashboard {
 
             try {
                 const lessonDateTime = new Date(lesson.lesson_date + 'T' + lesson.start_time);
-                return lessonDateTime > now;
+                return lessonDateTime > now && lesson.status === 'confirmed';
             } catch (error) {
                 console.warn('Invalid lesson date/time:', lesson);
                 return false;
@@ -291,6 +358,13 @@ class StudentDashboard {
         });
 
         console.log(`Rendering ${upcomingLessons.length} upcoming lessons out of ${this.lessons.length} total`);
+        console.log('All lessons:', this.lessons.map(l => ({
+            id: l.id?.substring(0, 8) + '...',
+            date: l.lesson_date,
+            time: l.start_time,
+            status: l.status,
+            tutor: l.tutor_name
+        })));
 
         if (upcomingLessons.length === 0) {
             myLessons.innerHTML = `
@@ -298,6 +372,7 @@ class StudentDashboard {
                     <i class="fas fa-calendar-alt text-3xl text-gray-300 mb-3"></i>
                     <p class="text-gray-500 text-sm">No upcoming lessons</p>
                     <p class="text-xs text-gray-400 mt-2">Approved lessons will appear here automatically</p>
+                    <p class="text-xs text-gray-400 mt-1">Total lessons found: ${this.lessons.length}</p>
                 </div>
             `;
             return;
