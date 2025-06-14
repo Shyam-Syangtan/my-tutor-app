@@ -53,7 +53,7 @@ async function loadTutorLessons() {
 
         // Try using the new database function first
         const { data: functionData, error: functionError } = await supabase
-            .rpc('get_tutor_lessons', { tutor_user_id: currentUser.id });
+            .rpc('get_tutor_lessons_with_students', { tutor_user_id: currentUser.id });
 
         if (functionError) {
             console.warn('Function approach failed, using direct query:', functionError);
@@ -112,33 +112,39 @@ async function loadTutorLessons() {
                         try {
                             console.log('🔍 [TUTOR] Fetching student data for lesson', lesson.id, 'student_id:', lesson.student_id);
 
+                            // Try users table first
                             const { data: studentData, error: studentError } = await supabase
-                                .from('auth.users')
-                                .select('id, email, raw_user_meta_data')
+                                .from('users')
+                                .select('id, email, name')
                                 .eq('id', lesson.student_id)
+                                .eq('role', 'student')
                                 .single();
 
                             if (studentError) {
-                                console.warn('⚠️ [TUTOR] Could not fetch student from auth.users:', studentError);
-                                const studentName = lesson.student_id?.substring(0, 8) || 'Student';
+                                console.warn('⚠️ [TUTOR] Could not fetch student from users table:', studentError);
+                                // Use a simple fallback name
                                 lessonsWithStudents.push({
                                     ...lesson,
                                     student: {
                                         id: lesson.student_id,
                                         email: 'unknown@email.com',
-                                        raw_user_meta_data: { name: studentName }
+                                        raw_user_meta_data: { name: 'Student' }
                                     }
                                 });
                             } else {
                                 console.log('✅ [TUTOR] Successfully fetched student data:', {
                                     studentId: lesson.student_id,
                                     studentEmail: studentData?.email,
-                                    studentName: studentData?.raw_user_meta_data?.name
+                                    studentName: studentData?.name
                                 });
 
                                 lessonsWithStudents.push({
                                     ...lesson,
-                                    student: studentData
+                                    student: {
+                                        id: studentData.id,
+                                        email: studentData.email,
+                                        raw_user_meta_data: { name: studentData.name || studentData.email?.split('@')[0] || 'Student' }
+                                    }
                                 });
                             }
                         } catch (studentFetchError) {
@@ -167,7 +173,15 @@ async function loadTutorLessons() {
                 console.log('🔍 [TUTOR] Raw lesson data from database:', lessons);
             }
         } else {
-            lessons = functionData || [];
+            // Transform function data to match expected format
+            lessons = (functionData || []).map(lesson => ({
+                ...lesson,
+                student: {
+                    id: lesson.student_id,
+                    email: lesson.student_email,
+                    raw_user_meta_data: { name: lesson.student_name }
+                }
+            }));
             console.log('✅ [TUTOR] Lessons loaded via function:', lessons.length);
         }
 
