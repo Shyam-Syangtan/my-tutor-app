@@ -93,9 +93,9 @@ class StudentDashboard {
             const currentUser = window.authHandler.getCurrentUser();
             console.log('Loading lessons for student:', currentUser.id);
 
-            // Try using the new database function first
+            // Try using the flexible database function first
             const { data: functionData, error: functionError } = await window.authHandler.supabase
-                .rpc('get_student_lessons', { student_user_id: currentUser.id });
+                .rpc('get_student_lessons_flexible', { student_user_id: currentUser.id });
 
             if (functionError) {
                 console.warn('Function approach failed, using direct query:', functionError);
