@@ -12,8 +12,8 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .tab-button.active {
-            border-bottom: 2px solid #4f46e5;
-            color: #4f46e5;
+            border-bottom: 2px solid #4CAF50;
+            color: #4CAF50;
             font-weight: 600;
         }
         .availability-grid {
@@ -134,7 +134,7 @@
             transform: scale(1.1);
         }
         .calendar-cell.selected {
-            background-color: #4f46e5;
+            background-color: #4CAF50;
             color: white;
         }
         .calendar-cell.unavailable {
@@ -215,7 +215,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
-                    <a href="home.html" class="text-2xl font-bold text-indigo-600">IndianTutors</a>
+                    <a href="home.html" class="text-2xl font-bold text-green-600">IndianTutors</a>
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="findteacher.html" class="text-gray-600 hover:text-gray-900 flex items-center space-x-1">
@@ -232,7 +232,7 @@
     <!-- Loading State -->
     <div id="loadingState" class="flex items-center justify-center min-h-screen">
         <div class="text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
             <p class="text-gray-600 mt-4">Loading tutor profile...</p>
         </div>
     </div>
@@ -242,7 +242,7 @@
         <div class="text-center">
             <h2 class="text-2xl font-bold text-gray-900 mb-2">Tutor Not Found</h2>
             <p class="text-gray-600 mb-4">The tutor profile you're looking for doesn't exist.</p>
-            <a href="findteacher.html" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+            <a href="findteacher.html" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
                 Browse Tutors
             </a>
         </div>
@@ -264,7 +264,7 @@
                             <div class="flex items-center space-x-3 mb-2">
                                 <h1 id="tutorName" class="text-3xl font-bold text-gray-900"></h1>
                                 <span id="tutorFlag" class="text-2xl"></span>
-                                <span id="professionalBadge" class="hidden bg-blue-600 text-white text-xs px-3 py-1 rounded-full font-medium">PROFESSIONAL TEACHER</span>
+                                <span id="professionalBadge" class="hidden bg-green-600 text-white text-xs px-3 py-1 rounded-full font-medium">PROFESSIONAL TEACHER</span>
                             </div>
 
                             <!-- Languages Taught -->
@@ -390,7 +390,7 @@
                     <div id="availabilityContainer">
                         <!-- Student booking interface will be generated here -->
                         <div class="text-center py-8">
-                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
                             <p class="text-gray-600 mt-2">Loading availability...</p>
                         </div>
                     </div>
@@ -410,7 +410,7 @@
                         <!-- Reviews will be loaded here -->
                     </div>
                     <div class="text-center mt-6">
-                        <button id="showMoreReviews" class="text-indigo-600 hover:text-indigo-700 font-medium">
+                        <button id="showMoreReviews" class="text-green-600 hover:text-green-700 font-medium">
                             Show more ↓
                         </button>
                     </div>
@@ -507,16 +507,16 @@
                 </div>
 
                 <!-- Selected Time Display -->
-                <div id="selectedTimeDisplay" class="hidden bg-indigo-50 border border-indigo-200 rounded-lg p-4 mb-6">
+                <div id="selectedTimeDisplay" class="hidden bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                     <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
                         <div>
                             <p class="font-medium text-gray-900">Selected Time</p>
-                            <p id="selectedTimeText" class="text-indigo-600 font-semibold"></p>
+                            <p id="selectedTimeText" class="text-green-600 font-semibold"></p>
                         </div>
                     </div>
                 </div>
@@ -525,14 +525,14 @@
                 <div class="mb-6">
                     <h4 class="text-lg font-semibold text-gray-900 mb-4">Lesson Type</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="lesson-type-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-300 transition-colors" data-type="trial">
+                        <div class="lesson-type-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-300 transition-colors" data-type="trial">
                             <div class="flex items-center justify-between mb-2">
                                 <h5 class="font-medium text-gray-900">Trial Lesson</h5>
                                 <span class="text-lg font-bold text-gray-900">$<span id="modalTrialPrice">8.00</span></span>
                             </div>
                             <p class="text-sm text-gray-600">30 minutes • Perfect for first-time students</p>
                         </div>
-                        <div class="lesson-type-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-indigo-300 transition-colors" data-type="regular">
+                        <div class="lesson-type-card border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-300 transition-colors" data-type="regular">
                             <div class="flex items-center justify-between mb-2">
                                 <h5 class="font-medium text-gray-900">Regular Lesson</h5>
                                 <span class="text-lg font-bold text-gray-900">$<span id="modalRegularPrice">12.00</span></span>
@@ -547,7 +547,7 @@
                     <button id="cancelBooking" class="px-6 py-2 text-gray-600 hover:text-gray-800 transition-colors">
                         Cancel
                     </button>
-                    <button id="confirmBooking" class="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <button id="confirmBooking" class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                         Book Lesson
                     </button>
                 </div>
@@ -654,7 +654,7 @@
             // Update teaches languages
             const teachesLanguages = document.getElementById('teachesLanguages');
             teachesLanguages.innerHTML = `
-                <span class="bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full font-medium">
+                <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full font-medium">
                     ${tutor.native_language || tutor.language} <span class="text-xs">Native</span>
                 </span>
             `;
@@ -671,7 +671,7 @@
             // Update specialties
             const specialties = document.getElementById('specialties');
             specialties.innerHTML = `
-                <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full flex items-center">
+                <span class="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full flex items-center">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6"></path>
                     </svg>
@@ -830,8 +830,8 @@
             container.innerHTML = reviewsToShow.map(review => `
                 <div class="border-b border-gray-200 pb-6 mb-6 last:border-b-0 last:pb-0 last:mb-0">
                     <div class="flex items-start space-x-4">
-                        <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span class="text-indigo-600 font-medium text-sm">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-green-600 font-medium text-sm">
                                 ${review.student_name ? review.student_name.charAt(0).toUpperCase() : 'B'}
                             </span>
                         </div>
@@ -879,12 +879,12 @@
                 button.addEventListener('click', () => {
                     // Remove active class from all buttons
                     filterButtons.forEach(btn => {
-                        btn.classList.remove('active', 'bg-indigo-100', 'text-indigo-800');
+                        btn.classList.remove('active', 'bg-green-100', 'text-green-800');
                         btn.classList.add('bg-gray-100', 'text-gray-700');
                     });
 
                     // Add active class to clicked button
-                    button.classList.add('active', 'bg-indigo-100', 'text-indigo-800');
+                    button.classList.add('active', 'bg-green-100', 'text-green-800');
                     button.classList.remove('bg-gray-100', 'text-gray-700');
 
                     // Filter reviews based on selection
@@ -1176,13 +1176,13 @@
                 card.addEventListener('click', () => {
                     // Remove previous selection
                     document.querySelectorAll('.lesson-type-card').forEach(c => {
-                        c.classList.remove('border-indigo-500', 'bg-indigo-50');
+                        c.classList.remove('border-green-500', 'bg-green-50');
                         c.classList.add('border-gray-200');
                     });
 
                     // Select new card
                     card.classList.remove('border-gray-200');
-                    card.classList.add('border-indigo-500', 'bg-indigo-50');
+                    card.classList.add('border-green-500', 'bg-green-50');
 
                     selectedLessonType = card.dataset.type;
                     updateBookingButton();

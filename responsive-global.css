@@ -36,12 +36,12 @@
     --text-3xl: 1.875rem;
     --text-4xl: 2.25rem;
 
-    /* COMPREHENSIVE LIGHT GREY COLOR THEME */
-    /* Primary Colors - Teal/Aqua Accents */
-    --color-primary: #00BFA5;
-    --color-primary-light: #00C2C2;
-    --color-primary-dark: #00A693;
-    --color-primary-darker: #008A7A;
+    /* COMPREHENSIVE WHITE MIST & LEAFY GREEN COLOR THEME */
+    /* Primary Colors - Leafy Green Accents */
+    --color-primary: #4CAF50;
+    --color-primary-light: #66BB6A;
+    --color-primary-dark: #45A049;
+    --color-primary-darker: #388E3C;
 
     /* Secondary Colors - Soft Grey */
     --color-secondary: #E0E0E0;
@@ -49,14 +49,14 @@
     --color-secondary-dark: #BDBDBD;
     --color-secondary-darker: #9E9E9E;
 
-    /* Accent Colors - Warm Orange Touches */
-    --color-accent: #FF6B35;
-    --color-accent-light: #FF8C42;
-    --color-accent-dark: #E55A2B;
-    --color-accent-darker: #CC4E24;
+    /* Accent Colors - Leafy Green Variations */
+    --color-accent: #4CAF50;
+    --color-accent-light: #66BB6A;
+    --color-accent-dark: #45A049;
+    --color-accent-darker: #388E3C;
 
-    /* Background Colors - Ultra Light Grey Theme */
-    --color-background: #FAFBFC;
+    /* Background Colors - White Mist Theme */
+    --color-background: #FCFCFD;
     --color-background-light: #FFFFFF;
     --color-background-dark: #F5F6FA;
     --color-surface: #FFFFFF;
@@ -70,10 +70,10 @@
     --color-text-light: #CCCCCC;
     --color-text-inverse: #FFFFFF;
 
-    /* Status Colors (Orange Accent Theme) */
-    --color-success: #FF6B35;
-    --color-success-light: #FF8C42;
-    --color-success-dark: #E55A2B;
+    /* Status Colors (Leafy Green Theme) */
+    --color-success: #4CAF50;
+    --color-success-light: #66BB6A;
+    --color-success-dark: #45A049;
 
     --color-warning: #FFC107;
     --color-warning-light: #FFD54F;
@@ -89,9 +89,9 @@
 
     /* Special Colors */
     --color-star-rating: #FFC107;
-    --color-availability: #FF8C42;
-    --color-verified: #FF6B35;
-    --color-accent-text: #00C2C2;
+    --color-availability: #4CAF50;
+    --color-verified: #4CAF50;
+    --color-accent-text: #4CAF50;
 
     /* Border Colors - Light Grey Tones */
     --color-border: #E0E0E0;

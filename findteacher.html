@@ -7,7 +7,7 @@
     <meta name="description" content="Find the perfect Indian language tutor for your learning journey">
     
     <!-- Responsive Global CSS with Ultra Light Grey & Orange Theme -->
-    <link rel="stylesheet" href="responsive-global.css?v=8&t=20250614-orange">
+    <link rel="stylesheet" href="responsive-global.css?v=9&t=20250614-green">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -145,16 +145,16 @@
         }
 
         .sidebar-link:hover svg {
-            color: #4f46e5;
+            color: #4CAF50;
         }
 
         .trial-link {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
             color: white !important;
         }
 
         .trial-link:hover {
-            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            background: linear-gradient(135deg, #45A049 0%, #2E7D32 100%);
             color: white !important;
         }
 
@@ -378,20 +378,20 @@
 
                 <!-- Logo -->
                 <div class="flex items-center nav-center md:relative md:left-auto md:transform-none">
-                    <a href="home.html" class="text-2xl font-bold text-indigo-600">IndianTutors</a>
+                    <a href="home.html" class="text-2xl font-bold text-green-600">IndianTutors</a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden md:flex items-center space-x-8">
                     <a href="home.html" class="text-gray-600 hover:text-gray-900 transition-colors">Home</a>
-                    <a href="findteacher.html" class="text-indigo-600 font-medium">Find a Teacher</a>
+                    <a href="findteacher.html" class="text-green-600 font-medium">Find a Teacher</a>
                 </div>
 
                 <!-- Search Bar -->
                 <div class="hidden md:flex flex-1 max-w-md mx-8">
                     <div class="relative w-full">
                         <input type="text" id="navSearch" placeholder="Search tutors..."
-                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -404,7 +404,7 @@
                 <div class="hidden-mobile flex items-center space-x-4">
                     <!-- Language Dropdown -->
                     <div class="relative">
-                        <select class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <select class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:ring-2 focus:ring-green-500 focus:border-green-500">
                             <option>English</option>
                             <option>हिंदी</option>
                             <option>தமிழ்</option>
@@ -441,7 +441,7 @@
         <!-- Header -->
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900 mb-2">Find Your Perfect Language Tutor</h1>
-            <p class="text-gray-600">Choose from <span id="tutorCount" class="font-semibold text-indigo-600">0</span> experienced tutors</p>
+            <p class="text-gray-600">Choose from <span id="tutorCount" class="font-semibold text-green-600">0</span> experienced tutors</p>
         </div>
 
         <!-- Filters -->
@@ -450,7 +450,7 @@
                 <!-- Language Filter -->
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Language</label>
-                    <select id="languageFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <select id="languageFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500">
                         <option value="">All Languages</option>
                         <option value="Hindi">Hindi</option>
                         <option value="Tamil">Tamil</option>
@@ -468,7 +468,7 @@
                 <!-- Price Range -->
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Price Range</label>
-                    <select id="priceFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <select id="priceFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500">
                         <option value="">Any Price</option>
                         <option value="0-300">₹0 - ₹300</option>
                         <option value="300-500">₹300 - ₹500</option>
@@ -482,7 +482,7 @@
                 <div class="flex flex-col flex-1 min-w-[200px]">
                     <label class="text-sm font-medium text-gray-700 mb-1">Search Tutors</label>
                     <input type="text" id="searchInput" placeholder="Search by name..." 
-                           class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                           class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500">
                 </div>
 
                 <!-- Clear Filters -->
@@ -496,7 +496,7 @@
 
         <!-- Loading State -->
         <div id="loadingState" class="text-center py-12">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
             <p class="text-gray-600 mt-4">Loading tutors...</p>
         </div>
 
@@ -711,19 +711,19 @@
                                     <div class="flex items-center space-x-2 mb-1">
                                         <h3 class="text-lg font-semibold text-gray-900 truncate">${tutor.name}</h3>
                                         <span class="text-lg">${countryFlag}</span>
-                                        ${isProfessional ? '<span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Professional</span>' : ''}
+                                        ${isProfessional ? '<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Professional</span>' : ''}
                                     </div>
                                     <p class="text-sm text-gray-600">${tutor.bio_headline || `${tutor.native_language || tutor.language} Teacher`}</p>
                                 </div>
                                 <div class="text-right">
-                                    <div class="text-xl font-bold text-indigo-600">₹${tutor.rate}</div>
+                                    <div class="text-xl font-bold text-green-600">₹${tutor.rate}</div>
                                     <div class="text-xs text-gray-500">per lesson</div>
                                 </div>
                             </div>
 
                             <!-- Language Badges -->
                             <div class="flex flex-wrap gap-1 mb-3">
-                                <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full font-medium">${tutor.native_language || tutor.language}</span>
+                                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">${tutor.native_language || tutor.language}</span>
                                 ${languages.slice(0, 2).map(lang =>
                                     `<span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">${lang.language}</span>`
                                 ).join('')}
@@ -767,7 +767,7 @@
                                     Contact
                                 </button>
                                 <button onclick="event.stopPropagation(); window.open('profile.html?id=${tutor.id}', '_blank')"
-                                        class="flex-1 bg-indigo-600 text-white px-3 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+                                        class="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
                                     Book Lesson
                                 </button>
                                 <button onclick="event.stopPropagation(); window.open('profile.html?id=${tutor.id}', '_blank')"
