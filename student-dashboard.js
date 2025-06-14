@@ -87,22 +87,35 @@ class StudentDashboard {
 
     async loadLessons() {
         try {
-            const { data, error } = await window.authHandler.supabase
-                .from('lessons')
-                .select(`
-                    *,
-                    tutor:tutor_id (
-                        name,
-                        email,
-                        profile_picture
-                    )
-                `)
-                .eq('student_id', window.authHandler.getCurrentUser().id)
-                .order('lesson_date', { ascending: true })
-                .order('start_time', { ascending: true });
+            const currentUser = window.authHandler.getCurrentUser();
 
-            if (error) throw error;
-            this.lessons = data || [];
+            // Try using the new database function first
+            const { data: functionData, error: functionError } = await window.authHandler.supabase
+                .rpc('get_student_lessons', { student_user_id: currentUser.id });
+
+            if (functionError) {
+                console.warn('Function approach failed, using direct query:', functionError);
+
+                // Fallback to direct query
+                const { data, error } = await window.authHandler.supabase
+                    .from('lessons')
+                    .select(`
+                        *,
+                        tutor:tutor_id (
+                            name,
+                            email,
+                            profile_picture
+                        )
+                    `)
+                    .eq('student_id', currentUser.id)
+                    .order('lesson_date', { ascending: true })
+                    .order('start_time', { ascending: true });
+
+                if (error) throw error;
+                this.lessons = data || [];
+            } else {
+                this.lessons = functionData || [];
+            }
         } catch (error) {
             console.error('Error loading lessons:', error);
             this.showNotification('Error loading lessons', 'error');
@@ -201,13 +214,13 @@ class StudentDashboard {
         myLessons.innerHTML = upcomingLessons.map(lesson => `
             <div class="booked-lesson rounded-lg p-4 mb-3">
                 <div class="flex items-center space-x-3">
-                    <img src="${lesson.tutor?.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(lesson.tutor?.name || 'Tutor')}&background=ffffff&color=3b82f6`}"
-                         alt="${lesson.tutor?.name}"
+                    <img src="${lesson.tutor?.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(lesson.tutor_name || lesson.tutor?.name || 'Tutor')}&background=ffffff&color=3b82f6`}"
+                         alt="${lesson.tutor_name || lesson.tutor?.name || 'Tutor'}"
                          class="w-10 h-10 rounded-full object-cover">
                     <div class="flex-1">
-                        <h4 class="font-medium text-sm">${lesson.tutor?.name || 'Tutor'}</h4>
+                        <h4 class="font-medium text-sm">${lesson.tutor_name || lesson.tutor?.name || 'Tutor'}</h4>
                         <p class="text-xs opacity-90">${this.formatDate(lesson.lesson_date)} at ${this.formatTime(lesson.start_time)}</p>
-                        <p class="text-xs opacity-75 capitalize">${lesson.lesson_type} lesson - $${lesson.price}</p>
+                        <p class="text-xs opacity-75 capitalize">${lesson.lesson_type || 'conversation_practice'} lesson - ₹${lesson.price || 500}</p>
                     </div>
                 </div>
             </div>

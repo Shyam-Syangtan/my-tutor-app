@@ -245,7 +245,7 @@ async function updateRequestStatus(requestId, status) {
 
         const { error } = await supabase
             .from('lesson_requests')
-            .update({ 
+            .update({
                 status: status,
                 tutor_response: status === 'approved' ? 'Lesson request approved!' : 'Lesson request declined.',
                 updated_at: new Date().toISOString()
@@ -256,19 +256,29 @@ async function updateRequestStatus(requestId, status) {
             throw error;
         }
 
-        // If approved, create a lesson record
+        // If approved, wait a moment for the database trigger to create the lesson
         if (status === 'approved') {
+            console.log('Request approved, waiting for automatic lesson creation...');
+
+            // Wait 2 seconds for the database trigger to work
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Check if lesson was created by the trigger
             const request = lessonRequests.find(req => req.id === requestId);
-            try {
-                await createLessonFromRequest(request);
-                showSuccessMessage(`Lesson request ${status} successfully! Confirmed lesson has been created.`);
-            } catch (lessonError) {
-                console.error('Error creating lesson:', lessonError);
-                showErrorMessage(`Request approved, but failed to create confirmed lesson. Please check your lessons manually.`);
-                // Still show partial success since the request was approved
-                setTimeout(() => {
-                    showSuccessMessage(`Lesson request ${status} successfully! (Note: Manual lesson creation may be needed)`);
-                }, 2000);
+            const lessonCreated = await checkLessonExists(request);
+
+            if (lessonCreated) {
+                showSuccessMessage(`Lesson request approved successfully! Confirmed lesson has been created and will appear in both dashboards.`);
+            } else {
+                // Fallback: try to create lesson manually
+                console.log('Trigger did not create lesson, attempting manual creation...');
+                try {
+                    await createLessonFromRequest(request);
+                    showSuccessMessage(`Lesson request approved successfully! Confirmed lesson has been created.`);
+                } catch (lessonError) {
+                    console.error('Manual lesson creation also failed:', lessonError);
+                    showErrorMessage(`Request approved, but lesson creation failed. Please create the lesson manually in your dashboard.`);
+                }
             }
         } else {
             showSuccessMessage(`Lesson request ${status} successfully!`);
@@ -283,10 +293,35 @@ async function updateRequestStatus(requestId, status) {
     }
 }
 
+// Check if lesson exists for a request
+async function checkLessonExists(request) {
+    try {
+        const { data, error } = await supabase
+            .from('lessons')
+            .select('id')
+            .eq('tutor_id', request.tutor_id)
+            .eq('student_id', request.student_id)
+            .eq('lesson_date', request.requested_date)
+            .eq('start_time', request.requested_start_time)
+            .eq('end_time', request.requested_end_time)
+            .single();
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+            console.error('Error checking lesson existence:', error);
+            return false;
+        }
+
+        return data !== null;
+    } catch (error) {
+        console.error('Error in checkLessonExists:', error);
+        return false;
+    }
+}
+
 // Create lesson record from approved request
 async function createLessonFromRequest(request) {
     try {
-        console.log('📅 [APPROVAL] Creating confirmed lesson from approved request:', {
+        console.log('📅 [MANUAL] Creating confirmed lesson from approved request:', {
             requestId: request.id,
             tutorId: request.tutor_id,
             studentId: request.student_id,
@@ -294,7 +329,7 @@ async function createLessonFromRequest(request) {
             time: `${request.requested_start_time} - ${request.requested_end_time}`
         });
 
-        // First try the manual function approach
+        // Try the manual function approach
         const { data: functionResult, error: functionError } = await supabase
             .rpc('manual_create_lesson', {
                 p_tutor_id: request.tutor_id,
@@ -319,7 +354,8 @@ async function createLessonFromRequest(request) {
                     end_time: request.requested_end_time,
                     status: 'confirmed',
                     lesson_type: 'conversation_practice',
-                    notes: request.student_message || 'Lesson booked through calendar'
+                    notes: request.student_message || 'Lesson booked through calendar',
+                    price: 500.00
                 }])
                 .select()
                 .single();
@@ -328,15 +364,12 @@ async function createLessonFromRequest(request) {
                 throw insertError;
             }
 
-            console.log('✅ [APPROVAL] Confirmed lesson created via direct insert:', lessonData);
+            console.log('✅ [MANUAL] Confirmed lesson created via direct insert:', lessonData);
+            return lessonData;
         } else {
-            console.log('✅ [APPROVAL] Confirmed lesson created via function:', functionResult);
+            console.log('✅ [MANUAL] Confirmed lesson created via function:', functionResult);
+            return functionResult;
         }
-
-        // Show additional success message about lesson creation
-        setTimeout(() => {
-            showSuccessMessage('Confirmed lesson has been added to both your and the student\'s upcoming lessons!');
-        }, 1500);
 
         return lessonData;
 

@@ -50,29 +50,40 @@ document.addEventListener('DOMContentLoaded', async function() {
 async function loadTutorLessons() {
     try {
         console.log('Loading lessons for tutor:', currentUser.id);
-        
-        // Load confirmed lessons
-        const { data: lessonsData, error: lessonsError } = await supabase
-            .from('lessons')
-            .select(`
-                *,
-                student:student_id (
-                    email
-                )
-            `)
-            .eq('tutor_id', currentUser.id)
-            .order('lesson_date', { ascending: true })
-            .order('start_time', { ascending: true });
 
-        if (lessonsError) {
-            console.error('Error loading lessons:', lessonsError);
-            showErrorMessage('Failed to load lessons.');
-            return;
+        // Try using the new database function first
+        const { data: functionData, error: functionError } = await supabase
+            .rpc('get_tutor_lessons', { tutor_user_id: currentUser.id });
+
+        if (functionError) {
+            console.warn('Function approach failed, using direct query:', functionError);
+
+            // Fallback to direct query
+            const { data: lessonsData, error: lessonsError } = await supabase
+                .from('lessons')
+                .select(`
+                    *,
+                    student:student_id (
+                        email
+                    )
+                `)
+                .eq('tutor_id', currentUser.id)
+                .order('lesson_date', { ascending: true })
+                .order('start_time', { ascending: true });
+
+            if (lessonsError) {
+                console.error('Error loading lessons:', lessonsError);
+                showErrorMessage('Failed to load lessons.');
+                return;
+            }
+
+            lessons = lessonsData || [];
+        } else {
+            lessons = functionData || [];
         }
 
-        lessons = lessonsData || [];
         console.log('Loaded lessons:', lessons.length);
-        
+
         // Update stats and render
         updateStats();
         renderLessons();
@@ -159,7 +170,7 @@ function renderLessons() {
     });
 
     container.innerHTML = filteredLessons.map(lesson => {
-        const studentEmail = lesson.student?.email || 'Unknown Student';
+        const studentEmail = lesson.student_email || lesson.student?.email || 'Unknown Student';
         const isPast = isPastLesson(lesson.lesson_date, lesson.start_time);
         
         return `
