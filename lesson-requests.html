@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lesson Requests - Tutor Dashboard</title>
-    <!-- Responsive Global CSS with Indian Heritage Theme -->
-    <link rel="stylesheet" href="responsive-global.css?v=5&t=20250614-cream">
+    <!-- Responsive Global CSS with Light Grey Theme -->
+    <link rel="stylesheet" href="responsive-global.css?v=6&t=20250614-lightgrey">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -248,20 +248,20 @@
         }
     </style>
 </head>
-<body style="background: #FAF3E0;">
+<body style="background: #F9FAFB;">
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b">
+    <nav class="bg-white shadow-sm border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center min-h-16">
                 <div class="flex items-center space-x-4 sm:space-x-8">
-                    <a href="#" class="text-xl sm:text-2xl font-bold" style="color: #FF9933;">IndianTutors</a>
-                    <button onclick="goBackToTutorDashboard()" class="text-sm sm:text-base text-gray-600 hover:text-orange-500 transition-colors">
+                    <a href="#" class="text-xl sm:text-2xl font-bold" style="color: #00BFA5;">IndianTutors</a>
+                    <button onclick="goBackToTutorDashboard()" class="text-sm sm:text-base text-gray-600 hover:text-teal-500 transition-colors">
                         ← Back to Dashboard
                     </button>
                 </div>
                 <div class="flex items-center space-x-2 sm:space-x-4">
                     <span id="userEmail" class="text-gray-600 text-sm sm:text-base truncate max-w-32 sm:max-w-none">Loading...</span>
-                    <button onclick="handleLogout()" class="text-red-600 hover:text-red-700 text-sm sm:text-base transition-colors">Logout</button>
+                    <button onclick="handleLogout()" class="text-red-500 hover:text-red-600 text-sm sm:text-base transition-colors">Logout</button>
                 </div>
             </div>
         </div>
@@ -270,7 +270,7 @@
     <!-- Loading State -->
     <div id="loadingState" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto"></div>
             <p class="text-gray-600 mt-4">Loading lesson requests...</p>
         </div>
     </div>
@@ -280,34 +280,34 @@
         <!-- Header -->
         <div class="flex justify-between items-center mb-6">
             <div>
-                <h1 class="text-xl sm:text-2xl font-bold" style="color: #FF9933;">Lesson Requests</h1>
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Lesson Requests</h1>
                 <p class="text-sm sm:text-base text-gray-600 mt-1">Review and manage student booking requests</p>
             </div>
             <div class="flex items-center space-x-4">
-                <div class="bg-white px-3 sm:px-4 py-2 rounded-lg shadow-sm border border-orange-200">
+                <div class="bg-white px-3 sm:px-4 py-2 rounded-lg shadow-sm border border-gray-200">
                     <span class="text-xs sm:text-sm text-gray-600">Pending: </span>
-                    <span id="pendingCount" class="font-semibold" style="color: #FF9933;">0</span>
+                    <span id="pendingCount" class="font-semibold text-teal-600">0</span>
                 </div>
-                <button onclick="refreshRequests()" class="px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base text-white transition-colors" style="background: #FF9933;" onmouseover="this.style.background='#E6851A'" onmouseout="this.style.background='#FF9933'">
+                <button onclick="refreshRequests()" class="px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base text-white bg-teal-500 hover:bg-teal-600 transition-colors">
                     Refresh
                 </button>
             </div>
         </div>
 
         <!-- Filter Tabs -->
-        <div class="bg-white rounded-lg shadow-sm border mb-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
             <div class="border-b border-gray-200">
                 <nav class="flex space-x-4 sm:space-x-8 px-4 sm:px-6">
-                    <button class="filter-tab active py-3 sm:py-4 text-sm font-medium border-b-2 transition-colors" style="border-color: #FF9933; color: #FF9933;" data-filter="pending">
+                    <button class="filter-tab active py-3 sm:py-4 text-sm font-medium border-b-2 border-teal-500 text-teal-600 transition-colors" data-filter="pending">
                         Pending Requests
                     </button>
-                    <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-gray-500 hover:text-orange-500 transition-colors" data-filter="approved">
+                    <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-gray-500 hover:text-teal-500 transition-colors" data-filter="approved">
                         Approved
                     </button>
-                    <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-gray-500 hover:text-orange-500 transition-colors" data-filter="declined">
+                    <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-gray-500 hover:text-teal-500 transition-colors" data-filter="declined">
                         Declined
                     </button>
-                    <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-gray-500 hover:text-orange-500 transition-colors" data-filter="all">
+                    <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-gray-500 hover:text-teal-500 transition-colors" data-filter="all">
                         All Requests
                     </button>
                 </nav>
@@ -322,7 +322,7 @@
         <!-- Empty State -->
         <div id="emptyState" class="hidden text-center py-12">
             <div class="text-gray-400 text-6xl mb-4">📅</div>
-            <h3 class="text-lg font-semibold mb-2" style="color: #FF9933;">No lesson requests</h3>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">No lesson requests</h3>
             <p class="text-gray-600">When students book lessons, they'll appear here for your review.</p>
         </div>
     </div>
@@ -331,13 +331,13 @@
     <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden p-4">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div class="p-4 sm:p-6">
-                <h3 id="modalTitle" class="text-lg font-semibold mb-4" style="color: #FF9933;"></h3>
+                <h3 id="modalTitle" class="text-lg font-semibold text-gray-800 mb-4"></h3>
                 <p id="modalMessage" class="text-gray-600 mb-6 text-sm sm:text-base"></p>
                 <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
-                    <button onclick="closeConfirmationModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg sm:order-1 transition-colors">
+                    <button onclick="closeConfirmationModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800 bg-gray-200 hover:bg-gray-300 rounded-lg sm:order-1 transition-colors">
                         Cancel
                     </button>
-                    <button id="confirmButton" class="px-4 py-2 text-white rounded-lg sm:order-2 transition-colors" style="background: #FF9933;" onmouseover="this.style.background='#E6851A'" onmouseout="this.style.background='#FF9933'">
+                    <button id="confirmButton" class="px-4 py-2 text-white bg-teal-500 hover:bg-teal-600 rounded-lg sm:order-2 transition-colors">
                         Confirm
                     </button>
                 </div>
@@ -349,6 +349,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Lesson Requests JavaScript -->
-    <script src="lesson-requests.js?v=10&t=20250614-fix"></script>
+    <script src="lesson-requests.js?v=11&t=20250614-lightgrey"></script>
 </body>
 </html>

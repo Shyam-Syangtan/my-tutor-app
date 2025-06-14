@@ -1,25 +1,31 @@
-/* CSS Custom Properties - Indian Heritage Theme */
+/* CSS Custom Properties - Light Grey Theme */
 :root {
-    /* Indian Heritage Color Palette */
-    --primary-color: #FF9933;
-    --primary-hover: #E6851A;
-    --secondary-color: #FAF3E0;
+    /* Light Grey Color Palette */
+    --primary-color: #00BFA5;
+    --primary-hover: #00A693;
+    --secondary-color: #E0E0E0;
     --accent-color: #4CAF50;
     --text-primary: #333333;
     --text-secondary: #666666;
     --text-light: #999999;
-    --background: #FAF3E0;
-    --background-light: #FEFBF3;
+    --background: #F9FAFB;
+    --background-light: #FFFFFF;
     --surface: #FFFFFF;
-    --border-color: #E0D4C1;
+    --border-color: #E0E0E0;
     --border-radius: 12px;
     --border-radius-lg: 16px;
-    --shadow-sm: 0 1px 2px 0 rgba(255, 153, 51, 0.1);
-    --shadow-md: 0 4px 6px -1px rgba(255, 153, 51, 0.15), 0 2px 4px -2px rgba(255, 153, 51, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(255, 153, 51, 0.2), 0 4px 6px -4px rgba(255, 153, 51, 0.1);
-    --gradient-primary: linear-gradient(135deg, #FF9933 0%, #E6851A 100%);
-    --gradient-secondary: linear-gradient(135deg, #FAF3E0 0%, #F5EDD6 100%);
-    --gradient-warm: linear-gradient(135deg, #FF9933 0%, #4CAF50 100%);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+    --gradient-primary: linear-gradient(135deg, #00BFA5 0%, #00A693 100%);
+    --gradient-secondary: linear-gradient(135deg, #F9FAFB 0%, #F5F5F5 100%);
+    --gradient-background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+
+    /* Special Colors */
+    --star-rating: #FFC107;
+    --availability: #8BC34A;
+    --verified: #4CAF50;
+    --accent-text: #00C2C2;
 }
 
 /* Reset and Base Styles */
@@ -101,10 +107,10 @@ body {
     box-shadow: var(--shadow-md);
 }
 
-/* Hero Section with Cream Background */
+/* Hero Section with Light Grey Background */
 .hero {
     padding: 8rem 0 4rem;
-    background: var(--gradient-secondary);
+    background: var(--gradient-background);
     min-height: 100vh;
     display: flex;
     align-items: center;

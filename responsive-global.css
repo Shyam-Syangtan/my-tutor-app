@@ -36,72 +36,78 @@
     --text-3xl: 1.875rem;
     --text-4xl: 2.25rem;
 
-    /* INDIAN HERITAGE COLOR THEME */
-    /* Primary Colors - Deep Saffron (Traditional Indian) */
-    --color-primary: #FF9933;
-    --color-primary-light: #FFB366;
-    --color-primary-dark: #E6851A;
-    --color-primary-darker: #CC7700;
+    /* COMPREHENSIVE LIGHT GREY COLOR THEME */
+    /* Primary Colors - Teal/Aqua Accents */
+    --color-primary: #00BFA5;
+    --color-primary-light: #00C2C2;
+    --color-primary-dark: #00A693;
+    --color-primary-darker: #008A7A;
 
-    /* Secondary Colors - Cream/Off-white */
-    --color-secondary: #FAF3E0;
-    --color-secondary-light: #FEFBF3;
-    --color-secondary-dark: #F5EDD6;
-    --color-secondary-darker: #F0E8D8;
+    /* Secondary Colors - Soft Grey */
+    --color-secondary: #E0E0E0;
+    --color-secondary-light: #F5F5F5;
+    --color-secondary-dark: #BDBDBD;
+    --color-secondary-darker: #9E9E9E;
 
-    /* Accent Colors - Leaf Green */
+    /* Accent Colors - Verified Green & Availability Green */
     --color-accent: #4CAF50;
-    --color-accent-light: #66BB6A;
+    --color-accent-light: #8BC34A;
     --color-accent-dark: #388E3C;
     --color-accent-darker: #2E7D32;
 
-    /* Background Colors - Cream/Off-white */
-    --color-background: #FAF3E0;
-    --color-background-light: #FEFBF3;
-    --color-background-dark: #F5EDD6;
+    /* Background Colors - Light Grey Theme */
+    --color-background: #F9FAFB;
+    --color-background-light: #FFFFFF;
+    --color-background-dark: #F5F5F5;
     --color-surface: #FFFFFF;
     --color-surface-light: #FEFEFE;
-    --color-surface-dark: #F8F8F8;
+    --color-surface-dark: #F8F9FA;
 
-    /* Text Colors - Charcoal */
+    /* Text Colors - Grey Scale */
     --color-text-primary: #333333;
     --color-text-secondary: #666666;
     --color-text-tertiary: #999999;
     --color-text-light: #CCCCCC;
     --color-text-inverse: #FFFFFF;
 
-    /* Status Colors (Culturally Appropriate) */
+    /* Status Colors (Light Grey Theme) */
     --color-success: #4CAF50;
     --color-success-light: #81C784;
     --color-success-dark: #388E3C;
 
-    --color-warning: #FF9933;
-    --color-warning-light: #FFB366;
-    --color-warning-dark: #E6851A;
+    --color-warning: #FFC107;
+    --color-warning-light: #FFD54F;
+    --color-warning-dark: #FFA000;
 
-    --color-error: #dc2626;
-    --color-error-light: #ef4444;
-    --color-error-dark: #b91c1c;
+    --color-error: #F44336;
+    --color-error-light: #EF5350;
+    --color-error-dark: #D32F2F;
 
     --color-info: #2196F3;
     --color-info-light: #64B5F6;
     --color-info-dark: #1976D2;
 
-    /* Border Colors - Cream Tones */
-    --color-border: #E0D4C1;
-    --color-border-light: #F0E8D8;
-    --color-border-dark: #D0C4B1;
+    /* Special Colors */
+    --color-star-rating: #FFC107;
+    --color-availability: #8BC34A;
+    --color-verified: #4CAF50;
+    --color-accent-text: #00C2C2;
 
-    /* Shadow Colors */
-    --shadow-light: rgba(255, 153, 51, 0.1);
-    --shadow-medium: rgba(255, 153, 51, 0.15);
-    --shadow-dark: rgba(255, 153, 51, 0.2);
+    /* Border Colors - Light Grey Tones */
+    --color-border: #E0E0E0;
+    --color-border-light: #F5F5F5;
+    --color-border-dark: #BDBDBD;
+
+    /* Shadow Colors - Light Grey Theme */
+    --shadow-light: rgba(0, 0, 0, 0.05);
+    --shadow-medium: rgba(0, 0, 0, 0.1);
+    --shadow-dark: rgba(0, 0, 0, 0.15);
 
     /* Gradient Combinations */
     --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     --gradient-secondary: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
     --gradient-accent: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
-    --gradient-warm: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+    --gradient-background: linear-gradient(135deg, var(--color-background) 0%, var(--color-background-dark) 100%);
 }
 
 /* GLOBAL RESPONSIVE UTILITIES */
@@ -256,16 +262,16 @@
 }
 
 .btn-secondary {
-    background: var(--color-surface);
-    color: var(--color-text-secondary);
-    border: 1px solid var(--color-border-dark);
+    background: var(--color-secondary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
 }
 
 .btn-secondary:hover {
-    background: var(--color-secondary);
+    background: var(--color-secondary-dark);
     color: var(--color-text-primary);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(208, 196, 177, 0.4);
+    box-shadow: 0 4px 12px var(--shadow-medium);
 }
 
 .btn-danger {
