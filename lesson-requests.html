@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lesson Requests - Tutor Dashboard</title>
+    <!-- Responsive Global CSS with Indian Heritage Theme -->
+    <link rel="stylesheet" href="responsive-global.css?v=2&t=20250614-theme">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -245,30 +248,30 @@
         }
     </style>
 </head>
-<body class="bg-gray-50">
+<body style="background: var(--color-background);">
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav class="responsive-nav bg-surface shadow-sm border-b">
+        <div class="responsive-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="nav-content flex justify-between items-center min-h-16">
                 <div class="nav-left flex items-center space-x-4 sm:space-x-8">
-                    <a href="#" class="text-xl sm:text-2xl font-bold text-indigo-600">IndianTutors</a>
-                    <button onclick="goBackToTutorDashboard()" class="text-sm sm:text-base text-gray-600 hover:text-indigo-600 transition-colors">
+                    <a href="#" class="nav-logo text-xl sm:text-2xl font-bold">IndianTutors</a>
+                    <button onclick="goBackToTutorDashboard()" class="nav-link text-sm sm:text-base transition-colors">
                         ← Back to Dashboard
                     </button>
                 </div>
                 <div class="nav-right flex items-center space-x-2 sm:space-x-4">
-                    <span id="userEmail" class="text-gray-600 text-sm sm:text-base truncate max-w-32 sm:max-w-none">Loading...</span>
-                    <button onclick="handleLogout()" class="text-red-600 hover:text-red-700 text-sm sm:text-base">Logout</button>
+                    <span id="userEmail" class="text-secondary text-sm sm:text-base truncate max-w-32 sm:max-w-none">Loading...</span>
+                    <button onclick="handleLogout()" class="text-error hover:text-error-dark text-sm sm:text-base transition-colors">Logout</button>
                 </div>
             </div>
         </div>
     </nav>
 
     <!-- Loading State -->
-    <div id="loadingState" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div id="loadingState" class="responsive-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-            <p class="text-gray-600 mt-4">Loading lesson requests...</p>
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p class="text-secondary mt-4">Loading lesson requests...</p>
         </div>
     </div>
 
@@ -277,35 +280,35 @@
         <!-- Header -->
         <div class="page-header flex justify-between items-center mb-6">
             <div class="header-info">
-                <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Lesson Requests</h1>
-                <p class="text-sm sm:text-base text-gray-600 mt-1">Review and manage student booking requests</p>
+                <h1 class="text-xl sm:text-2xl font-bold text-primary">Lesson Requests</h1>
+                <p class="text-sm sm:text-base text-secondary mt-1">Review and manage student booking requests</p>
             </div>
             <div class="header-actions flex items-center space-x-4">
-                <div class="pending-counter bg-white px-3 sm:px-4 py-2 rounded-lg shadow-sm border">
-                    <span class="text-xs sm:text-sm text-gray-600">Pending: </span>
-                    <span id="pendingCount" class="font-semibold text-indigo-600">0</span>
+                <div class="pending-counter card bg-surface px-3 sm:px-4 py-2 rounded-lg shadow-sm border-primary">
+                    <span class="text-xs sm:text-sm text-secondary">Pending: </span>
+                    <span id="pendingCount" class="font-semibold text-primary">0</span>
                 </div>
-                <button onclick="refreshRequests()" class="refresh-btn bg-indigo-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-indigo-700 font-medium text-sm sm:text-base transition-colors">
+                <button onclick="refreshRequests()" class="btn btn-primary refresh-btn px-3 sm:px-4 py-2 rounded-lg font-medium text-sm sm:text-base">
                     Refresh
                 </button>
             </div>
         </div>
 
         <!-- Filter Tabs -->
-        <div class="bg-white rounded-lg shadow-sm border mb-6">
-            <div class="border-b border-gray-200">
+        <div class="card bg-surface rounded-lg shadow-sm border mb-6">
+            <div class="border-b border-border">
                 <div class="filter-tabs-container">
                     <nav class="filter-tabs flex space-x-4 sm:space-x-8 px-4 sm:px-6">
-                        <button class="filter-tab active py-3 sm:py-4 text-sm font-medium border-b-2 border-indigo-500 text-indigo-600 transition-colors" data-filter="pending">
+                        <button class="filter-tab active py-3 sm:py-4 text-sm font-medium border-b-2 border-primary text-primary transition-colors" data-filter="pending">
                             Pending Requests
                         </button>
-                        <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors" data-filter="approved">
+                        <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-secondary hover:text-primary transition-colors" data-filter="approved">
                             Approved
                         </button>
-                        <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors" data-filter="declined">
+                        <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-secondary hover:text-primary transition-colors" data-filter="declined">
                             Declined
                         </button>
-                        <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors" data-filter="all">
+                        <button class="filter-tab py-3 sm:py-4 text-sm font-medium text-secondary hover:text-primary transition-colors" data-filter="all">
                             All Requests
                         </button>
                     </nav>
@@ -320,23 +323,23 @@
 
         <!-- Empty State -->
         <div id="emptyState" class="hidden text-center py-12">
-            <div class="text-gray-400 text-6xl mb-4">📅</div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">No lesson requests</h3>
-            <p class="text-gray-600">When students book lessons, they'll appear here for your review.</p>
+            <div class="text-muted text-6xl mb-4">📅</div>
+            <h3 class="text-lg font-semibold text-primary mb-2">No lesson requests</h3>
+            <p class="text-secondary">When students book lessons, they'll appear here for your review.</p>
         </div>
     </div>
 
     <!-- Confirmation Modal -->
-    <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden p-4">
-        <div class="modal-content bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div class="p-4 sm:p-6">
-                <h3 id="modalTitle" class="text-lg font-semibold text-gray-900 mb-4"></h3>
-                <p id="modalMessage" class="text-gray-600 mb-6 text-sm sm:text-base"></p>
-                <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
-                    <button onclick="closeConfirmationModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg sm:order-1 transition-colors">
+    <div id="confirmationModal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 hidden p-4">
+        <div class="modal-content bg-surface rounded-lg shadow-xl max-w-md w-full">
+            <div class="modal-body p-4 sm:p-6">
+                <h3 id="modalTitle" class="modal-title text-lg font-semibold text-primary mb-4"></h3>
+                <p id="modalMessage" class="text-secondary mb-6 text-sm sm:text-base"></p>
+                <div class="modal-footer flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3">
+                    <button onclick="closeConfirmationModal()" class="btn btn-secondary px-4 py-2 rounded-lg sm:order-1">
                         Cancel
                     </button>
-                    <button id="confirmButton" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 sm:order-2 transition-colors">
+                    <button id="confirmButton" class="btn btn-primary px-4 py-2 rounded-lg sm:order-2">
                         Confirm
                     </button>
                 </div>
@@ -348,6 +351,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <!-- Lesson Requests JavaScript -->
-    <script src="lesson-requests.js?v=8&t=20250614-responsive"></script>
+    <script src="lesson-requests.js?v=9&t=20250614-theme"></script>
 </body>
 </html>
