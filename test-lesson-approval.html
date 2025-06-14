@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Lesson Approval System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">🧪 Test Lesson Approval System</h1>
+        
+        <!-- Test Results -->
+        <div id="testResults" class="space-y-4 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">Test Results</h2>
+                <div id="results" class="space-y-2">
+                    <div class="text-gray-600">Running tests...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual Test Actions -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Manual Test Actions</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="testDatabaseConnection()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Test Database Connection
+                </button>
+                <button onclick="createTestRequest()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                    Create Test Request
+                </button>
+                <button onclick="checkTables()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                    Check Tables
+                </button>
+                <button onclick="testRLSPolicies()" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">
+                    Test RLS Policies
+                </button>
+            </div>
+        </div>
+
+        <!-- Login Section -->
+        <div class="bg-white rounded-lg shadow p-6 mt-6">
+            <h2 class="text-xl font-semibold mb-4">Authentication</h2>
+            <div id="authStatus" class="mb-4">
+                <div class="text-gray-600">Checking authentication...</div>
+            </div>
+            <button onclick="loginWithGoogle()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                Login with Google
+            </button>
+        </div>
+    </div>
+
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://qbyyutebrgpxngvwenkd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFieXl1dGVicmdweG5ndndlbmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MTA1NTMsImV4cCI6MjA2NTI4NjU1M30.eO8Wd0ZOqtXgvQ3BuedmSPmYVpbG3V-AXvgufLns6yY';
+        
+        let supabase;
+        let currentUser;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async function() {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            await checkAuth();
+            await runTests();
+        });
+
+        async function checkAuth() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                const authStatus = document.getElementById('authStatus');
+                
+                if (session) {
+                    currentUser = session.user;
+                    authStatus.innerHTML = `
+                        <div class="text-green-600">✅ Authenticated as: ${currentUser.email}</div>
+                        <div class="text-sm text-gray-600">User ID: ${currentUser.id}</div>
+                    `;
+                } else {
+                    authStatus.innerHTML = '<div class="text-red-600">❌ Not authenticated</div>';
+                }
+            } catch (error) {
+                document.getElementById('authStatus').innerHTML = `<div class="text-red-600">❌ Auth error: ${error.message}</div>`;
+            }
+        }
+
+        async function runTests() {
+            const results = document.getElementById('results');
+            results.innerHTML = '';
+
+            const tests = [
+                { name: 'Database Connection', fn: testDatabaseConnection },
+                { name: 'Tables Existence', fn: checkTables },
+                { name: 'RLS Policies', fn: testRLSPolicies }
+            ];
+
+            for (const test of tests) {
+                try {
+                    const result = await test.fn();
+                    addResult(test.name, result, 'success');
+                } catch (error) {
+                    addResult(test.name, error.message, 'error');
+                }
+            }
+        }
+
+        function addResult(testName, message, type) {
+            const results = document.getElementById('results');
+            const color = type === 'success' ? 'text-green-600' : 'text-red-600';
+            const icon = type === 'success' ? '✅' : '❌';
+            
+            results.innerHTML += `
+                <div class="${color}">
+                    ${icon} <strong>${testName}:</strong> ${message}
+                </div>
+            `;
+        }
+
+        async function testDatabaseConnection() {
+            const { data, error } = await supabase.from('users').select('count').limit(1);
+            if (error) throw error;
+            return 'Connected successfully';
+        }
+
+        async function checkTables() {
+            const tables = ['lesson_requests', 'lessons', 'users', 'tutors'];
+            const results = [];
+            
+            for (const table of tables) {
+                try {
+                    const { data, error } = await supabase.from(table).select('count').limit(1);
+                    if (error) {
+                        results.push(`${table}: ❌ ${error.message}`);
+                    } else {
+                        results.push(`${table}: ✅ Exists`);
+                    }
+                } catch (e) {
+                    results.push(`${table}: ❌ ${e.message}`);
+                }
+            }
+            
+            return results.join(', ');
+        }
+
+        async function testRLSPolicies() {
+            if (!currentUser) {
+                throw new Error('Must be authenticated to test RLS');
+            }
+            
+            try {
+                const { data, error } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .limit(1);
+                    
+                if (error) {
+                    return `RLS Error: ${error.message}`;
+                }
+                
+                return 'RLS policies working';
+            } catch (error) {
+                return `RLS Test Failed: ${error.message}`;
+            }
+        }
+
+        async function createTestRequest() {
+            if (!currentUser) {
+                alert('Please login first');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('lesson_requests')
+                    .insert({
+                        tutor_id: currentUser.id, // Using same user as both tutor and student for testing
+                        student_id: currentUser.id,
+                        requested_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Tomorrow
+                        requested_start_time: '14:00:00',
+                        requested_end_time: '15:00:00',
+                        student_message: 'Test lesson request created by test script'
+                    })
+                    .select()
+                    .single();
+
+                if (error) throw error;
+                
+                addResult('Create Test Request', `Created request ID: ${data.id}`, 'success');
+            } catch (error) {
+                addResult('Create Test Request', error.message, 'error');
+            }
+        }
+
+        async function loginWithGoogle() {
+            try {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: window.location.href
+                    }
+                });
+                
+                if (error) throw error;
+            } catch (error) {
+                alert('Login failed: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

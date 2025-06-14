@@ -15,111 +15,147 @@ let lessonRequests = [];
 // Initialize the application
 document.addEventListener('DOMContentLoaded', async function() {
     try {
+        console.log('🚀 [INIT] Initializing lesson requests page...');
+
         // Initialize Supabase
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
+        console.log('✅ [INIT] Supabase client initialized');
+
         // Check authentication
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+            console.error('❌ [INIT] Session error:', sessionError);
+            showErrorMessage('Authentication error. Please log in again.');
+            setTimeout(() => window.location.href = 'index.html', 2000);
+            return;
+        }
+
         if (!session) {
+            console.log('❌ [INIT] No session found, redirecting to login');
             window.location.href = 'index.html';
             return;
         }
 
         currentUser = session.user;
-        
+        console.log('✅ [INIT] User authenticated:', currentUser.email);
+
         // Update user info in nav
         document.getElementById('userEmail').textContent = currentUser.email;
 
         // Load lesson requests
         await loadLessonRequests();
-        
+
         // Setup event listeners
         setupEventListeners();
 
-        // Hide loading state
+        // Hide loading state and show main content
         document.getElementById('loadingState').classList.add('hidden');
         document.getElementById('mainContent').classList.remove('hidden');
+        console.log('✅ [INIT] Initialization complete');
 
     } catch (error) {
-        console.error('Error initializing lesson requests:', error);
-        showErrorMessage('Failed to load lesson requests. Please refresh the page.');
+        console.error('❌ [INIT] Error initializing lesson requests:', error);
+        showErrorMessage(`Failed to initialize: ${error.message}`);
+
+        // Still show the main content but with error state
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('mainContent').classList.remove('hidden');
+        document.getElementById('emptyState').classList.remove('hidden');
     }
 });
 
 // Load lesson requests from database
 async function loadLessonRequests() {
     try {
-        console.log('Loading lesson requests for tutor:', currentUser.id);
-        
-        // First, let's try a simple query without joins to see if the table exists
-        console.log('🔍 [DEBUG] Testing basic lesson_requests query...');
+        console.log('🔍 Loading lesson requests for tutor:', currentUser.id);
+
+        // First, test if the lesson_requests table exists
+        console.log('🔍 [DEBUG] Testing lesson_requests table access...');
         const { data: testData, error: testError } = await supabase
             .from('lesson_requests')
-            .select('*')
-            .eq('tutor_id', currentUser.id)
+            .select('id')
             .limit(1);
 
         if (testError) {
-            console.error('❌ [DEBUG] Basic query failed:', testError);
+            console.error('❌ [DEBUG] Table access failed:', testError);
             if (testError.message.includes('relation "lesson_requests" does not exist')) {
-                throw new Error('The lesson_requests table does not exist. Please create it first.');
+                showErrorMessage('The lesson_requests table does not exist. Please run the database setup first.');
+                return;
+            }
+            if (testError.message.includes('permission denied') || testError.message.includes('RLS')) {
+                showErrorMessage('Permission denied. Please check database RLS policies.');
+                return;
             }
             throw testError;
         }
 
-        console.log('✅ [DEBUG] Basic query succeeded, now trying with user data...');
+        console.log('✅ [DEBUG] Table access successful, loading tutor requests...');
 
-        // Now try the full query with user information
-        const { data, error } = await supabase
+        // Load lesson requests for this tutor
+        const { data: requests, error: requestsError } = await supabase
             .from('lesson_requests')
             .select('*')
             .eq('tutor_id', currentUser.id)
             .order('created_at', { ascending: false });
 
-        if (error) {
-            throw error;
+        if (requestsError) {
+            console.error('❌ [DEBUG] Failed to load requests:', requestsError);
+            throw requestsError;
         }
 
-        // Get student information separately to avoid join issues
+        console.log('📋 [DEBUG] Raw lesson requests loaded:', requests?.length || 0);
+
+        // Get student information for each request
         const requestsWithStudents = [];
-        for (const request of (data || [])) {
+        for (const request of (requests || [])) {
             try {
-                const { data: studentData, error: studentError } = await supabase
+                // Try to get student info from users table first
+                let studentData = null;
+                const { data: userData, error: userError } = await supabase
                     .from('users')
-                    .select('email')
+                    .select('email, full_name')
                     .eq('id', request.student_id)
                     .single();
 
+                if (!userError && userData) {
+                    studentData = userData;
+                } else {
+                    // Fallback to auth.users if users table doesn't have the data
+                    console.warn('Could not load from users table, trying auth data for:', request.student_id);
+                    studentData = { email: 'Unknown Student', full_name: null };
+                }
+
                 requestsWithStudents.push({
                     ...request,
-                    student: studentData || { email: 'Unknown Student' }
+                    student: studentData
                 });
             } catch (studentError) {
-                console.warn('Could not load student data for request:', request.id);
+                console.warn('Could not load student data for request:', request.id, studentError);
                 requestsWithStudents.push({
                     ...request,
-                    student: { email: 'Unknown Student' }
+                    student: { email: 'Unknown Student', full_name: null }
                 });
             }
         }
 
-        if (error) {
-            throw error;
-        }
+        lessonRequests = requestsWithStudents;
+        console.log('✅ [DEBUG] Processed lesson requests:', lessonRequests.length);
 
-        lessonRequests = requestsWithStudents || [];
-        console.log('Loaded lesson requests with student data:', lessonRequests);
-        
         // Update pending count
         const pendingCount = lessonRequests.filter(req => req.status === 'pending').length;
         document.getElementById('pendingCount').textContent = pendingCount;
-        
+        console.log('📊 [DEBUG] Pending requests count:', pendingCount);
+
         // Render requests
         renderLessonRequests();
 
     } catch (error) {
-        console.error('Error loading lesson requests:', error);
-        showErrorMessage('Failed to load lesson requests.');
+        console.error('❌ Error loading lesson requests:', error);
+        showErrorMessage(`Failed to load lesson requests: ${error.message}`);
+
+        // Show empty state
+        document.getElementById('requestsContainer').innerHTML = '';
+        document.getElementById('emptyState').classList.remove('hidden');
     }
 }
 
@@ -278,35 +314,34 @@ async function updateRequestStatus(requestId, status) {
 
         // If approved, ensure lesson is created
         if (status === 'approved') {
-            console.log('Request approved, ensuring lesson creation...');
-            showSuccessMessage(`Lesson request approved successfully! Creating lesson...`);
+            console.log('✅ Request approved, ensuring lesson creation...');
+            showSuccessMessage(`Lesson request approved! Creating lesson...`);
 
-            // Immediately try to create the lesson
+            // Try to create the lesson
             try {
                 // First check if lesson already exists
                 const lessonExists = await checkLessonExists(currentRequest);
 
                 if (lessonExists) {
                     console.log('✅ Lesson already exists for this request');
-                    showSuccessMessage(`Lesson request approved! The lesson is now available in both dashboards.`);
+                    showSuccessMessage(`Lesson request approved! The lesson is already available in both dashboards.`);
                 } else {
                     // Create lesson manually to ensure it exists
                     console.log('📅 Creating lesson from approved request...');
-                    const lessonId = await createLessonFromRequest(currentRequest);
+                    const lessonResult = await createLessonFromRequest(currentRequest);
 
-                    if (lessonId) {
-                        console.log('✅ Lesson created successfully:', lessonId);
+                    if (lessonResult && lessonResult !== 'error') {
+                        console.log('✅ Lesson created successfully:', lessonResult);
                         showSuccessMessage(`Lesson request approved and lesson created! The lesson will appear in both dashboards.`);
                     } else {
-                        console.warn('⚠️ Lesson creation returned no ID, but may have succeeded');
-                        showSuccessMessage(`Lesson request approved! Please check if the lesson appears in both dashboards.`);
+                        console.warn('⚠️ Lesson creation may have failed');
+                        showErrorMessage(`Request approved but lesson creation may have failed. Please check both dashboards.`);
                     }
                 }
             } catch (lessonError) {
                 console.error('❌ Error in lesson creation:', lessonError);
                 showErrorMessage(`Request approved but lesson creation failed: ${lessonError.message}`);
             }
-            }, 3000);
         } else {
             showSuccessMessage(`Lesson request ${status} successfully!`);
         }
@@ -348,7 +383,7 @@ async function checkLessonExists(request) {
 // Create lesson record from approved request
 async function createLessonFromRequest(request) {
     try {
-        console.log('📅 [MANUAL] Creating confirmed lesson from approved request:', {
+        console.log('📅 [LESSON] Creating confirmed lesson from approved request:', {
             requestId: request.id,
             tutorId: request.tutor_id,
             studentId: request.student_id,
@@ -356,8 +391,9 @@ async function createLessonFromRequest(request) {
             time: `${request.requested_start_time} - ${request.requested_end_time}`
         });
 
-        // First try the manual function approach
+        // First try the database function approach
         try {
+            console.log('🔧 [LESSON] Trying manual_create_lesson function...');
             const { data: functionResult, error: functionError } = await supabase
                 .rpc('manual_create_lesson', {
                     p_tutor_id: request.tutor_id,
@@ -365,98 +401,64 @@ async function createLessonFromRequest(request) {
                     p_lesson_date: request.requested_date,
                     p_start_time: request.requested_start_time,
                     p_end_time: request.requested_end_time,
-                    p_notes: request.student_message || 'Lesson booked through calendar'
+                    p_notes: request.student_message || 'Lesson created from approved request'
                 });
 
             if (functionError) {
-                if (functionError.message.includes('already exists')) {
-                    console.log('✅ Lesson already exists (from function)');
+                console.warn('🔧 [LESSON] Function failed:', functionError.message);
+                if (functionError.message.includes('already exists') || functionError.message.includes('duplicate')) {
+                    console.log('✅ [LESSON] Lesson already exists (from function)');
                     return 'existing';
                 }
-                throw functionError;
-            }
-
-            if (functionResult) {
-                console.log('✅ Lesson created via function:', functionResult);
+                // Don't throw here, try direct insert instead
+            } else if (functionResult) {
+                console.log('✅ [LESSON] Lesson created via function:', functionResult);
                 return functionResult;
             }
         } catch (funcError) {
-            console.warn('Function approach failed, trying direct insert:', funcError.message);
-
-            // Fallback to direct insert
-            const { data: insertResult, error: insertError } = await supabase
-                .from('lessons')
-                .insert({
-                    tutor_id: request.tutor_id,
-                    student_id: request.student_id,
-                    lesson_date: request.requested_date,
-                    start_time: request.requested_start_time,
-                    end_time: request.requested_end_time,
-                    status: 'confirmed',
-                    lesson_type: 'conversation_practice',
-                    notes: request.student_message || 'Lesson booked through calendar',
-                    price: 500.00,
-                    created_at: new Date().toISOString()
-                })
-                .select()
-                .single();
-
-            if (insertError) {
-                if (insertError.code === '23505') { // Unique constraint violation
-                    console.log('✅ Lesson already exists (from direct insert)');
-                    return 'existing';
-                }
-                throw insertError;
-            }
-
-            if (insertResult) {
-                console.log('✅ Lesson created via direct insert:', insertResult.id);
-                return insertResult.id;
-            }
+            console.warn('🔧 [LESSON] Function approach failed, trying direct insert:', funcError.message);
         }
 
-        if (functionError) {
-            console.warn('Manual function failed, trying direct insert:', functionError);
+        // Fallback to direct insert
+        console.log('📝 [LESSON] Trying direct insert...');
+        const { data: insertResult, error: insertError } = await supabase
+            .from('lessons')
+            .insert({
+                tutor_id: request.tutor_id,
+                student_id: request.student_id,
+                lesson_date: request.requested_date,
+                start_time: request.requested_start_time,
+                end_time: request.requested_end_time,
+                status: 'confirmed',
+                lesson_type: 'conversation_practice',
+                notes: request.student_message || 'Lesson created from approved request',
+                price: 500.00,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            })
+            .select()
+            .single();
 
-            // Fallback to direct insert
-            const { data: lessonData, error: insertError } = await supabase
-                .from('lessons')
-                .insert([{
-                    tutor_id: request.tutor_id,
-                    student_id: request.student_id,
-                    lesson_date: request.requested_date,
-                    start_time: request.requested_start_time,
-                    end_time: request.requested_end_time,
-                    status: 'confirmed',
-                    lesson_type: 'conversation_practice',
-                    notes: request.student_message || 'Lesson booked through calendar',
-                    price: 500.00
-                }])
-                .select()
-                .single();
-
-            if (insertError) {
-                throw insertError;
+        if (insertError) {
+            console.error('📝 [LESSON] Direct insert failed:', insertError);
+            if (insertError.code === '23505') { // Unique constraint violation
+                console.log('✅ [LESSON] Lesson already exists (from direct insert)');
+                return 'existing';
             }
-
-            console.log('✅ [MANUAL] Confirmed lesson created via direct insert:', lessonData);
-            return lessonData;
-        } else {
-            console.log('✅ [MANUAL] Confirmed lesson created via function:', functionResult);
-            return functionResult;
+            throw insertError;
         }
 
-        return lessonData;
+        if (insertResult) {
+            console.log('✅ [LESSON] Lesson created via direct insert:', insertResult.id);
+            return insertResult.id;
+        }
+
+        console.warn('⚠️ [LESSON] No result from either method');
+        return null;
 
     } catch (error) {
-        console.error('❌ [APPROVAL] Error creating confirmed lesson:', error);
-
-        // Show error to user since this is important
-        setTimeout(() => {
-            showErrorMessage('Request approved, but failed to create confirmed lesson. Please check your lessons manually.');
-        }, 1000);
-
-        throw error;
+        console.error('❌ [LESSON] Error creating confirmed lesson:', error);
+        return 'error';
     }
 }
 
