@@ -156,12 +156,24 @@ async function checkTutorStatus() {
 // Global variables for subscription management
 let activeSubscriptions = [];
 
-// Setup real-time subscriptions for lesson updates
+// Setup real-time subscriptions for lesson updates with throttling
 function setupRealTimeSubscriptions() {
     if (!supabase || !currentUser) return;
 
     // Clean up any existing subscriptions first
     cleanupSubscriptions();
+
+    // Throttle updates to prevent flickering
+    let updateTimeout = null;
+    const throttledUpdate = () => {
+        if (updateTimeout) {
+            clearTimeout(updateTimeout);
+        }
+        updateTimeout = setTimeout(() => {
+            console.log('🔄 [THROTTLED] Updating stats after real-time change');
+            loadLessonStats();
+        }, 1000); // Wait 1 second before updating
+    };
 
     try {
         // Subscribe to lesson_requests changes (only if table exists)
@@ -175,14 +187,14 @@ function setupRealTimeSubscriptions() {
                     filter: `tutor_id=eq.${currentUser.id}`
                 },
                 (payload) => {
-                    console.log('📡 Lesson request change detected:', payload);
-                    // Refresh stats when lesson requests change
-                    loadLessonStats();
+                    console.log('📡 [THROTTLED] Lesson request change detected:', payload.eventType);
+                    // Use throttled update to prevent flickering
+                    throttledUpdate();
                 }
             )
             .subscribe((status) => {
                 if (status === 'SUBSCRIBED') {
-                    console.log('✅ Lesson requests subscription active');
+                    console.log('✅ Lesson requests subscription active (throttled)');
                 } else if (status === 'CHANNEL_ERROR') {
                     console.log('⚠️ Lesson requests subscription failed - table may not exist');
                 }
@@ -201,14 +213,14 @@ function setupRealTimeSubscriptions() {
                     filter: `tutor_id=eq.${currentUser.id}`
                 },
                 (payload) => {
-                    console.log('📡 Lesson change detected:', payload);
-                    // Refresh stats when lessons change
-                    loadLessonStats();
+                    console.log('📡 [THROTTLED] Lesson change detected:', payload.eventType);
+                    // Use throttled update to prevent flickering
+                    throttledUpdate();
                 }
             )
             .subscribe((status) => {
                 if (status === 'SUBSCRIBED') {
-                    console.log('✅ Lessons subscription active');
+                    console.log('✅ Lessons subscription active (throttled)');
                 } else if (status === 'CHANNEL_ERROR') {
                     console.log('⚠️ Lessons subscription failed - table may not exist');
                 }
@@ -216,7 +228,7 @@ function setupRealTimeSubscriptions() {
 
         activeSubscriptions.push(lessonsSubscription);
 
-        console.log('✅ Real-time subscriptions setup complete');
+        console.log('✅ Real-time subscriptions setup complete with throttling');
 
     } catch (error) {
         console.error('Error setting up real-time subscriptions:', error);
@@ -336,20 +348,28 @@ async function updateStats() {
     }
 }
 
-// Load lesson statistics from database
+// Load lesson statistics from database with caching to prevent flickering
+let lastStatsUpdate = 0;
+let cachedStats = { pendingCount: 0, upcomingCount: 0 };
+
 async function loadLessonStats() {
     console.log('🔍 [STATS] Starting loadLessonStats...');
-    console.log('🔍 [STATS] Current user:', currentUser?.id);
-    console.log('🔍 [STATS] Supabase available:', !!supabase);
+
+    // Prevent excessive updates (max once per 2 seconds)
+    const now = Date.now();
+    if (now - lastStatsUpdate < 2000) {
+        console.log('🔄 [STATS] Skipping update - too recent (preventing flicker)');
+        return;
+    }
 
     if (!currentUser || !supabase) {
         console.error('❌ [STATS] Missing currentUser or supabase');
         return;
     }
 
-    // Initialize with default values
-    let pendingCount = 0;
-    let upcomingCount = 0;
+    // Initialize with cached values
+    let pendingCount = cachedStats.pendingCount;
+    let upcomingCount = cachedStats.upcomingCount;
 
     try {
         console.log('📊 [STATS] Querying lesson_requests table...');
@@ -364,7 +384,7 @@ async function loadLessonStats() {
 
             if (pendingError) {
                 console.warn('⚠️ [STATS] Error loading pending requests:', pendingError.message);
-                // Don't fail completely, just log the error
+                // Keep cached value on error
             } else {
                 pendingCount = pendingRequests ? pendingRequests.length : 0;
                 console.log('📊 [STATS] Pending requests loaded:', pendingCount);
@@ -387,7 +407,7 @@ async function loadLessonStats() {
 
             if (upcomingError) {
                 console.warn('⚠️ [STATS] Error loading upcoming lessons:', upcomingError.message);
-                // Don't fail completely, just log the error
+                // Keep cached value on error
             } else {
                 upcomingCount = upcomingLessons ? upcomingLessons.length : 0;
                 console.log('📅 [STATS] Upcoming lessons loaded:', upcomingCount);
@@ -396,45 +416,57 @@ async function loadLessonStats() {
             console.warn('⚠️ [STATS] Exception loading upcoming lessons:', error.message);
         }
 
-        console.log('📈 [STATS] Final counts:', { pendingCount, upcomingCount });
+        // Only update UI if values actually changed
+        const hasChanged = pendingCount !== cachedStats.pendingCount || upcomingCount !== cachedStats.upcomingCount;
 
-        // Update UI elements with error handling
-        console.log('🎯 [STATS] Updating UI elements...');
+        if (hasChanged) {
+            console.log('📈 [STATS] Values changed, updating UI:', {
+                old: cachedStats,
+                new: { pendingCount, upcomingCount }
+            });
 
-        try {
-            const actionRequiredElement = document.getElementById('actionRequired');
-            const upcomingLessonsElement = document.getElementById('upcomingLessons');
-            const packageActionElement = document.getElementById('packageAction');
+            // Update cached values
+            cachedStats = { pendingCount, upcomingCount };
+            lastStatsUpdate = now;
 
-            if (actionRequiredElement) {
-                actionRequiredElement.textContent = pendingCount;
-                console.log('🎯 [STATS] Action required count set to:', pendingCount);
+            // Update UI elements with error handling
+            try {
+                const actionRequiredElement = document.getElementById('actionRequired');
+                const upcomingLessonsElement = document.getElementById('upcomingLessons');
+                const packageActionElement = document.getElementById('packageAction');
 
-                // Add notification styling if there are pending requests
-                const actionRequiredCard = document.getElementById('actionRequiredCard');
-                if (actionRequiredCard) {
-                    if (pendingCount > 0) {
-                        actionRequiredCard.classList.add('has-notification');
-                        console.log('🔔 [STATS] Added notification styling');
-                    } else {
-                        actionRequiredCard.classList.remove('has-notification');
-                        console.log('🔕 [STATS] Removed notification styling');
+                if (actionRequiredElement) {
+                    actionRequiredElement.textContent = pendingCount;
+                    console.log('🎯 [STATS] Action required count set to:', pendingCount);
+
+                    // Add notification styling if there are pending requests
+                    const actionRequiredCard = document.getElementById('actionRequiredCard');
+                    if (actionRequiredCard) {
+                        if (pendingCount > 0) {
+                            actionRequiredCard.classList.add('has-notification');
+                            console.log('🔔 [STATS] Added notification styling');
+                        } else {
+                            actionRequiredCard.classList.remove('has-notification');
+                            console.log('🔕 [STATS] Removed notification styling');
+                        }
                     }
                 }
-            }
 
-            if (upcomingLessonsElement) {
-                upcomingLessonsElement.textContent = upcomingCount;
-                console.log('🎯 [STATS] Upcoming lessons count set to:', upcomingCount);
-            }
+                if (upcomingLessonsElement) {
+                    upcomingLessonsElement.textContent = upcomingCount;
+                    console.log('🎯 [STATS] Upcoming lessons count set to:', upcomingCount);
+                }
 
-            if (packageActionElement) {
-                packageActionElement.textContent = '0'; // Placeholder
-            }
+                if (packageActionElement) {
+                    packageActionElement.textContent = '0'; // Placeholder
+                }
 
-            console.log('✅ [STATS] UI updated successfully:', { pendingCount, upcomingCount });
-        } catch (uiError) {
-            console.error('❌ [STATS] Error updating UI:', uiError.message);
+                console.log('✅ [STATS] UI updated successfully');
+            } catch (uiError) {
+                console.error('❌ [STATS] Error updating UI:', uiError.message);
+            }
+        } else {
+            console.log('📊 [STATS] No changes detected, skipping UI update');
         }
 
     } catch (error) {

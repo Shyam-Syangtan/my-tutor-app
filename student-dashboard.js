@@ -91,131 +91,113 @@ class StudentDashboard {
     async loadLessons() {
         try {
             const currentUser = window.authHandler.getCurrentUser();
-            console.log('Loading lessons for student:', currentUser.id);
+            console.log('📚 [STUDENT] Loading lessons for student:', currentUser.id);
 
-            // Try multiple approaches to load lessons
+            // Simplified approach - try direct query first, then functions as fallback
             let lessonsData = null;
             let loadMethod = '';
 
-            // Method 1: Try optimized function
+            // Method 1: Direct query with proper error handling
             try {
-                const { data: optimizedData, error: optimizedError } = await window.authHandler.supabase
-                    .rpc('get_student_lessons_optimized', { student_user_id: currentUser.id });
+                console.log('📊 [STUDENT] Trying direct lessons query...');
+                const { data: directData, error: directError } = await window.authHandler.supabase
+                    .from('lessons')
+                    .select(`
+                        id, tutor_id, student_id, lesson_date, start_time, end_time,
+                        status, lesson_type, notes, price, created_at
+                    `)
+                    .eq('student_id', currentUser.id)
+                    .order('lesson_date', { ascending: true })
+                    .order('start_time', { ascending: true });
 
-                if (!optimizedError && optimizedData) {
-                    lessonsData = optimizedData;
-                    loadMethod = 'optimized function';
+                if (directError) {
+                    console.warn('⚠️ [STUDENT] Direct query failed:', directError.message);
+                } else {
+                    console.log('✅ [STUDENT] Direct query successful, found', directData?.length || 0, 'lessons');
+
+                    // Add tutor info for each lesson
+                    const lessonsWithTutors = [];
+                    for (const lesson of (directData || [])) {
+                        try {
+                            const { data: tutorData } = await window.authHandler.supabase
+                                .from('tutors')
+                                .select('name, photo_url, email')
+                                .eq('user_id', lesson.tutor_id)
+                                .single();
+
+                            lessonsWithTutors.push({
+                                ...lesson,
+                                tutor_name: tutorData?.name || 'Unknown Tutor',
+                                tutor_email: tutorData?.email || 'unknown@email.com',
+                                tutor_profile_picture: tutorData?.photo_url || null
+                            });
+                        } catch (tutorError) {
+                            console.warn('⚠️ [STUDENT] Could not load tutor data for lesson:', lesson.id);
+                            lessonsWithTutors.push({
+                                ...lesson,
+                                tutor_name: 'Unknown Tutor',
+                                tutor_email: 'unknown@email.com',
+                                tutor_profile_picture: null
+                            });
+                        }
+                    }
+
+                    lessonsData = lessonsWithTutors;
+                    loadMethod = 'direct query with tutor data';
                 }
             } catch (error) {
-                console.warn('Optimized function failed:', error.message);
+                console.warn('⚠️ [STUDENT] Exception in direct query:', error.message);
             }
 
-            // Method 2: Try final function if optimized failed
+            // Method 2: Try optimized function as fallback
             if (!lessonsData) {
                 try {
-                    const { data: finalData, error: finalError } = await window.authHandler.supabase
-                        .rpc('get_student_lessons_final', { student_user_id: currentUser.id });
+                    console.log('📊 [STUDENT] Trying optimized function...');
+                    const { data: optimizedData, error: optimizedError } = await window.authHandler.supabase
+                        .rpc('get_student_lessons_optimized', { student_user_id: currentUser.id });
 
-                    if (!finalError && finalData) {
-                        lessonsData = finalData;
-                        loadMethod = 'final function';
+                    if (!optimizedError && optimizedData) {
+                        lessonsData = optimizedData;
+                        loadMethod = 'optimized function';
+                        console.log('✅ [STUDENT] Optimized function successful');
+                    } else {
+                        console.warn('⚠️ [STUDENT] Optimized function failed:', optimizedError?.message);
                     }
                 } catch (error) {
-                    console.warn('Final function failed:', error.message);
+                    console.warn('⚠️ [STUDENT] Exception in optimized function:', error.message);
                 }
             }
 
-            // Method 3: Direct query as fallback
+            // Method 3: Try basic function as final fallback
             if (!lessonsData) {
                 try {
-                    const { data: directData, error: directError } = await window.authHandler.supabase
-                        .from('lessons')
-                        .select(`
-                            id, tutor_id, student_id, lesson_date, start_time, end_time,
-                            status, lesson_type, notes, price, created_at
-                        `)
-                        .eq('student_id', currentUser.id)
-                        .eq('status', 'confirmed')
-                        .order('lesson_date', { ascending: true });
+                    console.log('📊 [STUDENT] Trying basic function...');
+                    const { data: basicData, error: basicError } = await window.authHandler.supabase
+                        .rpc('get_student_lessons', { student_user_id: currentUser.id });
 
-                    if (!directError && directData) {
-                        // Add tutor info manually for direct query
-                        for (let lesson of directData) {
-                            try {
-                                const { data: tutorData } = await window.authHandler.supabase
-                                    .from('tutors')
-                                    .select('name, photo_url')
-                                    .eq('user_id', lesson.tutor_id)
-                                    .single();
-
-                                lesson.tutor_name = tutorData?.name || 'Unknown Tutor';
-                                lesson.tutor_profile_picture = tutorData?.photo_url || null;
-                            } catch (tutorError) {
-                                lesson.tutor_name = 'Unknown Tutor';
-                                lesson.tutor_profile_picture = null;
-                            }
-                        }
-
-                        lessonsData = directData;
-                        loadMethod = 'direct query';
+                    if (!basicError && basicData) {
+                        lessonsData = basicData;
+                        loadMethod = 'basic function';
+                        console.log('✅ [STUDENT] Basic function successful');
+                    } else {
+                        console.warn('⚠️ [STUDENT] Basic function failed:', basicError?.message);
                     }
                 } catch (error) {
-                    console.warn('Direct query failed:', error.message);
+                    console.warn('⚠️ [STUDENT] Exception in basic function:', error.message);
                 }
             }
 
-            if (lessonsData) {
+            // Set the lessons data
+            if (lessonsData && Array.isArray(lessonsData)) {
                 this.lessons = lessonsData;
-                console.log(`✅ Loaded ${this.lessons.length} lessons using ${loadMethod}`);
-                return;
+                console.log(`✅ [STUDENT] Successfully loaded ${this.lessons.length} lessons using ${loadMethod}`);
+            } else {
+                console.warn('⚠️ [STUDENT] No lessons data loaded, setting empty array');
+                this.lessons = [];
             }
-
-            console.warn('Optimized function failed, trying final function:', optimizedError);
-
-            // Try the final function as fallback
-            const { data: finalData, error: finalError } = await window.authHandler.supabase
-                .rpc('get_student_lessons_final', { student_user_id: currentUser.id });
-
-            if (!finalError && finalData) {
-                this.lessons = finalData;
-                console.log('✅ Loaded lessons using final function:', this.lessons.length);
-                return;
-            }
-
-            console.warn('Final function failed, using direct query:', finalError);
-
-            // Last resort: direct query with enhanced error handling
-            const { data: directData, error: directError } = await window.authHandler.supabase
-                .from('lessons')
-                .select(`
-                    *,
-                    tutor:tutor_id (
-                        name,
-                        email,
-                        profile_picture
-                    )
-                `)
-                .eq('student_id', currentUser.id)
-                .order('lesson_date', { ascending: true })
-                .order('start_time', { ascending: true });
-
-            if (directError) {
-                console.error('❌ Direct query also failed:', directError);
-                throw directError;
-            }
-
-            // Transform direct query data to match function format
-            this.lessons = (directData || []).map(lesson => ({
-                ...lesson,
-                tutor_name: lesson.tutor?.name || lesson.tutor?.email || 'Unknown Tutor',
-                tutor_email: lesson.tutor?.email,
-                tutor_profile_picture: lesson.tutor?.profile_picture
-            }));
-
-            console.log('✅ Loaded lessons using direct query:', this.lessons.length);
 
         } catch (error) {
-            console.error('❌ Error loading lessons:', error);
+            console.error('❌ [STUDENT] Error loading lessons:', error);
             this.lessons = [];
             this.showNotification('Error loading lessons. Please refresh the page.', 'error');
         }

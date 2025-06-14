@@ -151,7 +151,7 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
+    SELECT
         l.id,
         l.tutor_id,
         l.student_id,
@@ -173,6 +173,8 @@ BEGIN
     ORDER BY l.lesson_date ASC, l.start_time ASC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
 
 -- Step 6: Create function to fix existing approved requests without lessons
 CREATE OR REPLACE FUNCTION public.fix_missing_lessons()
@@ -249,6 +251,7 @@ CREATE POLICY "Users can update their lessons" ON public.lessons
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT ALL ON public.lessons TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.get_student_lessons_optimized(UUID) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_student_lessons(UUID) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.manual_create_lesson(UUID, UUID, DATE, TIME, TIME, TEXT) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.fix_missing_lessons() TO anon, authenticated;
 
