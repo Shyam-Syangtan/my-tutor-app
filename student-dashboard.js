@@ -402,12 +402,23 @@ class StudentDashboard {
     }
 
     showBookingModal(availabilityId) {
-        const availability = this.availability.find(a => a.id === availabilityId);
-        if (!availability) return;
+        console.log('🎯 [BOOKING] showBookingModal called with availabilityId:', availabilityId);
 
+        const availability = this.availability.find(a => a.id === availabilityId);
+        if (!availability) {
+            console.error('❌ [BOOKING] Availability not found for ID:', availabilityId);
+            return;
+        }
+
+        console.log('✅ [BOOKING] Found availability:', availability);
         this.selectedAvailability = availability;
-        
+
         const bookingDetails = document.getElementById('bookingDetails');
+        if (!bookingDetails) {
+            console.error('❌ [BOOKING] bookingDetails element not found');
+            return;
+        }
+
         bookingDetails.innerHTML = `
             <div class="bg-gray-50 rounded-lg p-4">
                 <div class="flex items-center space-x-3 mb-3">
@@ -426,24 +437,72 @@ class StudentDashboard {
             </div>
         `;
 
-        document.getElementById('bookingModal').classList.remove('hidden');
-        document.getElementById('bookingModal').classList.add('flex');
+        const modal = document.getElementById('bookingModal');
+        if (!modal) {
+            console.error('❌ [BOOKING] bookingModal element not found');
+            return;
+        }
+
+        console.log('📱 [BOOKING] Opening booking modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        console.log('✅ [BOOKING] Booking modal opened successfully');
     }
 
     hideBookingModal() {
-        document.getElementById('bookingModal').classList.add('hidden');
-        document.getElementById('bookingModal').classList.remove('flex');
-        document.getElementById('bookingForm').reset();
+        console.log('📱 [BOOKING] Hiding booking modal');
+
+        const modal = document.getElementById('bookingModal');
+        const form = document.getElementById('bookingForm');
+
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        if (form) {
+            form.reset();
+        }
+
         this.selectedAvailability = null;
+        console.log('✅ [BOOKING] Booking modal hidden and data cleared');
     }
 
     async bookLesson() {
-        if (!this.selectedAvailability) return;
+        console.log('📝 [BOOKING] bookLesson called');
+        console.log('📝 [BOOKING] selectedAvailability:', this.selectedAvailability);
+
+        if (!this.selectedAvailability) {
+            console.error('❌ [BOOKING] No availability selected - booking cancelled');
+            this.showNotification('Please select a lesson slot first', 'error');
+            return;
+        }
+
+        // Check if modal is actually visible (safety check)
+        const modal = document.getElementById('bookingModal');
+        if (!modal || modal.classList.contains('hidden')) {
+            console.error('❌ [BOOKING] Modal not visible - preventing auto-booking');
+            this.showNotification('Please use the booking modal to book lessons', 'error');
+            return;
+        }
 
         try {
+            console.log('📝 [BOOKING] Processing lesson booking...');
+
             const lessonType = document.getElementById('lessonType').value;
             const notes = document.getElementById('lessonNotes').value;
             const price = lessonType === 'trial' ? 10 : 25;
+
+            console.log('📝 [BOOKING] Booking details:', {
+                tutorId: this.selectedAvailability.tutor_id,
+                studentId: window.authHandler.getCurrentUser().id,
+                lessonDate: this.selectedAvailability.lesson_date,
+                startTime: this.selectedAvailability.start_time,
+                lessonType,
+                price,
+                notes
+            });
 
             const { data, error } = await window.authHandler.supabase
                 .from('lessons')
@@ -462,6 +521,7 @@ class StudentDashboard {
 
             if (error) throw error;
 
+            console.log('✅ [BOOKING] Lesson booked successfully:', data);
             this.showNotification('Lesson booked successfully!', 'success');
             this.hideBookingModal();
             await this.loadData();
@@ -469,8 +529,8 @@ class StudentDashboard {
             this.renderLessons();
             this.updateStats();
         } catch (error) {
-            console.error('Error booking lesson:', error);
-            this.showNotification('Error booking lesson', 'error');
+            console.error('❌ [BOOKING] Error booking lesson:', error);
+            this.showNotification('Error booking lesson: ' + error.message, 'error');
         }
     }
 
