@@ -7,7 +7,7 @@
     <meta name="description" content="Find the perfect Indian language tutor for your learning journey">
     
     <!-- Responsive Global CSS with Teal Professional Theme -->
-    <link rel="stylesheet" href="responsive-global.css?v=13&t=20250614-cache-bust">
+    <link rel="stylesheet" href="responsive-global.css?v=14&t=20250614-refined-design">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,7 +19,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        /* Cache-bust: v13-20250614-cache-bust - Force browser refresh for immediate updates */
+        /* Cache-bust: v14-20250614-refined-design - Force browser refresh for immediate updates */
         body { font-family: 'Inter', sans-serif; }
         .scrollbar-hide {
             -ms-overflow-style: none;
@@ -522,7 +522,7 @@
     </main>
 
     <script>
-        // Cache-bust: v13-20250614-cache-bust - Force browser refresh for immediate updates
+        // Cache-bust: v14-20250614-refined-design - Force browser refresh for immediate updates
         // Initialize Supabase
         const supabaseUrl = 'https://qbyyutebrgpxngvwenkd.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFieXl1dGVicmdweG5ndndlbmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MTA1NTMsImV4cCI6MjA2NTI4NjU1M30.eO8Wd0ZOqtXgvQ3BuedmSPmYVpbG3V-AXvgufLns6yY';
@@ -718,7 +718,7 @@
                                     <div class="flex items-center space-x-2 mb-1">
                                         <h3 class="text-lg font-semibold text-gray-900 truncate">${tutor.name}</h3>
                                         <span class="text-lg">${countryFlag}</span>
-                                        ${isProfessional ? '<span class="text-xs px-2 py-1 rounded-full text-white font-medium" style="background-color: #007B83;">Professional</span>' : ''}
+                                        ${isProfessional ? '<span class="text-xs px-2 py-1 rounded-full text-white" style="background-color: #4A5568;">Professional</span>' : ''}
                                     </div>
                                     <p class="text-sm text-gray-600">${tutor.bio_headline || `${tutor.native_language || tutor.language} Teacher`}</p>
                                 </div>
@@ -730,13 +730,13 @@
 
                             <!-- Language Badges -->
                             <div class="flex flex-wrap gap-1 mb-3">
-                                <span class="text-xs px-2 py-1 rounded-full font-medium text-white" style="background-color: #38B000;">${tutor.native_language || tutor.language}</span>
+                                <span class="text-xs px-2 py-1 rounded-full text-white" style="background-color: #00C2B3;">${tutor.native_language || tutor.language}</span>
                                 ${languages.slice(0, 2).map((lang, index) => {
-                                    const colors = ['#FF6B35', '#007B83', '#FFC107'];
+                                    const colors = ['#6B7280', '#4A5568'];
                                     const bgColor = colors[index % colors.length];
-                                    return `<span class="text-xs px-2 py-1 rounded-full text-white font-medium" style="background-color: ${bgColor};">${lang.language}</span>`;
+                                    return `<span class="text-xs px-2 py-1 rounded-full text-white" style="background-color: ${bgColor};">${lang.language}</span>`;
                                 }).join('')}
-                                ${languages.length > 2 ? `<span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full font-medium">+${languages.length - 2}</span>` : ''}
+                                ${languages.length > 2 ? `<span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">+${languages.length - 2}</span>` : ''}
                             </div>
 
                             <!-- Stats -->
@@ -762,36 +762,38 @@
                             <!-- Tags -->
                             ${tags.length > 0 ? `
                                 <div class="flex flex-wrap gap-1 mb-4">
-                                    ${tags.slice(0, 3).map((tag, index) => {
-                                        const tagColors = ['#FF6B35', '#007B83', '#FFC107'];
+                                    ${tags.slice(0, 2).map((tag, index) => {
+                                        const tagColors = ['#E2E8F0', '#F1F5F9'];
+                                        const textColors = ['#4A5568', '#2D3748'];
                                         const bgColor = tagColors[index % tagColors.length];
-                                        return `<span class="text-xs px-2 py-1 rounded-full text-white font-medium" style="background-color: ${bgColor};">${tag}</span>`;
+                                        const textColor = textColors[index % textColors.length];
+                                        return `<span class="text-xs px-2 py-1 rounded-full" style="background-color: ${bgColor}; color: ${textColor};">${tag}</span>`;
                                     }).join('')}
-                                    ${tags.length > 3 ? `<span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full font-medium">+${tags.length - 3}</span>` : ''}
+                                    ${tags.length > 2 ? `<span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">+${tags.length - 2}</span>` : ''}
                                 </div>
                             ` : ''}
 
                             <!-- Action Buttons -->
                             <div class="flex space-x-2">
                                 <button onclick="event.stopPropagation(); contactTeacher('${tutor.user_id}', '${tutor.name}')"
-                                        class="flex-1 text-white px-3 py-2 rounded-lg transition-colors text-sm font-medium"
+                                        class="flex-1 text-white px-3 py-2 rounded-lg transition-colors text-sm"
                                         style="background-color: #00C2B3;"
                                         onmouseover="this.style.backgroundColor='#00A89B'"
                                         onmouseout="this.style.backgroundColor='#00C2B3'">
                                     Contact
                                 </button>
                                 <button onclick="event.stopPropagation(); window.open('profile.html?id=${tutor.id}', '_blank')"
-                                        class="flex-1 text-white px-3 py-2 rounded-lg transition-colors text-sm font-medium"
-                                        style="background-color: #38B000;"
-                                        onmouseover="this.style.backgroundColor='#2E8B00'"
-                                        onmouseout="this.style.backgroundColor='#38B000'">
+                                        class="flex-1 text-white px-3 py-2 rounded-lg transition-colors text-sm"
+                                        style="background-color: #059669;"
+                                        onmouseover="this.style.backgroundColor='#047857'"
+                                        onmouseout="this.style.backgroundColor='#059669'">
                                     Book Lesson
                                 </button>
                                 <button onclick="event.stopPropagation(); window.open('profile.html?id=${tutor.id}', '_blank')"
-                                        class="px-3 py-2 border-2 text-sm font-medium rounded-lg transition-colors"
-                                        style="border-color: #007B83; color: #007B83;"
-                                        onmouseover="this.style.backgroundColor='#007B83'; this.style.color='white'"
-                                        onmouseout="this.style.backgroundColor='transparent'; this.style.color='#007B83'">
+                                        class="px-3 py-2 border text-sm rounded-lg transition-colors"
+                                        style="border-color: #D1D5DB; color: #6B7280;"
+                                        onmouseover="this.style.backgroundColor='#F9FAFB'; this.style.borderColor='#9CA3AF'"
+                                        onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='#D1D5DB'">
                                     Profile
                                 </button>
                             </div>
@@ -1001,6 +1003,6 @@
     </script>
 
     <!-- Simple Messaging Service -->
-    <script src="simple-messaging.js?v=13&t=20250614-cache-bust"></script>
+    <script src="simple-messaging.js?v=14&t=20250614-refined-design"></script>
 </body>
 </html>
