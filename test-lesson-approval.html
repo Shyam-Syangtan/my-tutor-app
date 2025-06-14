@@ -28,13 +28,19 @@
                     Test Database Connection
                 </button>
                 <button onclick="createTestRequest()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                    Create Test Request
+                    🧪 Test Complete Workflow
                 </button>
                 <button onclick="checkTables()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
                     Check Tables
                 </button>
                 <button onclick="testRLSPolicies()" class="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700">
                     Test RLS Policies
+                </button>
+                <button onclick="testStudentLessonFunctions()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                    Test Student Functions
+                </button>
+                <button onclick="fixMissingLessons()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                    Fix Missing Lessons
                 </button>
             </div>
         </div>
@@ -188,10 +194,158 @@
                     .single();
 
                 if (error) throw error;
-                
+
                 addResult('Create Test Request', `Created request ID: ${data.id}`, 'success');
+
+                // Now test the approval workflow
+                await testApprovalWorkflow(data.id);
+
             } catch (error) {
                 addResult('Create Test Request', error.message, 'error');
+            }
+        }
+
+        async function testApprovalWorkflow(requestId) {
+            try {
+                addResult('Testing Approval Workflow', 'Starting approval test...', 'success');
+
+                // Step 1: Approve the request
+                const { data: approvedRequest, error: approveError } = await supabase
+                    .from('lesson_requests')
+                    .update({
+                        status: 'approved',
+                        tutor_response: 'Test approval',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', requestId)
+                    .select()
+                    .single();
+
+                if (approveError) throw approveError;
+
+                addResult('Approve Request', `Request ${requestId} approved successfully`, 'success');
+
+                // Step 2: Wait a moment for trigger to fire
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Step 3: Check if lesson was created
+                const { data: lessons, error: lessonError } = await supabase
+                    .from('lessons')
+                    .select('*')
+                    .eq('student_id', currentUser.id)
+                    .eq('tutor_id', currentUser.id)
+                    .eq('lesson_date', approvedRequest.requested_date)
+                    .eq('start_time', approvedRequest.requested_start_time);
+
+                if (lessonError) throw lessonError;
+
+                if (lessons && lessons.length > 0) {
+                    addResult('Lesson Creation Check', `✅ Lesson created successfully! ID: ${lessons[0].id}`, 'success');
+
+                    // Step 4: Test student lesson loading function
+                    await testStudentLessonFunctions();
+                } else {
+                    addResult('Lesson Creation Check', '❌ No lesson found after approval', 'error');
+
+                    // Try manual lesson creation
+                    await testManualLessonCreation(approvedRequest);
+                }
+
+            } catch (error) {
+                addResult('Approval Workflow Test', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testManualLessonCreation(request) {
+            try {
+                addResult('Manual Lesson Creation', 'Testing manual lesson creation...', 'success');
+
+                const { data: lessonId, error } = await supabase
+                    .rpc('manual_create_lesson', {
+                        p_tutor_id: request.tutor_id,
+                        p_student_id: request.student_id,
+                        p_lesson_date: request.requested_date,
+                        p_start_time: request.requested_start_time,
+                        p_end_time: request.requested_end_time,
+                        p_notes: 'Test lesson created manually'
+                    });
+
+                if (error) throw error;
+
+                addResult('Manual Lesson Creation', `✅ Manual lesson created! ID: ${lessonId}`, 'success');
+                await testStudentLessonFunctions();
+
+            } catch (error) {
+                addResult('Manual Lesson Creation', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStudentLessonFunctions() {
+            try {
+                addResult('Student Lesson Functions', 'Testing lesson loading functions...', 'success');
+
+                // Test optimized function
+                try {
+                    const { data: optimizedLessons, error: optimizedError } = await supabase
+                        .rpc('get_student_lessons_optimized', { student_user_id: currentUser.id });
+
+                    if (optimizedError) throw optimizedError;
+
+                    addResult('Optimized Function', `✅ Found ${optimizedLessons?.length || 0} lessons`, 'success');
+                } catch (error) {
+                    addResult('Optimized Function', `Error: ${error.message}`, 'error');
+                }
+
+                // Test basic function
+                try {
+                    const { data: basicLessons, error: basicError } = await supabase
+                        .rpc('get_student_lessons', { student_user_id: currentUser.id });
+
+                    if (basicError) throw basicError;
+
+                    addResult('Basic Function', `✅ Found ${basicLessons?.length || 0} lessons`, 'success');
+                } catch (error) {
+                    addResult('Basic Function', `Error: ${error.message}`, 'error');
+                }
+
+                // Test direct query
+                try {
+                    const { data: directLessons, error: directError } = await supabase
+                        .from('lessons')
+                        .select('*')
+                        .eq('student_id', currentUser.id);
+
+                    if (directError) throw directError;
+
+                    addResult('Direct Query', `✅ Found ${directLessons?.length || 0} lessons`, 'success');
+                } catch (error) {
+                    addResult('Direct Query', `Error: ${error.message}`, 'error');
+                }
+
+            } catch (error) {
+                addResult('Student Lesson Functions', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function fixMissingLessons() {
+            try {
+                addResult('Fix Missing Lessons', 'Running fix for approved requests without lessons...', 'success');
+
+                const { data, error } = await supabase.rpc('fix_missing_lessons');
+
+                if (error) throw error;
+
+                if (data && data.length > 0) {
+                    data.forEach(result => {
+                        addResult('Fix Result', `Request ${result.request_id}: ${result.message}`,
+                                 result.lesson_created ? 'success' : 'error');
+                    });
+                } else {
+                    addResult('Fix Missing Lessons', 'No approved requests found or all lessons already exist', 'success');
+                }
+
+            } catch (error) {
+                addResult('Fix Missing Lessons', `Error: ${error.message}`, 'error');
             }
         }
 
@@ -203,7 +357,7 @@
                         redirectTo: window.location.href
                     }
                 });
-                
+
                 if (error) throw error;
             } catch (error) {
                 alert('Login failed: ' + error.message);
