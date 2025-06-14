@@ -26,6 +26,9 @@ class StudentDashboard {
         this.renderTutors();
         this.renderLessons();
         this.updateStats();
+
+        // Set up periodic refresh for lessons (every 30 seconds)
+        this.setupPeriodicRefresh();
     }
 
     async loadUserInfo() {
@@ -88,6 +91,7 @@ class StudentDashboard {
     async loadLessons() {
         try {
             const currentUser = window.authHandler.getCurrentUser();
+            console.log('Loading lessons for student:', currentUser.id);
 
             // Try using the new database function first
             const { data: functionData, error: functionError } = await window.authHandler.supabase
@@ -116,10 +120,36 @@ class StudentDashboard {
             } else {
                 this.lessons = functionData || [];
             }
+
+            console.log('Loaded lessons for student:', this.lessons.length);
         } catch (error) {
             console.error('Error loading lessons:', error);
             this.showNotification('Error loading lessons', 'error');
         }
+    }
+
+    // Add method to refresh lessons
+    async refreshLessons() {
+        await this.loadLessons();
+        this.renderLessons();
+        this.updateStats();
+        console.log('Lessons refreshed');
+    }
+
+    // Set up periodic refresh for lessons
+    setupPeriodicRefresh() {
+        // Refresh lessons every 30 seconds to catch newly approved lessons
+        setInterval(async () => {
+            const previousCount = this.lessons.length;
+            await this.loadLessons();
+
+            if (this.lessons.length > previousCount) {
+                console.log('New lesson detected, refreshing display');
+                this.renderLessons();
+                this.updateStats();
+                this.showNotification('New lesson added to your schedule!', 'success');
+            }
+        }, 30000); // 30 seconds
     }
 
     setupEventListeners() {

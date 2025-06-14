@@ -440,7 +440,7 @@ async function refreshLessons() {
 
 // Navigation functions
 function goBackToStudentDashboard() {
-    window.location.href = 'student-home.html';
+    window.location.href = 'student-dashboard.html';
 }
 
 function handleLogout() {

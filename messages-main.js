@@ -431,7 +431,7 @@ function showErrorState() {
 
 // Navigation functions
 function goBack() {
-    window.location.href = 'home.html';
+    window.location.href = 'student-dashboard.html';
 }
 
 function goBackToTutorDashboard() {
@@ -439,7 +439,7 @@ function goBackToTutorDashboard() {
 }
 
 function goBackToStudentDashboard() {
-    window.location.href = 'home.html';
+    window.location.href = 'student-dashboard.html';
 }
 
 function handleLogout() {
