@@ -55,10 +55,10 @@
     --color-accent-dark: #388E3C;
     --color-accent-darker: #2E7D32;
 
-    /* Background Colors - Cream/Off-white */
-    --color-background: #FAF3E0;
-    --color-background-light: #FEFBF3;
-    --color-background-dark: #F5EDD6;
+    /* Background Colors - Subtle Light Scheme */
+    --color-background: #f8fafc;
+    --color-background-light: #ffffff;
+    --color-background-dark: #f1f5f9;
     --color-surface: #FFFFFF;
     --color-surface-light: #FEFEFE;
     --color-surface-dark: #F8F8F8;
@@ -87,10 +87,10 @@
     --color-info-light: #64B5F6;
     --color-info-dark: #1976D2;
 
-    /* Border Colors */
-    --color-border: #E0D4C1;
-    --color-border-light: #F0E8D8;
-    --color-border-dark: #D0C4B1;
+    /* Border Colors - Subtle */
+    --color-border: #e2e8f0;
+    --color-border-light: #f1f5f9;
+    --color-border-dark: #cbd5e1;
 
     /* Shadow Colors */
     --shadow-light: rgba(255, 153, 51, 0.1);
@@ -371,7 +371,7 @@
 .card-header {
     padding: var(--spacing-lg);
     border-bottom: 1px solid var(--color-border);
-    background: var(--color-background-light);
+    background: var(--color-surface-light);
 }
 
 .card-body {
@@ -381,7 +381,7 @@
 
 .card-footer {
     padding: var(--spacing-lg);
-    background: var(--color-background);
+    background: var(--color-background-light);
     border-top: 1px solid var(--color-border);
 }
 
@@ -591,7 +591,7 @@
 .modal-header {
     padding: var(--spacing-lg);
     border-bottom: 1px solid var(--color-border);
-    background: var(--color-background-light);
+    background: var(--color-surface-light);
 }
 
 .modal-title {
@@ -608,7 +608,7 @@
 .modal-footer {
     padding: var(--spacing-lg);
     border-top: 1px solid var(--color-border);
-    background: var(--color-background);
+    background: var(--color-surface-light);
     display: flex;
     gap: var(--spacing-md);
     justify-content: flex-end;
