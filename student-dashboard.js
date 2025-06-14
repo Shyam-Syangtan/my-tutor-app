@@ -27,8 +27,8 @@ class StudentDashboard {
         this.renderLessons();
         this.updateStats();
 
-        // Set up periodic refresh for lessons (every 30 seconds)
-        this.setupPeriodicRefresh();
+        // Periodic refresh disabled to prevent flickering
+        // this.setupPeriodicRefresh();
 
         // Load unread message count
         this.loadUnreadMessageCount();
