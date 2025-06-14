@@ -105,34 +105,47 @@ async function loadLessonRequests() {
 
         console.log('📋 [DEBUG] Raw lesson requests loaded:', requests?.length || 0);
 
-        // Get student information for each request using safe database functions
+        // Get student information for each request using enhanced name resolution
         const requestsWithStudents = [];
         for (const request of (requests || [])) {
             try {
                 let studentData = { email: 'Student', full_name: null };
 
-                // Try safe database function first (avoids all RLS issues)
+                // Strategy 1: Try enhanced database function (accesses Google auth data)
                 try {
-                    const { data: studentName, error: functionError } = await supabase
-                        .rpc('safe_get_student_name', { student_user_id: request.student_id });
+                    const { data: realUserName, error: functionError } = await supabase
+                        .rpc('get_real_user_name', { user_uuid: request.student_id });
 
-                    if (!functionError && studentName && studentName !== 'Student') {
+                    if (!functionError && realUserName && realUserName !== 'User' && realUserName !== 'Student') {
                         studentData = {
-                            email: studentName,
-                            full_name: studentName
+                            email: realUserName,
+                            full_name: realUserName
                         };
-                        console.log('✅ [SAFE] Student resolved via database function:', studentName);
+                        console.log('✅ [ENHANCED] Real user name resolved:', realUserName, 'for', request.student_id.substring(0, 8));
                     } else {
-                        // Generate friendly name from UUID
-                        const friendlyName = `Student${request.student_id.substring(0, 4)}`;
-                        studentData = { email: friendlyName, full_name: friendlyName };
-                        console.log('✅ [SAFE] Generated friendly student name:', friendlyName);
+                        console.log('⚠️ [ENHANCED] Function returned generic name:', realUserName);
+                        throw new Error('Generic name returned');
                     }
                 } catch (error) {
-                    // Generate friendly name from UUID as final fallback
-                    const friendlyName = `Student${request.student_id.substring(0, 4)}`;
-                    studentData = { email: friendlyName, full_name: friendlyName };
-                    console.log('✅ [SAFE] Used UUID-based student name:', friendlyName);
+                    console.log('⚠️ [ENHANCED] Database function failed, trying fallback...');
+
+                    // Strategy 2: If current user is the student, use their auth data directly
+                    if (currentUser && request.student_id === currentUser.id) {
+                        const userName = currentUser.user_metadata?.full_name ||
+                                       currentUser.user_metadata?.name ||
+                                       currentUser.email?.split('@')[0] ||
+                                       'You';
+                        studentData = {
+                            email: userName,
+                            full_name: userName
+                        };
+                        console.log('✅ [DIRECT] Current user name resolved:', userName);
+                    } else {
+                        // Strategy 3: Generate meaningful name from UUID
+                        const friendlyName = `Student${request.student_id.substring(0, 4)}`;
+                        studentData = { email: friendlyName, full_name: friendlyName };
+                        console.log('✅ [FALLBACK] Generated friendly student name:', friendlyName);
+                    }
                 }
 
                 requestsWithStudents.push({
