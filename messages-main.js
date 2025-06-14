@@ -250,7 +250,7 @@ function displayMessages(messages) {
         const time = formatTime(new Date(message.created_at));
         
         return `
-            <div class="flex ${justifyClass}">
+            <div class="flex ${justifyClass}" data-message-id="${message.id}">
                 <div class="message-bubble ${messageClass} px-4 py-2 rounded-lg">
                     <p class="text-sm">${escapeHtml(message.content)}</p>
                     <p class="text-xs opacity-75 mt-1">${time}</p>
@@ -283,6 +283,13 @@ function handleNewMessage(message) {
         const messagesList = document.getElementById('messagesList');
         if (!messagesList) {
             console.error('❌ Messages list element not found');
+            return;
+        }
+
+        // Check if message already exists to prevent duplicates
+        const existingMessage = messagesList.querySelector(`[data-message-id="${message.id}"]`);
+        if (existingMessage) {
+            console.log(`📨 [${timestamp}] Message ${message.id} already exists in UI, skipping`);
             return;
         }
 
@@ -374,10 +381,27 @@ async function sendMessage() {
         console.log('📤 Sending message to chat:', currentChatId);
         const result = await messaging.sendMessage(currentChatId, content);
         console.log('✅ Message sent successfully:', result);
+
+        // Immediately display the sent message in the sender's interface
+        if (result && result.id) {
+            const sentMessage = {
+                id: result.id,
+                chat_id: currentChatId,
+                sender_id: messaging.currentUser.id,
+                content: content,
+                created_at: new Date().toISOString()
+            };
+
+            console.log('📨 Immediately displaying sent message:', sentMessage);
+            handleNewMessage(sentMessage);
+        }
+
         messageInput.value = '';
+        showTypingIndicator(false);
     } catch (error) {
         console.error('❌ Error sending message:', error);
         alert(`Failed to send message: ${error.message}`);
+        showTypingIndicator(false);
     }
 }
 
