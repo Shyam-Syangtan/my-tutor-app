@@ -243,43 +243,66 @@ async function updateRequestStatus(requestId, status) {
     try {
         console.log('Updating request status:', { requestId, status });
 
-        const { error } = await supabase
+        // First, get the current request data
+        const { data: currentRequest, error: fetchError } = await supabase
+            .from('lesson_requests')
+            .select('*')
+            .eq('id', requestId)
+            .single();
+
+        if (fetchError) {
+            console.error('Error fetching request:', fetchError);
+            throw new Error('Failed to fetch request details');
+        }
+
+        console.log('Current request data:', currentRequest);
+
+        // Update the request status
+        const { data: updatedRequest, error: updateError } = await supabase
             .from('lesson_requests')
             .update({
                 status: status,
                 tutor_response: status === 'approved' ? 'Lesson request approved!' : 'Lesson request declined.',
                 updated_at: new Date().toISOString()
             })
-            .eq('id', requestId);
+            .eq('id', requestId)
+            .select()
+            .single();
 
-        if (error) {
-            throw error;
+        if (updateError) {
+            console.error('Update error details:', updateError);
+            throw updateError;
         }
+
+        console.log('Request updated successfully:', updatedRequest);
 
         // If approved, wait a moment for the database trigger to create the lesson
         if (status === 'approved') {
             console.log('Request approved, waiting for automatic lesson creation...');
+            showSuccessMessage(`Lesson request approved successfully! The lesson will appear in both dashboards shortly.`);
 
-            // Wait 2 seconds for the database trigger to work
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Check if lesson was created by the trigger
-            const request = lessonRequests.find(req => req.id === requestId);
-            const lessonCreated = await checkLessonExists(request);
-
-            if (lessonCreated) {
-                showSuccessMessage(`Lesson request approved successfully! Confirmed lesson has been created and will appear in both dashboards.`);
-            } else {
-                // Fallback: try to create lesson manually
-                console.log('Trigger did not create lesson, attempting manual creation...');
+            // Wait 3 seconds for the database trigger to work
+            setTimeout(async () => {
                 try {
-                    await createLessonFromRequest(request);
-                    showSuccessMessage(`Lesson request approved successfully! Confirmed lesson has been created.`);
-                } catch (lessonError) {
-                    console.error('Manual lesson creation also failed:', lessonError);
-                    showErrorMessage(`Request approved, but lesson creation failed. Please create the lesson manually in your dashboard.`);
+                    // Check if lesson was created by the trigger
+                    const lessonCreated = await checkLessonExists(currentRequest);
+
+                    if (lessonCreated) {
+                        console.log('✅ Lesson created successfully by database trigger');
+                    } else {
+                        // Fallback: try to create lesson manually
+                        console.log('⚠️ Trigger did not create lesson, attempting manual creation...');
+                        try {
+                            await createLessonFromRequest(currentRequest);
+                            console.log('✅ Manual lesson creation successful');
+                        } catch (lessonError) {
+                            console.error('❌ Manual lesson creation also failed:', lessonError);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error in post-approval processing:', error);
                 }
-            }
+            }, 3000);
         } else {
             showSuccessMessage(`Lesson request ${status} successfully!`);
         }
