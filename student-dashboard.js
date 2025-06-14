@@ -93,38 +93,64 @@ class StudentDashboard {
             const currentUser = window.authHandler.getCurrentUser();
             console.log('Loading lessons for student:', currentUser.id);
 
-            // Try using the final database function first
-            const { data: functionData, error: functionError } = await window.authHandler.supabase
-                .rpc('get_student_lessons_final', { student_user_id: currentUser.id });
+            // Try using the optimized database function first
+            const { data: optimizedData, error: optimizedError } = await window.authHandler.supabase
+                .rpc('get_student_lessons_optimized', { student_user_id: currentUser.id });
 
-            if (functionError) {
-                console.warn('Function approach failed, using direct query:', functionError);
-
-                // Fallback to direct query
-                const { data, error } = await window.authHandler.supabase
-                    .from('lessons')
-                    .select(`
-                        *,
-                        tutor:tutor_id (
-                            name,
-                            email,
-                            profile_picture
-                        )
-                    `)
-                    .eq('student_id', currentUser.id)
-                    .order('lesson_date', { ascending: true })
-                    .order('start_time', { ascending: true });
-
-                if (error) throw error;
-                this.lessons = data || [];
-            } else {
-                this.lessons = functionData || [];
+            if (!optimizedError && optimizedData) {
+                this.lessons = optimizedData;
+                console.log('✅ Loaded lessons using optimized function:', this.lessons.length);
+                return;
             }
 
-            console.log('Loaded lessons for student:', this.lessons.length);
+            console.warn('Optimized function failed, trying final function:', optimizedError);
+
+            // Try the final function as fallback
+            const { data: finalData, error: finalError } = await window.authHandler.supabase
+                .rpc('get_student_lessons_final', { student_user_id: currentUser.id });
+
+            if (!finalError && finalData) {
+                this.lessons = finalData;
+                console.log('✅ Loaded lessons using final function:', this.lessons.length);
+                return;
+            }
+
+            console.warn('Final function failed, using direct query:', finalError);
+
+            // Last resort: direct query with enhanced error handling
+            const { data: directData, error: directError } = await window.authHandler.supabase
+                .from('lessons')
+                .select(`
+                    *,
+                    tutor:tutor_id (
+                        name,
+                        email,
+                        profile_picture
+                    )
+                `)
+                .eq('student_id', currentUser.id)
+                .order('lesson_date', { ascending: true })
+                .order('start_time', { ascending: true });
+
+            if (directError) {
+                console.error('❌ Direct query also failed:', directError);
+                throw directError;
+            }
+
+            // Transform direct query data to match function format
+            this.lessons = (directData || []).map(lesson => ({
+                ...lesson,
+                tutor_name: lesson.tutor?.name || lesson.tutor?.email || 'Unknown Tutor',
+                tutor_email: lesson.tutor?.email,
+                tutor_profile_picture: lesson.tutor?.profile_picture
+            }));
+
+            console.log('✅ Loaded lessons using direct query:', this.lessons.length);
+
         } catch (error) {
-            console.error('Error loading lessons:', error);
-            this.showNotification('Error loading lessons', 'error');
+            console.error('❌ Error loading lessons:', error);
+            this.lessons = [];
+            this.showNotification('Error loading lessons. Please refresh the page.', 'error');
         }
     }
 
@@ -138,18 +164,40 @@ class StudentDashboard {
 
     // Set up periodic refresh for lessons
     setupPeriodicRefresh() {
-        // Refresh lessons every 30 seconds to catch newly approved lessons
+        // Refresh lessons every 15 seconds to catch newly approved lessons
         setInterval(async () => {
             const previousCount = this.lessons.length;
+            const previousLessonIds = this.lessons.map(l => l.id);
+
             await this.loadLessons();
 
-            if (this.lessons.length > previousCount) {
-                console.log('New lesson detected, refreshing display');
+            // Check for new lessons
+            const newLessons = this.lessons.filter(lesson =>
+                !previousLessonIds.includes(lesson.id)
+            );
+
+            if (newLessons.length > 0) {
+                console.log('🎉 New lessons detected:', newLessons.length);
                 this.renderLessons();
                 this.updateStats();
-                this.showNotification('New lesson added to your schedule!', 'success');
+
+                // Show notification for each new lesson
+                newLessons.forEach(lesson => {
+                    const tutorName = lesson.tutor_name || 'Your tutor';
+                    const lessonDate = this.formatDate(lesson.lesson_date);
+                    const lessonTime = this.formatTime(lesson.start_time);
+                    this.showNotification(
+                        `✅ Lesson approved! ${tutorName} on ${lessonDate} at ${lessonTime}`,
+                        'success'
+                    );
+                });
+            } else if (this.lessons.length !== previousCount) {
+                // Lesson count changed but no new IDs (might be updates)
+                console.log('Lesson data updated, refreshing display');
+                this.renderLessons();
+                this.updateStats();
             }
-        }, 30000); // 30 seconds
+        }, 15000); // 15 seconds for faster detection
     }
 
     setupEventListeners() {
@@ -227,34 +275,61 @@ class StudentDashboard {
 
     renderLessons() {
         const myLessons = document.getElementById('myLessons');
-        const upcomingLessons = this.lessons.filter(l =>
-            new Date(l.lesson_date + 'T' + l.start_time) > new Date()
-        );
+
+        // Filter for upcoming lessons with better date handling
+        const now = new Date();
+        const upcomingLessons = this.lessons.filter(lesson => {
+            if (!lesson.lesson_date || !lesson.start_time) return false;
+
+            try {
+                const lessonDateTime = new Date(lesson.lesson_date + 'T' + lesson.start_time);
+                return lessonDateTime > now;
+            } catch (error) {
+                console.warn('Invalid lesson date/time:', lesson);
+                return false;
+            }
+        });
+
+        console.log(`Rendering ${upcomingLessons.length} upcoming lessons out of ${this.lessons.length} total`);
 
         if (upcomingLessons.length === 0) {
             myLessons.innerHTML = `
                 <div class="text-center py-8">
                     <i class="fas fa-calendar-alt text-3xl text-gray-300 mb-3"></i>
                     <p class="text-gray-500 text-sm">No upcoming lessons</p>
+                    <p class="text-xs text-gray-400 mt-2">Approved lessons will appear here automatically</p>
                 </div>
             `;
             return;
         }
 
-        myLessons.innerHTML = upcomingLessons.map(lesson => `
-            <div class="booked-lesson rounded-lg p-4 mb-3">
-                <div class="flex items-center space-x-3">
-                    <img src="${lesson.tutor?.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(lesson.tutor_name || lesson.tutor?.name || 'Tutor')}&background=ffffff&color=3b82f6`}"
-                         alt="${lesson.tutor_name || lesson.tutor?.name || 'Tutor'}"
-                         class="w-10 h-10 rounded-full object-cover">
-                    <div class="flex-1">
-                        <h4 class="font-medium text-sm">${lesson.tutor_name || lesson.tutor?.name || 'Tutor'}</h4>
-                        <p class="text-xs opacity-90">${this.formatDate(lesson.lesson_date)} at ${this.formatTime(lesson.start_time)}</p>
-                        <p class="text-xs opacity-75 capitalize">${lesson.lesson_type || 'conversation_practice'} lesson - ₹${lesson.price || 500}</p>
+        myLessons.innerHTML = upcomingLessons.map(lesson => {
+            // Handle different data formats for tutor info
+            const tutorName = lesson.tutor_name || lesson.tutor?.name || lesson.tutor?.email || 'Unknown Tutor';
+            const tutorPicture = lesson.tutor_profile_picture || lesson.tutor?.profile_picture || lesson.tutor?.photo_url;
+            const avatarUrl = tutorPicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutorName)}&background=ffffff&color=3b82f6`;
+
+            return `
+                <div class="booked-lesson rounded-lg p-4 mb-3 border-l-4 border-green-500">
+                    <div class="flex items-center space-x-3">
+                        <img src="${avatarUrl}"
+                             alt="${tutorName}"
+                             class="w-10 h-10 rounded-full object-cover"
+                             onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(tutorName)}&background=ffffff&color=3b82f6'">
+                        <div class="flex-1">
+                            <h4 class="font-medium text-sm text-gray-900">${tutorName}</h4>
+                            <p class="text-xs text-gray-600">${this.formatDate(lesson.lesson_date)} at ${this.formatTime(lesson.start_time)}</p>
+                            <p class="text-xs text-gray-500 capitalize">
+                                ${lesson.lesson_type || 'conversation_practice'} lesson - ₹${lesson.price || 500}
+                                <span class="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                                    ${lesson.status || 'confirmed'}
+                                </span>
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     showBookingModal(availabilityId) {

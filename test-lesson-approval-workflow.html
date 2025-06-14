@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Lesson Approval Workflow</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+        .warning { color: orange; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+        .step { margin: 10px 0; padding: 10px; border-left: 4px solid #007cba; background: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Test Lesson Approval Workflow</h1>
+    <p>This page tests the complete lesson approval workflow from request to student dashboard display.</p>
+    
+    <div class="section">
+        <h2>Step 1: Setup Database</h2>
+        <button onclick="setupDatabase()">Run Database Setup</button>
+        <div id="setupResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 2: Test Lesson Creation Trigger</h2>
+        <button onclick="testTrigger()">Test Trigger Function</button>
+        <div id="triggerResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 3: Create Missing Lessons</h2>
+        <button onclick="createMissingLessons()">Create Missing Lessons</button>
+        <div id="missingResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 4: Test Student Functions</h2>
+        <button onclick="testStudentFunctions()">Test Student Functions</button>
+        <div id="functionResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 5: Complete Workflow Test</h2>
+        <button onclick="testCompleteWorkflow()">Test Complete Workflow</button>
+        <div id="workflowResult"></div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://qbyyutebrgpxngvwenkd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFieXl1dGVicmdweG5ndndlbmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MTA1NTMsImV4cCI6MjA2NTI4NjU1M30.eO8Wd0ZOqtXgvQ3BuedmSPmYVpbG3V-AXvgufLns6yY';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function setupDatabase() {
+            const result = document.getElementById('setupResult');
+            result.innerHTML = '<div class="info">Setting up database...</div>';
+            
+            try {
+                // Run the database setup function
+                const { data, error } = await supabase.rpc('exec_sql', {
+                    query: `
+                        -- Create missing lessons function
+                        CREATE OR REPLACE FUNCTION public.create_missing_lessons()
+                        RETURNS TABLE (
+                            request_id UUID,
+                            lesson_created BOOLEAN,
+                            message TEXT
+                        ) AS $$
+                        DECLARE
+                            req RECORD;
+                            lesson_exists BOOLEAN;
+                        BEGIN
+                            FOR req IN 
+                                SELECT * FROM public.lesson_requests 
+                                WHERE status = 'approved'
+                                ORDER BY updated_at DESC
+                            LOOP
+                                SELECT EXISTS (
+                                    SELECT 1 FROM public.lessons 
+                                    WHERE tutor_id = req.tutor_id 
+                                    AND student_id = req.student_id 
+                                    AND lesson_date = req.requested_date 
+                                    AND start_time = req.requested_start_time
+                                ) INTO lesson_exists;
+                                
+                                IF NOT lesson_exists THEN
+                                    INSERT INTO public.lessons (
+                                        tutor_id, student_id, lesson_date, start_time, end_time,
+                                        status, lesson_type, notes, price
+                                    ) VALUES (
+                                        req.tutor_id, req.student_id, req.requested_date,
+                                        req.requested_start_time, req.requested_end_time,
+                                        'confirmed', 'conversation_practice',
+                                        COALESCE(req.student_message, 'Lesson created from approved request'),
+                                        500.00
+                                    );
+                                    
+                                    RETURN QUERY SELECT req.id, true, 'Lesson created successfully';
+                                ELSE
+                                    RETURN QUERY SELECT req.id, false, 'Lesson already exists';
+                                END IF;
+                            END LOOP;
+                        END;
+                        $$ LANGUAGE plpgsql SECURITY DEFINER;
+                    `
+                });
+
+                if (error) throw error;
+
+                result.innerHTML = '<div class="success">✅ Database setup completed successfully!</div>';
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Database setup failed: ${error.message}</div>`;
+            }
+        }
+
+        async function testTrigger() {
+            const result = document.getElementById('triggerResult');
+            result.innerHTML = '<div class="info">Testing trigger function...</div>';
+            
+            try {
+                // Get approved requests and check if lessons exist
+                const { data: requests, error: requestError } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .eq('status', 'approved')
+                    .limit(5);
+
+                if (requestError) throw requestError;
+
+                let testResults = [];
+                for (const request of requests) {
+                    const { data: lessons, error: lessonError } = await supabase
+                        .from('lessons')
+                        .select('*')
+                        .eq('tutor_id', request.tutor_id)
+                        .eq('student_id', request.student_id)
+                        .eq('lesson_date', request.requested_date);
+
+                    if (lessonError) throw lessonError;
+
+                    testResults.push({
+                        request_id: request.id.substring(0, 8) + '...',
+                        approved_at: request.updated_at,
+                        lesson_exists: lessons.length > 0,
+                        lesson_count: lessons.length
+                    });
+                }
+
+                const successCount = testResults.filter(r => r.lesson_exists).length;
+                
+                result.innerHTML = `
+                    <div class="${successCount === testResults.length ? 'success' : 'warning'}">
+                        <strong>Trigger Test Results:</strong><br>
+                        Approved requests tested: ${testResults.length}<br>
+                        Lessons found: ${successCount}<br>
+                        Missing lessons: ${testResults.length - successCount}
+                    </div>
+                    <pre>${JSON.stringify(testResults, null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Trigger test failed: ${error.message}</div>`;
+            }
+        }
+
+        async function createMissingLessons() {
+            const result = document.getElementById('missingResult');
+            result.innerHTML = '<div class="info">Creating missing lessons...</div>';
+            
+            try {
+                const { data, error } = await supabase.rpc('create_missing_lessons');
+                
+                if (error) throw error;
+
+                const created = data.filter(r => r.lesson_created).length;
+                const existing = data.filter(r => !r.lesson_created).length;
+
+                result.innerHTML = `
+                    <div class="success">
+                        <strong>Missing Lessons Creation Results:</strong><br>
+                        Lessons created: ${created}<br>
+                        Already existing: ${existing}<br>
+                        Total processed: ${data.length}
+                    </div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Failed to create missing lessons: ${error.message}</div>`;
+            }
+        }
+
+        async function testStudentFunctions() {
+            const result = document.getElementById('functionResult');
+            result.innerHTML = '<div class="info">Testing student functions...</div>';
+            
+            try {
+                // Get a student ID
+                const { data: requests, error: requestError } = await supabase
+                    .from('lesson_requests')
+                    .select('student_id')
+                    .limit(1);
+
+                if (requestError) throw requestError;
+                if (!requests.length) {
+                    result.innerHTML = '<div class="error">No student found for testing</div>';
+                    return;
+                }
+
+                const studentId = requests[0].student_id;
+
+                // Test optimized function
+                const { data: optimizedData, error: optimizedError } = await supabase
+                    .rpc('get_student_lessons_optimized', { student_user_id: studentId });
+
+                // Test direct query
+                const { data: directData, error: directError } = await supabase
+                    .from('lessons')
+                    .select('*')
+                    .eq('student_id', studentId);
+
+                result.innerHTML = `
+                    <div class="info">
+                        <strong>Student Functions Test Results:</strong><br>
+                        Student ID: ${studentId}
+                    </div>
+                    
+                    <div class="step">
+                        <strong>Optimized Function:</strong><br>
+                        ${optimizedError ? 
+                            `<span class="error">Failed: ${optimizedError.message}</span>` : 
+                            `<span class="success">Success: ${optimizedData.length} lessons</span>`
+                        }
+                    </div>
+                    
+                    <div class="step">
+                        <strong>Direct Query:</strong><br>
+                        ${directError ? 
+                            `<span class="error">Failed: ${directError.message}</span>` : 
+                            `<span class="success">Success: ${directData.length} lessons</span>`
+                        }
+                    </div>
+                    
+                    ${!directError && directData.length > 0 ? `
+                        <h4>Sample Lesson Data:</h4>
+                        <pre>${JSON.stringify(directData[0], null, 2)}</pre>
+                    ` : ''}
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Function test failed: ${error.message}</div>`;
+            }
+        }
+
+        async function testCompleteWorkflow() {
+            const result = document.getElementById('workflowResult');
+            result.innerHTML = '<div class="info">Testing complete workflow...</div>';
+            
+            try {
+                // Step 1: Check approved requests
+                const { data: approvedRequests, error: requestError } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .eq('status', 'approved');
+
+                if (requestError) throw requestError;
+
+                // Step 2: Check corresponding lessons
+                const { data: allLessons, error: lessonError } = await supabase
+                    .from('lessons')
+                    .select('*');
+
+                if (lessonError) throw lessonError;
+
+                // Step 3: Check student function for each student
+                const studentIds = [...new Set(approvedRequests.map(r => r.student_id))];
+                let studentResults = [];
+
+                for (const studentId of studentIds.slice(0, 3)) { // Test first 3 students
+                    const { data: studentLessons, error: studentError } = await supabase
+                        .rpc('get_student_lessons_optimized', { student_user_id: studentId });
+
+                    studentResults.push({
+                        student_id: studentId.substring(0, 8) + '...',
+                        function_works: !studentError,
+                        lesson_count: studentError ? 0 : studentLessons.length,
+                        error: studentError?.message
+                    });
+                }
+
+                result.innerHTML = `
+                    <div class="success">
+                        <strong>Complete Workflow Test Results:</strong>
+                    </div>
+                    
+                    <div class="step">
+                        <strong>Step 1 - Approved Requests:</strong><br>
+                        Found ${approvedRequests.length} approved requests
+                    </div>
+                    
+                    <div class="step">
+                        <strong>Step 2 - Lessons Created:</strong><br>
+                        Found ${allLessons.length} total lessons in database
+                    </div>
+                    
+                    <div class="step">
+                        <strong>Step 3 - Student Functions:</strong><br>
+                        Tested ${studentResults.length} students<br>
+                        Working functions: ${studentResults.filter(r => r.function_works).length}
+                    </div>
+                    
+                    <h4>Student Function Results:</h4>
+                    <pre>${JSON.stringify(studentResults, null, 2)}</pre>
+                    
+                    <div class="${approvedRequests.length > 0 && allLessons.length > 0 ? 'success' : 'warning'}">
+                        <strong>Overall Status:</strong> 
+                        ${approvedRequests.length > 0 && allLessons.length > 0 ? 
+                            '✅ Workflow appears to be working!' : 
+                            '⚠️ Issues detected in workflow'
+                        }
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Complete workflow test failed: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

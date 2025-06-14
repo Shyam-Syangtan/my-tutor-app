@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Lesson Approval System</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Debug Lesson Approval System</h1>
+    
+    <div class="section">
+        <h2>1. Database Connection Test</h2>
+        <button onclick="testConnection()">Test Connection</button>
+        <div id="connectionResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. Lesson Requests Analysis</h2>
+        <button onclick="analyzeLessonRequests()">Analyze Lesson Requests</button>
+        <div id="requestsResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. Lessons Table Analysis</h2>
+        <button onclick="analyzeLessonsTable()">Analyze Lessons Table</button>
+        <div id="lessonsResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>4. Table Structure Check</h2>
+        <button onclick="checkTableStructure()">Check Table Structure</button>
+        <div id="structureResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>5. Student Dashboard Function Test</h2>
+        <button onclick="testStudentFunction()">Test Student Function</button>
+        <div id="functionResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>6. Lesson Creation Trigger Test</h2>
+        <button onclick="testLessonCreation()">Test Lesson Creation from Approval</button>
+        <div id="triggerResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>7. Complete Workflow Test</h2>
+        <button onclick="testCompleteWorkflow()">Test Complete Approval → Display Workflow</button>
+        <div id="workflowResult"></div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://qbyyutebrgpxngvwenkd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFieXl1dGVicmdweG5ndndlbmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MTA1NTMsImV4cCI6MjA2NTI4NjU1M30.eO8Wd0ZOqtXgvQ3BuedmSPmYVpbG3V-AXvgufLns6yY';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function testConnection() {
+            const result = document.getElementById('connectionResult');
+            try {
+                const { data, error } = await supabase.from('users').select('count').limit(1);
+                if (error) throw error;
+                result.innerHTML = '<div class="success">✅ Connection successful!</div>';
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Connection failed: ${error.message}</div>`;
+            }
+        }
+
+        async function analyzeLessonRequests() {
+            const result = document.getElementById('requestsResult');
+            try {
+                const { data, error } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const approved = data.filter(r => r.status === 'approved');
+                const pending = data.filter(r => r.status === 'pending');
+
+                result.innerHTML = `
+                    <div class="info">
+                        <strong>Lesson Requests Summary:</strong><br>
+                        Total: ${data.length}<br>
+                        Approved: ${approved.length}<br>
+                        Pending: ${pending.length}
+                    </div>
+                    <h4>Recent Approved Requests:</h4>
+                    <pre>${JSON.stringify(approved.slice(0, 3), null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function analyzeLessonsTable() {
+            const result = document.getElementById('lessonsResult');
+            try {
+                const { data, error } = await supabase
+                    .from('lessons')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const confirmed = data.filter(l => l.status === 'confirmed');
+                const today = new Date().toISOString().split('T')[0];
+                const upcoming = data.filter(l => {
+                    const lessonDate = l.lesson_date || l.scheduled_at?.split('T')[0];
+                    return lessonDate >= today;
+                });
+
+                result.innerHTML = `
+                    <div class="info">
+                        <strong>Lessons Table Summary:</strong><br>
+                        Total: ${data.length}<br>
+                        Confirmed: ${confirmed.length}<br>
+                        Upcoming: ${upcoming.length}
+                    </div>
+                    <h4>Recent Lessons:</h4>
+                    <pre>${JSON.stringify(data.slice(0, 3), null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function checkTableStructure() {
+            const result = document.getElementById('structureResult');
+            try {
+                // Try to get table structure using a simpler approach
+                const { data: sampleLesson, error: sampleError } = await supabase
+                    .from('lessons')
+                    .select('*')
+                    .limit(1);
+
+                if (sampleError) {
+                    result.innerHTML = `<div class="error">❌ Error accessing lessons table: ${sampleError.message}</div>`;
+                    return;
+                }
+
+                // Show what columns exist based on sample data
+                const columns = sampleLesson.length > 0 ? Object.keys(sampleLesson[0]) : [];
+
+                result.innerHTML = `
+                    <div class="info">
+                        <strong>Lessons Table Structure (from sample data):</strong><br>
+                        Columns found: ${columns.length}<br>
+                        Sample record exists: ${sampleLesson.length > 0 ? 'Yes' : 'No'}
+                    </div>
+                    <h4>Available Columns:</h4>
+                    <pre>${JSON.stringify(columns, null, 2)}</pre>
+                    ${sampleLesson.length > 0 ? `
+                    <h4>Sample Record:</h4>
+                    <pre>${JSON.stringify(sampleLesson[0], null, 2)}</pre>
+                    ` : ''}
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testStudentFunction() {
+            const result = document.getElementById('functionResult');
+            try {
+                // Get a student ID first
+                const { data: requests, error: requestError } = await supabase
+                    .from('lesson_requests')
+                    .select('student_id')
+                    .limit(1);
+
+                if (requestError) throw requestError;
+                if (!requests.length) {
+                    result.innerHTML = '<div class="error">No lesson requests found to test with</div>';
+                    return;
+                }
+
+                const studentId = requests[0].student_id;
+
+                // Test the function
+                const { data: functionData, error: functionError } = await supabase
+                    .rpc('get_student_lessons_final', { student_user_id: studentId });
+
+                if (functionError) {
+                    // Try direct query as fallback
+                    const { data: directData, error: directError } = await supabase
+                        .from('lessons')
+                        .select('*')
+                        .eq('student_id', studentId);
+
+                    if (directError) throw directError;
+
+                    result.innerHTML = `
+                        <div class="info">
+                            <strong>Function failed, but direct query worked:</strong><br>
+                            Student ID: ${studentId}<br>
+                            Direct query results: ${directData.length} lessons
+                        </div>
+                        <pre>${JSON.stringify(directData, null, 2)}</pre>
+                        <div class="error">Function error: ${functionError.message}</div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div class="success">
+                            <strong>Function worked!</strong><br>
+                            Student ID: ${studentId}<br>
+                            Function results: ${functionData.length} lessons
+                        </div>
+                        <pre>${JSON.stringify(functionData, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testLessonCreation() {
+            const result = document.getElementById('triggerResult');
+            try {
+                // Find approved requests and check if corresponding lessons exist
+                const { data: approvedRequests, error: requestError } = await supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .eq('status', 'approved')
+                    .order('updated_at', { ascending: false })
+                    .limit(5);
+
+                if (requestError) throw requestError;
+
+                if (!approvedRequests.length) {
+                    result.innerHTML = '<div class="error">No approved requests found to test with</div>';
+                    return;
+                }
+
+                let testResults = [];
+
+                for (const request of approvedRequests) {
+                    // Check if lesson exists for this request
+                    const { data: lessons, error: lessonError } = await supabase
+                        .from('lessons')
+                        .select('*')
+                        .eq('tutor_id', request.tutor_id)
+                        .eq('student_id', request.student_id)
+                        .eq('lesson_date', request.requested_date)
+                        .eq('start_time', request.requested_start_time);
+
+                    if (lessonError) throw lessonError;
+
+                    testResults.push({
+                        request_id: request.id.substring(0, 8) + '...',
+                        request_date: request.requested_date,
+                        request_time: request.requested_start_time,
+                        lesson_created: lessons.length > 0,
+                        lesson_count: lessons.length,
+                        lesson_status: lessons.length > 0 ? lessons[0].status : 'N/A'
+                    });
+                }
+
+                const successCount = testResults.filter(r => r.lesson_created).length;
+                const failCount = testResults.filter(r => !r.lesson_created).length;
+
+                result.innerHTML = `
+                    <div class="${successCount === testResults.length ? 'success' : 'error'}">
+                        <strong>Lesson Creation Test Results:</strong><br>
+                        Total approved requests tested: ${testResults.length}<br>
+                        Lessons created successfully: ${successCount}<br>
+                        Lessons missing: ${failCount}
+                    </div>
+                    <h4>Detailed Results:</h4>
+                    <pre>${JSON.stringify(testResults, null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testCompleteWorkflow() {
+            const result = document.getElementById('workflowResult');
+            try {
+                // Get a student ID from approved requests
+                const { data: approvedRequests, error: requestError } = await supabase
+                    .from('lesson_requests')
+                    .select('student_id, tutor_id, requested_date, requested_start_time')
+                    .eq('status', 'approved')
+                    .limit(1);
+
+                if (requestError) throw requestError;
+                if (!approvedRequests.length) {
+                    result.innerHTML = '<div class="error">No approved requests found for workflow test</div>';
+                    return;
+                }
+
+                const studentId = approvedRequests[0].student_id;
+                const request = approvedRequests[0];
+
+                // Test 1: Check if lesson exists in lessons table
+                const { data: directLessons, error: directError } = await supabase
+                    .from('lessons')
+                    .select('*')
+                    .eq('student_id', studentId);
+
+                if (directError) throw directError;
+
+                // Test 2: Test student dashboard function
+                let functionLessons = [];
+                let functionError = null;
+                try {
+                    const { data, error } = await supabase
+                        .rpc('get_student_lessons_final', { student_user_id: studentId });
+                    if (error) throw error;
+                    functionLessons = data || [];
+                } catch (err) {
+                    functionError = err.message;
+                }
+
+                // Test 3: Check upcoming lessons specifically
+                const today = new Date().toISOString().split('T')[0];
+                const upcomingLessons = directLessons.filter(lesson => {
+                    const lessonDate = lesson.lesson_date || lesson.scheduled_at?.split('T')[0];
+                    return lessonDate >= today;
+                });
+
+                result.innerHTML = `
+                    <div class="info">
+                        <strong>Complete Workflow Test Results:</strong><br>
+                        Student ID: ${studentId}<br>
+                        Test Request: ${request.requested_date} at ${request.requested_start_time}
+                    </div>
+
+                    <h4>Step 1: Direct Lessons Query</h4>
+                    <div class="${directLessons.length > 0 ? 'success' : 'error'}">
+                        Total lessons found: ${directLessons.length}<br>
+                        Upcoming lessons: ${upcomingLessons.length}
+                    </div>
+
+                    <h4>Step 2: Student Dashboard Function</h4>
+                    <div class="${functionError ? 'error' : 'success'}">
+                        ${functionError ? `Function failed: ${functionError}` : `Function returned: ${functionLessons.length} lessons`}
+                    </div>
+
+                    <h4>Step 3: Data Comparison</h4>
+                    <div class="info">
+                        Direct query lessons: ${directLessons.length}<br>
+                        Function lessons: ${functionLessons.length}<br>
+                        Match: ${directLessons.length === functionLessons.length ? 'Yes' : 'No'}
+                    </div>
+
+                    <h4>Sample Lesson Data:</h4>
+                    <pre>${JSON.stringify(directLessons.slice(0, 2), null, 2)}</pre>
+                `;
+            } catch (error) {
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
