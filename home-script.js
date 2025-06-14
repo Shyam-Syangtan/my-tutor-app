@@ -224,9 +224,9 @@ class HomePageManager {
                     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
                 }
                 
-                .notification-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-                .notification-error { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
-                .notification-info { background: linear-gradient(135deg, #6366f1 0%, #5855eb 100%); }
+                .notification-success { background: linear-gradient(135deg, #38B000 0%, #2E8B00 100%); }
+                .notification-error { background: linear-gradient(135deg, #FF3B30 0%, #E6342A 100%); }
+                .notification-info { background: linear-gradient(135deg, #00A59C 0%, #008E86 100%); }
                 
                 @keyframes slideIn {
                     from { transform: translateX(100%); opacity: 0; }

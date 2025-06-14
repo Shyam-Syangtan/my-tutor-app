@@ -36,62 +36,62 @@
     --text-3xl: 1.875rem;
     --text-4xl: 2.25rem;
 
-    /* COMPREHENSIVE WHITE MIST & LEAFY GREEN COLOR THEME */
-    /* Primary Colors - Leafy Green Accents */
-    --color-primary: #4CAF50;
-    --color-primary-light: #66BB6A;
-    --color-primary-dark: #45A049;
-    --color-primary-darker: #388E3C;
+    /* COMPREHENSIVE ITALKI-INSPIRED WARM COLOR THEME */
+    /* Primary Colors - Warm Coral/Red Accents */
+    --color-primary: #FF3B30;
+    --color-primary-light: #FF5A50;
+    --color-primary-dark: #E6342A;
+    --color-primary-darker: #CC2E24;
 
-    /* Secondary Colors - Soft Grey */
-    --color-secondary: #E0E0E0;
-    --color-secondary-light: #F5F5F5;
-    --color-secondary-dark: #BDBDBD;
-    --color-secondary-darker: #9E9E9E;
+    /* Secondary Colors - Teal/Blue-Grey */
+    --color-secondary: #007B83;
+    --color-secondary-light: #009AA3;
+    --color-secondary-dark: #006B72;
+    --color-secondary-darker: #005B61;
 
-    /* Accent Colors - Leafy Green Variations */
-    --color-accent: #4CAF50;
-    --color-accent-light: #66BB6A;
-    --color-accent-dark: #45A049;
-    --color-accent-darker: #388E3C;
+    /* Accent Colors - Warm Teal Touches */
+    --color-accent: #00A59C;
+    --color-accent-light: #00C2B7;
+    --color-accent-dark: #008E86;
+    --color-accent-darker: #007770;
 
-    /* Background Colors - White Mist Theme */
-    --color-background: #FCFCFD;
+    /* Background Colors - Clean Light Theme */
+    --color-background: #F5F6FA;
     --color-background-light: #FFFFFF;
-    --color-background-dark: #F5F6FA;
+    --color-background-dark: #EBEDF2;
     --color-surface: #FFFFFF;
     --color-surface-light: #FEFEFE;
     --color-surface-dark: #F8F9FA;
 
-    /* Text Colors - Grey Scale */
-    --color-text-primary: #333333;
-    --color-text-secondary: #666666;
-    --color-text-tertiary: #999999;
+    /* Text Colors - italki-Inspired Grey Scale */
+    --color-text-primary: #1E1E1E;
+    --color-text-secondary: #5A5A5A;
+    --color-text-tertiary: #9E9E9E;
     --color-text-light: #CCCCCC;
     --color-text-inverse: #FFFFFF;
 
-    /* Status Colors (Leafy Green Theme) */
-    --color-success: #4CAF50;
-    --color-success-light: #66BB6A;
-    --color-success-dark: #45A049;
+    /* Status Colors (italki-Inspired Theme) */
+    --color-success: #38B000;
+    --color-success-light: #4CAF50;
+    --color-success-dark: #2E8B00;
 
     --color-warning: #FFC107;
     --color-warning-light: #FFD54F;
     --color-warning-dark: #FFA000;
 
-    --color-error: #F44336;
-    --color-error-light: #EF5350;
-    --color-error-dark: #D32F2F;
+    --color-error: #FF3B30;
+    --color-error-light: #FF5A50;
+    --color-error-dark: #E6342A;
 
-    --color-info: #2196F3;
-    --color-info-light: #64B5F6;
-    --color-info-dark: #1976D2;
+    --color-info: #00A59C;
+    --color-info-light: #00C2B7;
+    --color-info-dark: #008E86;
 
     /* Special Colors */
     --color-star-rating: #FFC107;
-    --color-availability: #4CAF50;
-    --color-verified: #4CAF50;
-    --color-accent-text: #4CAF50;
+    --color-availability: #38B000;
+    --color-verified: #38B000;
+    --color-accent-text: #00A59C;
 
     /* Border Colors - Light Grey Tones */
     --color-border: #E0E0E0;

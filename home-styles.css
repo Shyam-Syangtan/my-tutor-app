@@ -565,14 +565,14 @@
 }
 
 .trial-link {
-    background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+    background: linear-gradient(135deg, #38B000 0%, #2E8B00 100%);
     color: white !important;
     position: relative;
     overflow: hidden;
 }
 
 .trial-link:hover {
-    background: linear-gradient(135deg, #45A049 0%, #2E7D32 100%);
+    background: linear-gradient(135deg, #2E8B00 0%, #1F5F00 100%);
     color: white !important;
 }
 

@@ -1,14 +1,14 @@
-/* CSS Custom Properties - White Mist & Leafy Green Theme */
+/* CSS Custom Properties - italki-Inspired Warm Theme */
 :root {
-    /* White Mist & Leafy Green Color Palette */
-    --primary-color: #4CAF50;
-    --primary-hover: #45A049;
-    --secondary-color: #E0E0E0;
-    --accent-color: #4CAF50;
-    --text-primary: #333333;
-    --text-secondary: #666666;
-    --text-light: #999999;
-    --background: #FCFCFD;
+    /* italki-Inspired Color Palette */
+    --primary-color: #FF3B30;
+    --primary-hover: #E6342A;
+    --secondary-color: #007B83;
+    --accent-color: #00A59C;
+    --text-primary: #1E1E1E;
+    --text-secondary: #5A5A5A;
+    --text-light: #9E9E9E;
+    --background: #F5F6FA;
     --background-light: #FFFFFF;
     --surface: #FFFFFF;
     --border-color: #E0E0E0;
@@ -17,15 +17,16 @@
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
-    --gradient-primary: linear-gradient(135deg, #4CAF50 0%, #45A049 100%);
-    --gradient-secondary: linear-gradient(135deg, #FCFCFD 0%, #F5F6FA 100%);
-    --gradient-background: linear-gradient(135deg, #FCFCFD 0%, #FFFFFF 100%);
+    --gradient-primary: linear-gradient(135deg, #FF3B30 0%, #E6342A 100%);
+    --gradient-secondary: linear-gradient(135deg, #F5F6FA 0%, #FFFFFF 100%);
+    --gradient-background: linear-gradient(135deg, #F5F6FA 0%, #FFFFFF 100%);
 
     /* Special Colors */
     --star-rating: #FFC107;
-    --availability: #4CAF50;
-    --verified: #4CAF50;
-    --accent-text: #4CAF50;
+    --availability: #38B000;
+    --verified: #38B000;
+    --accent-text: #00A59C;
+    --success-light: #C7F4E5;
 }
 
 /* Reset and Base Styles */
