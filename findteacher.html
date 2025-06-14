@@ -594,21 +594,52 @@
         // Load tutors from Supabase
         async function loadTutors() {
             try {
+                console.log('🔍 Loading tutors from database...');
+
+                // Try to load tutors with error handling
                 const { data, error } = await supabase
                     .from('tutors')
                     .select('*')
                     .eq('approved', true)
                     .order('rating', { ascending: false });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('❌ Database error loading tutors:', error);
 
-                allTutors = data || [];
+                    // Try a simpler query without the approved filter
+                    console.log('🔄 Trying simpler query...');
+                    const { data: allData, error: simpleError } = await supabase
+                        .from('tutors')
+                        .select('*')
+                        .limit(10);
+
+                    if (simpleError) {
+                        throw simpleError;
+                    }
+
+                    // Filter approved tutors client-side
+                    allTutors = (allData || []).filter(tutor => tutor.approved === true);
+                    console.log('✅ Loaded tutors with fallback method:', allTutors.length);
+                } else {
+                    allTutors = data || [];
+                    console.log('✅ Loaded tutors successfully:', allTutors.length);
+                }
+
                 filteredTutors = [...allTutors];
                 renderTutors();
                 updateTutorCount();
+
             } catch (error) {
-                console.error('Error loading tutors:', error);
-                showError('Failed to load tutors. Please try again.');
+                console.error('❌ Error loading tutors:', error);
+
+                // Show user-friendly error message
+                showError(`Failed to load tutors: ${error.message}. Please refresh the page or try again later.`);
+
+                // Show empty state
+                allTutors = [];
+                filteredTutors = [];
+                renderTutors();
+                updateTutorCount();
             } finally {
                 hideLoading();
             }

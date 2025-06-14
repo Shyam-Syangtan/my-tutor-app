@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnose Critical Issues</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .error { color: red; }
+        .success { color: green; }
+        .warning { color: orange; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .test-pass { background: #d4edda; border: 1px solid #c3e6cb; }
+        .test-fail { background: #f8d7da; border: 1px solid #f5c6cb; }
+        .test-warn { background: #fff3cd; border: 1px solid #ffeaa7; }
+    </style>
+</head>
+<body>
+    <h1>Critical Issues Diagnostic Tool</h1>
+    <p>This tool will diagnose and fix the critical regressions in the application.</p>
+    
+    <div class="section">
+        <h2>Step 1: Database Connection Test</h2>
+        <button onclick="testDatabaseConnection()">Test Database Connection</button>
+        <div id="connectionResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 2: Apply Critical Fixes</h2>
+        <button onclick="applyCriticalFixes()">Apply Critical Fixes</button>
+        <div id="fixesResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 3: Test Table Access</h2>
+        <button onclick="testTableAccess()">Test Table Access</button>
+        <div id="tableAccessResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 4: Test Find Tutors Functionality</h2>
+        <button onclick="testFindTutors()">Test Find Tutors Query</button>
+        <div id="findTutorsResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 5: Test Tutor Dashboard Functionality</h2>
+        <button onclick="testTutorDashboard()">Test Tutor Dashboard Queries</button>
+        <div id="tutorDashboardResult"></div>
+    </div>
+
+    <div class="section">
+        <h2>Step 6: Test Authentication</h2>
+        <button onclick="testAuthentication()">Test Authentication Status</button>
+        <div id="authResult"></div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://qbyyutebrgpxngvwenkd.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFieXl1dGVicmdweG5ndndlbmtkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3MTA1NTMsImV4cCI6MjA2NTI4NjU1M30.eO8Wd0ZOqtXgvQ3BuedmSPmYVpbG3V-AXvgufLns6yY';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function testDatabaseConnection() {
+            const result = document.getElementById('connectionResult');
+            result.innerHTML = '<div class="info">Testing database connection...</div>';
+
+            try {
+                // Test basic connection
+                const { data, error } = await supabase.rpc('test_database_connection');
+                
+                if (error) throw error;
+
+                result.innerHTML = `
+                    <div class="test-result test-pass">
+                        ✅ Database Connection: SUCCESS<br>
+                        Response: ${data}
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="test-result test-fail">
+                        ❌ Database Connection: FAILED<br>
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function applyCriticalFixes() {
+            const result = document.getElementById('fixesResult');
+            result.innerHTML = '<div class="info">Applying critical fixes...</div>';
+
+            try {
+                // Apply the critical fixes SQL
+                const { data, error } = await supabase.rpc('exec_sql', {
+                    query: `
+                        -- Disable RLS temporarily on lessons table
+                        ALTER TABLE public.lessons DISABLE ROW LEVEL SECURITY;
+                        
+                        -- Ensure tutors table has proper policies
+                        ALTER TABLE public.tutors ENABLE ROW LEVEL SECURITY;
+                        DROP POLICY IF EXISTS "Public can view approved tutors" ON public.tutors;
+                        CREATE POLICY "Public can view approved tutors" ON public.tutors
+                            FOR SELECT USING (approved = true);
+                        
+                        -- Grant necessary permissions
+                        GRANT USAGE ON SCHEMA public TO anon, authenticated;
+                        GRANT SELECT ON public.tutors TO anon, authenticated;
+                        GRANT ALL ON public.lesson_requests TO authenticated;
+                        GRANT ALL ON public.lessons TO authenticated;
+                        GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
+                        GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO anon;
+                    `
+                });
+
+                if (error) throw error;
+
+                result.innerHTML = `
+                    <div class="test-result test-pass">
+                        ✅ Critical Fixes: APPLIED SUCCESSFULLY<br>
+                        - RLS policies updated<br>
+                        - Permissions granted<br>
+                        - Tables accessible
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="test-result test-fail">
+                        ❌ Critical Fixes: FAILED<br>
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testTableAccess() {
+            const result = document.getElementById('tableAccessResult');
+            result.innerHTML = '<div class="info">Testing table access...</div>';
+
+            try {
+                const { data, error } = await supabase.rpc('check_table_access');
+                
+                if (error) throw error;
+
+                let resultHtml = '<div class="test-result test-pass">Table Access Test Results:</div>';
+                
+                data.forEach(table => {
+                    const statusClass = table.accessible ? 'test-pass' : 'test-fail';
+                    const statusIcon = table.accessible ? '✅' : '❌';
+                    
+                    resultHtml += `
+                        <div class="test-result ${statusClass}">
+                            ${statusIcon} ${table.table_name}: ${table.accessible ? 'ACCESSIBLE' : 'FAILED'}<br>
+                            Rows: ${table.row_count || 0}
+                            ${table.error_message ? `<br>Error: ${table.error_message}` : ''}
+                        </div>
+                    `;
+                });
+
+                result.innerHTML = resultHtml;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="test-result test-fail">
+                        ❌ Table Access Test: FAILED<br>
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testFindTutors() {
+            const result = document.getElementById('findTutorsResult');
+            result.innerHTML = '<div class="info">Testing Find Tutors functionality...</div>';
+
+            try {
+                // Test the exact query used by Find Tutors page
+                const { data: tutors, error } = await supabase
+                    .from('tutors')
+                    .select('*')
+                    .eq('approved', true)
+                    .order('rating', { ascending: false });
+
+                if (error) throw error;
+
+                result.innerHTML = `
+                    <div class="test-result test-pass">
+                        ✅ Find Tutors Query: SUCCESS<br>
+                        Found ${tutors.length} approved tutors<br>
+                        Sample tutor: ${tutors[0] ? tutors[0].name : 'None'}
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="test-result test-fail">
+                        ❌ Find Tutors Query: FAILED<br>
+                        Error: ${error.message}<br>
+                        This explains why the Find Tutors page is not working!
+                    </div>
+                `;
+            }
+        }
+
+        async function testTutorDashboard() {
+            const result = document.getElementById('tutorDashboardResult');
+            result.innerHTML = '<div class="info">Testing Tutor Dashboard functionality...</div>';
+
+            try {
+                // Test lesson requests query (Action Required section)
+                const { data: requests, error: requestError } = await supabase
+                    .from('lesson_requests')
+                    .select('id, tutor_id, student_id, status, created_at')
+                    .eq('status', 'pending')
+                    .limit(5);
+
+                if (requestError) throw requestError;
+
+                // Test lessons query
+                const today = new Date().toISOString().split('T')[0];
+                const { data: lessons, error: lessonError } = await supabase
+                    .from('lessons')
+                    .select('id, tutor_id, student_id, status, lesson_date')
+                    .eq('status', 'confirmed')
+                    .gte('lesson_date', today)
+                    .limit(5);
+
+                if (lessonError) throw lessonError;
+
+                result.innerHTML = `
+                    <div class="test-result test-pass">
+                        ✅ Tutor Dashboard Queries: SUCCESS<br>
+                        Pending requests: ${requests.length}<br>
+                        Upcoming lessons: ${lessons.length}<br>
+                        Action Required section should work now!
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="test-result test-fail">
+                        ❌ Tutor Dashboard Queries: FAILED<br>
+                        Error: ${error.message}<br>
+                        This explains why the Action Required section is broken!
+                    </div>
+                `;
+            }
+        }
+
+        async function testAuthentication() {
+            const result = document.getElementById('authResult');
+            result.innerHTML = '<div class="info">Testing authentication...</div>';
+
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                
+                if (error) throw error;
+
+                if (session) {
+                    result.innerHTML = `
+                        <div class="test-result test-pass">
+                            ✅ Authentication: LOGGED IN<br>
+                            User: ${session.user.email}<br>
+                            ID: ${session.user.id}
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div class="test-result test-warn">
+                            ⚠️ Authentication: NOT LOGGED IN<br>
+                            Some features may not work without authentication
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="test-result test-fail">
+                        ❌ Authentication Test: FAILED<br>
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

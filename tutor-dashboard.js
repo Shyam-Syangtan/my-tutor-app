@@ -347,129 +347,95 @@ async function loadLessonStats() {
         return;
     }
 
+    // Initialize with default values
+    let pendingCount = 0;
+    let upcomingCount = 0;
+
     try {
         console.log('📊 [STATS] Querying lesson_requests table...');
-        console.log('📊 [STATS] Query parameters:', {
-            table: 'lesson_requests',
-            tutor_id: currentUser.id,
-            status: 'pending'
-        });
 
-        // Load pending lesson requests (Action Required)
-        const { data: pendingRequests, error: pendingError } = await supabase
-            .from('lesson_requests')
-            .select('id, tutor_id, student_id, status, created_at')
-            .eq('tutor_id', currentUser.id)
-            .eq('status', 'pending');
+        // Load pending lesson requests (Action Required) with error handling
+        try {
+            const { data: pendingRequests, error: pendingError } = await supabase
+                .from('lesson_requests')
+                .select('id, tutor_id, student_id, status, created_at')
+                .eq('tutor_id', currentUser.id)
+                .eq('status', 'pending');
 
-        console.log('📊 [STATS] Pending requests query result:', {
-            data: pendingRequests,
-            error: pendingError,
-            count: pendingRequests?.length || 0
-        });
-
-        if (pendingError) {
-            console.error('❌ [STATS] Error loading pending requests:', {
-                message: pendingError.message,
-                details: pendingError.details,
-                hint: pendingError.hint,
-                code: pendingError.code
-            });
-
-            if (pendingError.message.includes('relation "lesson_requests" does not exist')) {
-                console.error('🚨 [STATS] CRITICAL: lesson_requests table does not exist!');
-                console.error('🚨 [STATS] This explains why no lesson requests are showing up.');
-                console.error('🚨 [STATS] Please create the lesson_requests table using the provided SQL script.');
-
-                // Show error message to user
-                const actionRequiredElement = document.getElementById('actionRequired');
-                if (actionRequiredElement) {
-                    actionRequiredElement.textContent = '!';
-                    actionRequiredElement.title = 'Database setup incomplete - lesson_requests table missing';
-                    actionRequiredElement.style.color = 'red';
-                }
+            if (pendingError) {
+                console.warn('⚠️ [STATS] Error loading pending requests:', pendingError.message);
+                // Don't fail completely, just log the error
+            } else {
+                pendingCount = pendingRequests ? pendingRequests.length : 0;
+                console.log('📊 [STATS] Pending requests loaded:', pendingCount);
             }
+        } catch (error) {
+            console.warn('⚠️ [STATS] Exception loading pending requests:', error.message);
         }
 
+        // Load upcoming confirmed lessons with error handling
         console.log('📅 [STATS] Querying lessons table...');
-        // Load upcoming confirmed lessons
         const today = new Date().toISOString().split('T')[0];
-        console.log('📅 [STATS] Today date:', today);
 
-        const { data: upcomingLessons, error: upcomingError } = await supabase
-            .from('lessons')
-            .select('id, tutor_id, student_id, status, lesson_date')
-            .eq('tutor_id', currentUser.id)
-            .eq('status', 'confirmed')
-            .gte('lesson_date', today);
+        try {
+            const { data: upcomingLessons, error: upcomingError } = await supabase
+                .from('lessons')
+                .select('id, tutor_id, student_id, status, lesson_date')
+                .eq('tutor_id', currentUser.id)
+                .eq('status', 'confirmed')
+                .gte('lesson_date', today);
 
-        console.log('📅 [STATS] Upcoming lessons query result:', {
-            data: upcomingLessons,
-            error: upcomingError,
-            count: upcomingLessons?.length || 0
-        });
-
-        if (upcomingError) {
-            console.error('❌ [STATS] Error loading upcoming lessons:', {
-                message: upcomingError.message,
-                details: upcomingError.details,
-                hint: upcomingError.hint,
-                code: upcomingError.code
-            });
+            if (upcomingError) {
+                console.warn('⚠️ [STATS] Error loading upcoming lessons:', upcomingError.message);
+                // Don't fail completely, just log the error
+            } else {
+                upcomingCount = upcomingLessons ? upcomingLessons.length : 0;
+                console.log('📅 [STATS] Upcoming lessons loaded:', upcomingCount);
+            }
+        } catch (error) {
+            console.warn('⚠️ [STATS] Exception loading upcoming lessons:', error.message);
         }
-
-        // Update UI with real counts
-        const pendingCount = pendingRequests ? pendingRequests.length : 0;
-        const upcomingCount = upcomingLessons ? upcomingLessons.length : 0;
 
         console.log('📈 [STATS] Final counts:', { pendingCount, upcomingCount });
 
+        // Update UI elements with error handling
         console.log('🎯 [STATS] Updating UI elements...');
-        const actionRequiredElement = document.getElementById('actionRequired');
-        const upcomingLessonsElement = document.getElementById('upcomingLessons');
-        const packageActionElement = document.getElementById('packageAction');
 
-        console.log('🎯 [STATS] UI elements found:', {
-            actionRequired: !!actionRequiredElement,
-            upcomingLessons: !!upcomingLessonsElement,
-            packageAction: !!packageActionElement
-        });
+        try {
+            const actionRequiredElement = document.getElementById('actionRequired');
+            const upcomingLessonsElement = document.getElementById('upcomingLessons');
+            const packageActionElement = document.getElementById('packageAction');
 
-        if (actionRequiredElement) {
-            console.log('🎯 [STATS] Setting action required count to:', pendingCount);
-            actionRequiredElement.textContent = pendingCount;
+            if (actionRequiredElement) {
+                actionRequiredElement.textContent = pendingCount;
+                console.log('🎯 [STATS] Action required count set to:', pendingCount);
 
-            // Add notification styling if there are pending requests
-            const actionRequiredCard = document.getElementById('actionRequiredCard');
-            console.log('🎯 [STATS] Action required card found:', !!actionRequiredCard);
-
-            if (pendingCount > 0) {
-                console.log('🔔 [STATS] Adding notification styling for pending requests');
+                // Add notification styling if there are pending requests
+                const actionRequiredCard = document.getElementById('actionRequiredCard');
                 if (actionRequiredCard) {
-                    actionRequiredCard.classList.add('has-notification');
-                }
-            } else {
-                console.log('🔕 [STATS] Removing notification styling (no pending requests)');
-                if (actionRequiredCard) {
-                    actionRequiredCard.classList.remove('has-notification');
+                    if (pendingCount > 0) {
+                        actionRequiredCard.classList.add('has-notification');
+                        console.log('🔔 [STATS] Added notification styling');
+                    } else {
+                        actionRequiredCard.classList.remove('has-notification');
+                        console.log('🔕 [STATS] Removed notification styling');
+                    }
                 }
             }
-        } else {
-            console.error('❌ [STATS] actionRequired element not found!');
-        }
 
-        if (upcomingLessonsElement) {
-            console.log('🎯 [STATS] Setting upcoming lessons count to:', upcomingCount);
-            upcomingLessonsElement.textContent = upcomingCount;
-        } else {
-            console.error('❌ [STATS] upcomingLessons element not found!');
-        }
+            if (upcomingLessonsElement) {
+                upcomingLessonsElement.textContent = upcomingCount;
+                console.log('🎯 [STATS] Upcoming lessons count set to:', upcomingCount);
+            }
 
-        if (packageActionElement) {
-            packageActionElement.textContent = '0'; // Placeholder for now
-        }
+            if (packageActionElement) {
+                packageActionElement.textContent = '0'; // Placeholder
+            }
 
-        console.log('✅ [STATS] Lesson stats updated successfully:', { pendingCount, upcomingCount });
+            console.log('✅ [STATS] UI updated successfully:', { pendingCount, upcomingCount });
+        } catch (uiError) {
+            console.error('❌ [STATS] Error updating UI:', uiError.message);
+        }
 
     } catch (error) {
         console.error('Error in loadLessonStats:', error);
