@@ -951,8 +951,8 @@
                 // Get or create chat
                 const chatId = await messaging.getOrCreateChat(tutorUserId);
 
-                // Redirect to messages page
-                window.location.href = `messages.html?chat=${chatId}`;
+                // Redirect to student messages page
+                window.location.href = `student-messages.html?chat=${chatId}`;
 
             } catch (error) {
                 console.error('Error contacting teacher:', error);

@@ -257,15 +257,18 @@ window.addEventListener('beforeunload', cleanupSubscriptions);
 function loadDashboardData() {
     // Update user profile info
     updateUserProfile();
-    
+
     // Update teacher info
     updateTeacherInfo();
-    
+
     // Load stats (placeholder data for now)
     updateStats();
-    
+
     // Load earnings (placeholder data for now)
     updateEarnings();
+
+    // Load unread message count
+    loadUnreadMessageCount();
 }
 
 function updateUserProfile() {
@@ -483,6 +486,44 @@ function updateEarnings() {
     if (totalBalance) totalBalance.textContent = '₹ 0.00';
     if (mayEarnings) mayEarnings.textContent = '₹ 0.00';
     if (mayReward) mayReward.textContent = '₹ 0.00';
+}
+
+async function loadUnreadMessageCount() {
+    try {
+        if (!currentUser || !supabase) return;
+
+        const { data, error } = await supabase
+            .rpc('get_user_unread_count', { p_user_id: currentUser.id });
+
+        if (error) {
+            console.warn('Could not load unread message count:', error.message);
+            return;
+        }
+
+        const unreadCount = data || 0;
+        const badge = document.getElementById('tutorUnreadBadge');
+        const dropdownBadge = document.getElementById('tutorUnreadBadgeDropdown');
+
+        if (badge) {
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        if (dropdownBadge) {
+            if (unreadCount > 0) {
+                dropdownBadge.textContent = unreadCount;
+                dropdownBadge.classList.remove('hidden');
+            } else {
+                dropdownBadge.classList.add('hidden');
+            }
+        }
+    } catch (error) {
+        console.warn('Error loading unread message count:', error);
+    }
 }
 
 // Profile dropdown functionality

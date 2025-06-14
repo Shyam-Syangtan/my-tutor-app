@@ -40,12 +40,12 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <!-- Messages Icon -->
-                    <a href="messages.html" class="relative p-2 text-gray-600 hover:text-indigo-600 transition-colors">
+                    <a href="student-messages.html" class="relative p-2 text-gray-600 hover:text-indigo-600 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.955 8.955 0 01-4.126-.98L3 21l1.98-5.874A8.955 8.955 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"></path>
                         </svg>
                         <!-- Unread badge -->
-                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                        <span id="studentUnreadBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
                     </a>
 
                     <div class="flex items-center space-x-2">
@@ -195,6 +195,6 @@
     <!-- Lesson Status Notifications -->
     <script src="lesson-status-notifications.js?v=1"></script>
 
-    <script src="student-dashboard.js?v=3"></script>
+    <script src="student-dashboard.js?v=4"></script>
 </body>
 </html>

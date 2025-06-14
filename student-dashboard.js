@@ -29,6 +29,9 @@ class StudentDashboard {
 
         // Set up periodic refresh for lessons (every 30 seconds)
         this.setupPeriodicRefresh();
+
+        // Load unread message count
+        this.loadUnreadMessageCount();
     }
 
     async loadUserInfo() {
@@ -505,6 +508,35 @@ class StudentDashboard {
             minute: '2-digit',
             hour12: true 
         });
+    }
+
+    async loadUnreadMessageCount() {
+        try {
+            const currentUser = window.authHandler.getCurrentUser();
+            if (!currentUser) return;
+
+            const { data, error } = await window.authHandler.supabase
+                .rpc('get_user_unread_count', { p_user_id: currentUser.id });
+
+            if (error) {
+                console.warn('Could not load unread message count:', error.message);
+                return;
+            }
+
+            const unreadCount = data || 0;
+            const badge = document.getElementById('studentUnreadBadge');
+
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        } catch (error) {
+            console.warn('Error loading unread message count:', error);
+        }
     }
 
     showNotification(message, type = 'info') {
