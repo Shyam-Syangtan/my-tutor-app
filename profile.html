@@ -1286,13 +1286,69 @@
 
         // Add debug button for testing enhanced modal
         function addDebugButton() {
-            console.log('🔧 [DEBUG] Adding debug button for enhanced modal testing');
+            console.log('🔧 [DEBUG] Adding debug buttons for enhanced modal testing');
 
+            // Test Enhanced Modal button
             const debugButton = document.createElement('button');
             debugButton.innerHTML = '🔧 Test Enhanced Modal';
             debugButton.className = 'fixed bottom-4 left-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50 text-sm';
             debugButton.onclick = () => testEnhancedModal();
             document.body.appendChild(debugButton);
+
+            // Force Reinitialize button
+            const reinitButton = document.createElement('button');
+            reinitButton.innerHTML = '🔄 Force Reinit Modal';
+            reinitButton.className = 'fixed bottom-4 left-48 bg-blue-500 text-white px-4 py-2 rounded shadow-lg z-50 text-sm';
+            reinitButton.onclick = () => forceReinitModal();
+            document.body.appendChild(reinitButton);
+
+            // Direct Modal Test button
+            const directButton = document.createElement('button');
+            directButton.innerHTML = '🎯 Direct Modal Test';
+            directButton.className = 'fixed bottom-4 left-96 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50 text-sm';
+            directButton.onclick = () => directModalTest();
+            document.body.appendChild(directButton);
+        }
+
+        // Force reinitialize modal
+        async function forceReinitModal() {
+            console.log('🔄 [DEBUG] Force reinitializing modal...');
+            if (bookingSystem) {
+                const success = await bookingSystem.forceInitializeEnhancedModal();
+                console.log('🔄 [DEBUG] Force reinit result:', success);
+                if (success) {
+                    alert('Enhanced modal reinitialized successfully!');
+                } else {
+                    alert('Failed to reinitialize enhanced modal.');
+                }
+            } else {
+                alert('Booking system not available.');
+            }
+        }
+
+        // Direct modal test
+        async function directModalTest() {
+            console.log('🎯 [DEBUG] Direct modal test...');
+            if (typeof EnhancedBookingModal !== 'undefined') {
+                try {
+                    const directModal = new EnhancedBookingModal(supabase);
+                    await directModal.initialize(
+                        tutorUserId || 'test-tutor',
+                        currentUser,
+                        { '1-10:00:00': true, '2-14:00:00': true },
+                        {}
+                    );
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    directModal.openModal(tomorrow.toISOString().split('T')[0]);
+                    console.log('✅ [DEBUG] Direct modal test successful');
+                } catch (error) {
+                    console.error('❌ [DEBUG] Direct modal test failed:', error);
+                    alert('Direct modal test failed: ' + error.message);
+                }
+            } else {
+                alert('EnhancedBookingModal class not available');
+            }
         }
 
         // Test enhanced modal function
@@ -1317,8 +1373,25 @@
                 console.log('⚠️ [DEBUG] Enhanced modal not available, trying to initialize...');
                 if (typeof EnhancedBookingModal !== 'undefined') {
                     try {
+                        console.log('🔧 [DEBUG] Creating and initializing test modal...');
                         const testModal = new EnhancedBookingModal(supabase);
-                        console.log('✅ [DEBUG] Test modal created:', testModal);
+
+                        // Initialize with dummy data
+                        testModal.initialize(
+                            tutorUserId || 'test-tutor-id',
+                            currentUser,
+                            { '1-10:00:00': true, '2-14:00:00': true }, // dummy availability
+                            {} // empty lesson requests
+                        ).then(() => {
+                            console.log('✅ [DEBUG] Test modal initialized, trying to open...');
+                            const tomorrow = new Date();
+                            tomorrow.setDate(tomorrow.getDate() + 1);
+                            const dateStr = tomorrow.toISOString().split('T')[0];
+                            testModal.openModal(dateStr);
+                        }).catch(error => {
+                            console.error('❌ [DEBUG] Test modal initialization failed:', error);
+                        });
+
                     } catch (error) {
                         console.error('❌ [DEBUG] Error creating test modal:', error);
                     }
