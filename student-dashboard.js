@@ -355,6 +355,12 @@ class StudentDashboard {
                     <p class="text-gray-500 text-sm">No upcoming lessons</p>
                     <p class="text-xs text-gray-400 mt-2">Approved lessons will appear here automatically</p>
                     <p class="text-xs text-gray-400 mt-1">Total lessons found: ${this.lessons.length}</p>
+                    <div class="mt-4">
+                        <button onclick="window.studentDashboard.loadLessons().then(() => window.studentDashboard.renderLessons())"
+                                class="text-sm text-blue-600 hover:text-blue-800 underline">
+                            🔄 Refresh Lessons
+                        </button>
+                    </div>
                 </div>
             `;
             return;
