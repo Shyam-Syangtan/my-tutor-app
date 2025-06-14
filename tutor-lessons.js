@@ -58,13 +58,15 @@ async function loadTutorLessons() {
         if (functionError) {
             console.warn('Function approach failed, using direct query:', functionError);
 
-            // Fallback to direct query
+            // Fallback to direct query with proper JOIN
             const { data: lessonsData, error: lessonsError } = await supabase
                 .from('lessons')
                 .select(`
                     *,
                     student:student_id (
-                        email
+                        id,
+                        email,
+                        raw_user_meta_data
                     )
                 `)
                 .eq('tutor_id', currentUser.id)
@@ -170,8 +172,20 @@ function renderLessons() {
     });
 
     container.innerHTML = filteredLessons.map(lesson => {
+        const studentData = lesson.student;
+        const studentName = studentData?.raw_user_meta_data?.name ||
+                           studentData?.raw_user_meta_data?.full_name ||
+                           studentData?.email?.split('@')[0] ||
+                           'Student';
         const studentEmail = lesson.student_email || lesson.student?.email || 'Unknown Student';
         const isPast = isPastLesson(lesson.lesson_date, lesson.start_time);
+
+        console.log('👤 [TUTOR] Processing lesson with student:', {
+            lessonId: lesson.id,
+            studentId: lesson.student_id,
+            studentEmail: studentData?.email,
+            studentName: studentName
+        });
         
         return `
             <div class="lesson-card bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -179,13 +193,13 @@ function renderLessons() {
                     <div class="flex items-center space-x-3">
                         <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                             <span class="text-green-600 font-semibold">
-                                ${studentEmail.substring(0, 2).toUpperCase()}
+                                ${studentName.substring(0, 2).toUpperCase()}
                             </span>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-gray-900">${studentEmail}</h3>
+                            <h3 class="font-semibold text-gray-900">${studentName}</h3>
                             <p class="text-sm text-gray-500">
-                                ${lesson.lesson_type || 'Conversation Practice'}
+                                ${studentEmail} • ${lesson.lesson_type || 'Conversation Practice'}
                             </p>
                         </div>
                     </div>
@@ -359,14 +373,21 @@ function viewLessonDetails(lessonId) {
     const lesson = lessons.find(l => l.id === lessonId);
     if (!lesson) return;
 
+    const studentData = lesson.student;
+    const studentName = studentData?.raw_user_meta_data?.name ||
+                       studentData?.raw_user_meta_data?.full_name ||
+                       studentData?.email?.split('@')[0] ||
+                       'Student';
+
     const modalContent = document.getElementById('lessonModalContent');
-    
+
     modalContent.innerHTML = `
         <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="text-sm font-medium text-gray-600">Student</label>
-                    <p class="text-gray-900">${lesson.student?.email || 'Unknown'}</p>
+                    <p class="text-gray-900">${studentName}</p>
+                    <p class="text-sm text-gray-500">${lesson.student?.email || 'Unknown'}</p>
                 </div>
                 <div>
                     <label class="text-sm font-medium text-gray-600">Status</label>

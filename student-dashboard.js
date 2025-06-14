@@ -105,51 +105,53 @@ class StudentDashboard {
 
             // Method 1: Direct query with proper error handling
             try {
-                console.log('📊 [STUDENT] Trying direct lessons query...');
+                console.log('📊 [STUDENT] Trying direct lessons query with tutor JOIN...');
                 const { data: directData, error: directError } = await window.authHandler.supabase
                     .from('lessons')
                     .select(`
                         id, tutor_id, student_id, lesson_date, start_time, end_time,
-                        status, lesson_type, notes, price, created_at
+                        status, lesson_type, notes, price, created_at,
+                        tutor:tutor_id (
+                            id,
+                            email,
+                            raw_user_meta_data
+                        )
                     `)
                     .eq('student_id', currentUser.id)
                     .order('lesson_date', { ascending: true })
                     .order('start_time', { ascending: true });
 
                 if (directError) {
-                    console.warn('⚠️ [STUDENT] Direct query failed:', directError.message);
+                    console.warn('⚠️ [STUDENT] Direct query with JOIN failed:', directError.message);
                 } else {
-                    console.log('✅ [STUDENT] Direct query successful, found', directData?.length || 0, 'lessons');
+                    console.log('✅ [STUDENT] Direct query with JOIN successful, found', directData?.length || 0, 'lessons');
 
-                    // Add tutor info for each lesson
-                    const lessonsWithTutors = [];
-                    for (const lesson of (directData || [])) {
-                        try {
-                            const { data: tutorData } = await window.authHandler.supabase
-                                .from('tutors')
-                                .select('name, photo_url, email')
-                                .eq('user_id', lesson.tutor_id)
-                                .single();
+                    // Process lessons with tutor data from JOIN
+                    const lessonsWithTutors = directData.map(lesson => {
+                        const tutorData = lesson.tutor;
+                        const tutorName = tutorData?.raw_user_meta_data?.name ||
+                                         tutorData?.raw_user_meta_data?.full_name ||
+                                         tutorData?.email?.split('@')[0] ||
+                                         'Tutor';
 
-                            lessonsWithTutors.push({
-                                ...lesson,
-                                tutor_name: tutorData?.name || 'Unknown Tutor',
-                                tutor_email: tutorData?.email || 'unknown@email.com',
-                                tutor_profile_picture: tutorData?.photo_url || null
-                            });
-                        } catch (tutorError) {
-                            console.warn('⚠️ [STUDENT] Could not load tutor data for lesson:', lesson.id);
-                            lessonsWithTutors.push({
-                                ...lesson,
-                                tutor_name: 'Unknown Tutor',
-                                tutor_email: 'unknown@email.com',
-                                tutor_profile_picture: null
-                            });
-                        }
-                    }
+                        console.log('👤 [STUDENT] Processing lesson with tutor:', {
+                            lessonId: lesson.id,
+                            tutorId: lesson.tutor_id,
+                            tutorEmail: tutorData?.email,
+                            tutorName: tutorName
+                        });
+
+                        return {
+                            ...lesson,
+                            tutor_name: tutorName,
+                            tutor_email: tutorData?.email || 'unknown@email.com',
+                            tutor_profile_picture: tutorData?.raw_user_meta_data?.avatar_url ||
+                                                  tutorData?.raw_user_meta_data?.picture || null
+                        };
+                    });
 
                     lessonsData = lessonsWithTutors;
-                    loadMethod = 'direct query with tutor data';
+                    loadMethod = 'direct query with tutor JOIN';
                 }
             } catch (error) {
                 console.warn('⚠️ [STUDENT] Exception in direct query:', error.message);
