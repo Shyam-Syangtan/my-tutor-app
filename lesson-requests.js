@@ -105,37 +105,34 @@ async function loadLessonRequests() {
 
         console.log('📋 [DEBUG] Raw lesson requests loaded:', requests?.length || 0);
 
-        // Get student information for each request using bypass approach
+        // Get student information for each request using safe database functions
         const requestsWithStudents = [];
         for (const request of (requests || [])) {
             try {
                 let studentData = { email: 'Student', full_name: null };
 
-                // Try students table first (avoids 406 errors from users table)
+                // Try safe database function first (avoids all RLS issues)
                 try {
-                    const { data: studentInfo, error: studentError } = await supabase
-                        .from('students')
-                        .select('name, email')
-                        .eq('user_id', request.student_id)
-                        .single();
+                    const { data: studentName, error: functionError } = await supabase
+                        .rpc('safe_get_student_name', { student_user_id: request.student_id });
 
-                    if (!studentError && studentInfo) {
+                    if (!functionError && studentName && studentName !== 'Student') {
                         studentData = {
-                            email: studentInfo.email || studentInfo.name || 'Student',
-                            full_name: studentInfo.name
+                            email: studentName,
+                            full_name: studentName
                         };
-                        console.log('✅ [BYPASS] Student resolved from students table');
+                        console.log('✅ [SAFE] Student resolved via database function:', studentName);
                     } else {
                         // Generate friendly name from UUID
                         const friendlyName = `Student${request.student_id.substring(0, 4)}`;
                         studentData = { email: friendlyName, full_name: friendlyName };
-                        console.log('✅ [BYPASS] Generated friendly student name:', friendlyName);
+                        console.log('✅ [SAFE] Generated friendly student name:', friendlyName);
                     }
                 } catch (error) {
                     // Generate friendly name from UUID as final fallback
                     const friendlyName = `Student${request.student_id.substring(0, 4)}`;
                     studentData = { email: friendlyName, full_name: friendlyName };
-                    console.log('✅ [BYPASS] Used UUID-based student name:', friendlyName);
+                    console.log('✅ [SAFE] Used UUID-based student name:', friendlyName);
                 }
 
                 requestsWithStudents.push({
