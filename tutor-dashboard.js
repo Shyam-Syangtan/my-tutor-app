@@ -375,6 +375,20 @@ async function loadLessonStats() {
                 hint: pendingError.hint,
                 code: pendingError.code
             });
+
+            if (pendingError.message.includes('relation "lesson_requests" does not exist')) {
+                console.error('🚨 [STATS] CRITICAL: lesson_requests table does not exist!');
+                console.error('🚨 [STATS] This explains why no lesson requests are showing up.');
+                console.error('🚨 [STATS] Please create the lesson_requests table using the provided SQL script.');
+
+                // Show error message to user
+                const actionRequiredElement = document.getElementById('actionRequired');
+                if (actionRequiredElement) {
+                    actionRequiredElement.textContent = '!';
+                    actionRequiredElement.title = 'Database setup incomplete - lesson_requests table missing';
+                    actionRequiredElement.style.color = 'red';
+                }
+            }
         }
 
         console.log('📅 [STATS] Querying lessons table...');

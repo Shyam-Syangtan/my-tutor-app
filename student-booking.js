@@ -38,9 +38,11 @@ class StudentBookingSystem {
 
     // Initialize enhanced modal with retry mechanism
     async initializeEnhancedModal(success) {
+        // Always try to initialize enhanced modal, even if some data loading failed
+        console.log('🔄 [BOOKING] Initializing enhanced modal (success:', success, ')');
+
         if (!success) {
-            console.log('⚠️ [BOOKING] Booking data load failed, skipping enhanced modal');
-            return;
+            console.log('⚠️ [BOOKING] Some booking data load failed, but proceeding with enhanced modal initialization');
         }
 
         // Wait for EnhancedBookingModal to be available (up to 3 seconds)
@@ -175,29 +177,42 @@ class StudentBookingSystem {
                 });
             }
 
-            // Load lesson requests for enhanced modal
+            // Load lesson requests for enhanced modal (handle missing table gracefully)
             console.log('📋 [DEBUG] Loading lesson requests...');
-            const { data: lessonRequests, error: requestsError } = await this.supabase
-                .from('lesson_requests')
-                .select('*')
-                .eq('tutor_id', this.selectedTutor)
-                .gte('requested_date', this.currentWeekStart.toISOString().split('T')[0])
-                .lte('requested_date', weekEnd.toISOString().split('T')[0])
-                .eq('status', 'pending');
-
-            console.log('📋 [DEBUG] Lesson requests result:', {
-                data: lessonRequests,
-                error: requestsError,
-                count: lessonRequests?.length || 0
-            });
-
-            // Convert to lookup object
             this.lessonRequestsData = {};
-            if (lessonRequests) {
-                lessonRequests.forEach(request => {
-                    const key = `${request.requested_date}-${request.requested_start_time}`;
-                    this.lessonRequestsData[key] = request;
+
+            try {
+                const { data: lessonRequests, error: requestsError } = await this.supabase
+                    .from('lesson_requests')
+                    .select('*')
+                    .eq('tutor_id', this.selectedTutor)
+                    .gte('requested_date', this.currentWeekStart.toISOString().split('T')[0])
+                    .lte('requested_date', weekEnd.toISOString().split('T')[0])
+                    .eq('status', 'pending');
+
+                console.log('📋 [DEBUG] Lesson requests result:', {
+                    data: lessonRequests,
+                    error: requestsError,
+                    count: lessonRequests?.length || 0
                 });
+
+                if (requestsError) {
+                    if (requestsError.message.includes('relation "lesson_requests" does not exist')) {
+                        console.warn('⚠️ [DEBUG] lesson_requests table does not exist - this is expected for new setups');
+                        console.warn('⚠️ [DEBUG] Enhanced modal will still work, but lesson requests will use fallback creation');
+                    } else {
+                        console.error('❌ [ERROR] Error loading lesson requests:', requestsError);
+                    }
+                } else if (lessonRequests) {
+                    // Convert to lookup object
+                    lessonRequests.forEach(request => {
+                        const key = `${request.requested_date}-${request.requested_start_time}`;
+                        this.lessonRequestsData[key] = request;
+                    });
+                }
+            } catch (error) {
+                console.warn('⚠️ [DEBUG] Failed to load lesson requests (table may not exist):', error.message);
+                // Continue with empty lesson requests data
             }
 
             console.log('✅ [SUCCESS] Final data loaded:');
@@ -440,7 +455,13 @@ class StudentBookingSystem {
 
         } catch (error) {
             console.error('💥 [BOOKING] Error creating lesson request:', error);
-            this.showErrorMessage('Failed to send lesson request. Please try again.');
+
+            if (error.message.includes('relation "lesson_requests" does not exist')) {
+                console.error('💥 [BOOKING] lesson_requests table does not exist!');
+                this.showErrorMessage('Database setup incomplete. The lesson_requests table needs to be created. Please contact support or check the setup instructions.');
+            } else {
+                this.showErrorMessage('Failed to send lesson request. Please try again.');
+            }
         }
     }
 

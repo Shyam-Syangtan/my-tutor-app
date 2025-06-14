@@ -8,11 +8,17 @@
 </head>
 <body class="bg-gray-100 p-8">
     <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold mb-6 text-red-600">🚨 Fix Missing lesson_requests Table</h1>
-        
+        <h1 class="text-3xl font-bold mb-6 text-red-600">🚨 CRITICAL: Fix Missing lesson_requests Table</h1>
+
         <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
-            <h2 class="text-xl font-semibold text-red-800 mb-2">Error Detected</h2>
-            <p class="text-red-700">The <code>lesson_requests</code> table does not exist in your database. This is why the tutor dashboard shows no lesson requests.</p>
+            <h2 class="text-xl font-semibold text-red-800 mb-2">🔥 Critical Database Error Detected</h2>
+            <p class="text-red-700 mb-3">The <code>lesson_requests</code> table does not exist in your database. This is causing:</p>
+            <ul class="text-red-700 list-disc list-inside space-y-1">
+                <li><strong>Enhanced booking modal not opening</strong> - falls back to simple confirm dialog</li>
+                <li><strong>Tutor dashboard showing "0" pending requests</strong> - can't load lesson requests</li>
+                <li><strong>Complete booking workflow broken</strong> - students can't request lessons</li>
+            </ul>
+            <p class="text-red-700 mt-3 font-semibold">This table MUST be created for the booking system to work!</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
