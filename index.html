@@ -214,8 +214,8 @@
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 console.log('User already logged in:', session.user);
-                // Redirect to home page if already authenticated
-                window.location.href = 'home.html';
+                // Redirect to React app if already authenticated
+                window.location.href = '/my-tutor-app/react-version/?redirect=dashboard';
             }
         }
 
