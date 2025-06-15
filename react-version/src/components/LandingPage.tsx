@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { ROUTES } from '../constants/routes';
 import Header from './Header';
 import LoginModal from './LoginModal';
 
 const LandingPage: React.FC = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check if user is already logged in
@@ -26,7 +29,7 @@ const LandingPage: React.FC = () => {
     if (session) {
       setUser(session.user);
       // Redirect to dashboard if already authenticated
-      window.location.href = '/my-tutor-app/react-version/dashboard';
+      navigate(ROUTES.DASHBOARD);
     }
   };
 

@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { ROUTES } from '../constants/routes';
 
 interface DashboardNavigationProps {
   user: any;
@@ -32,15 +34,15 @@ const DashboardNavigation: React.FC<DashboardNavigationProps> = ({
           </div>
           <div className="flex items-center space-x-4">
             {/* Messages Icon */}
-            <a 
-              href="/my-tutor-app/react-version/messages" 
+            <Link
+              to={ROUTES.MESSAGES}
               className="relative p-2 text-gray-600 hover:text-green-600 transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth="2" 
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
                   d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.955 8.955 0 01-4.126-.98L3 21l1.98-5.874A8.955 8.955 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"
                 />
               </svg>
@@ -50,7 +52,7 @@ const DashboardNavigation: React.FC<DashboardNavigationProps> = ({
                   {unreadCount}
                 </span>
               )}
-            </a>
+            </Link>
 
             <div className="flex items-center space-x-2">
               <img 

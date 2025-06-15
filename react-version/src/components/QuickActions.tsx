@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { ROUTES } from '../constants/routes';
 
 const QuickActions: React.FC = () => {
   const actions = [
@@ -7,21 +9,21 @@ const QuickActions: React.FC = () => {
       description: 'Browse available tutors',
       icon: 'fas fa-search',
       color: 'bg-blue-500 hover:bg-blue-600',
-      href: '/my-tutor-app/react-version/marketplace'
+      route: ROUTES.MARKETPLACE
     },
     {
       title: 'Messages',
       description: 'Chat with your tutors',
       icon: 'fas fa-comments',
       color: 'bg-green-500 hover:bg-green-600',
-      href: '/my-tutor-app/react-version/messages'
+      route: ROUTES.MESSAGES
     },
     {
       title: 'Profile',
       description: 'Update your profile',
       icon: 'fas fa-user',
       color: 'bg-purple-500 hover:bg-purple-600',
-      href: '/my-tutor-app/react-version/profile'
+      route: ROUTES.PROFILE
     }
   ];
 
@@ -33,9 +35,9 @@ const QuickActions: React.FC = () => {
       <div className="p-6">
         <div className="space-y-3">
           {actions.map((action, index) => (
-            <a
+            <Link
               key={index}
-              href={action.href}
+              to={action.route}
               className={`block w-full ${action.color} text-white rounded-lg p-4 transition-all duration-200 hover:transform hover:-translate-y-1 hover:shadow-lg`}
             >
               <div className="flex items-center space-x-3">
@@ -45,7 +47,7 @@ const QuickActions: React.FC = () => {
                   <p className="text-sm opacity-90">{action.description}</p>
                 </div>
               </div>
-            </a>
+            </Link>
           ))}
         </div>
       </div>

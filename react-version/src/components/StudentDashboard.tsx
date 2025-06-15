@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { ROUTES } from '../constants/routes';
 import DashboardNavigation from './DashboardNavigation';
 import DashboardStats from './DashboardStats';
 import AvailableTutors from './AvailableTutors';
@@ -42,6 +44,7 @@ interface Lesson {
 
 const StudentDashboard: React.FC = () => {
   const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -64,7 +67,7 @@ const StudentDashboard: React.FC = () => {
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      window.location.href = '/my-tutor-app/react-version/';
+      navigate(ROUTES.LANDING);
       return;
     }
     setUser(session.user);
@@ -271,7 +274,7 @@ const StudentDashboard: React.FC = () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      window.location.href = '/my-tutor-app/react-version/';
+      navigate(ROUTES.LANDING);
     } catch (error) {
       console.error('Logout error:', error);
       showNotification('Failed to logout. Please try again.', 'error');

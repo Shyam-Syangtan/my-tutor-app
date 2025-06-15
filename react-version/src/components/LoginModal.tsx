@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { getReactRoute, ROUTES } from '../constants/routes';
 
 interface LoginModalProps {
   onClose: () => void;
@@ -25,7 +26,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/my-tutor-app/react-version/`
+          redirectTo: `${window.location.origin}${getReactRoute(ROUTES.DASHBOARD)}`
         }
       });
 

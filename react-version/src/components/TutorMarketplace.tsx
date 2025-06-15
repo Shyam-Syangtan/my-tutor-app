@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { ROUTES } from '../constants/routes';
 import TutorCard from './TutorCard';
 import SearchFilters from './SearchFilters';
 import LoadingSpinner from './LoadingSpinner';
@@ -33,6 +35,7 @@ interface FilterState {
 
 const TutorMarketplace: React.FC = () => {
   const [allTutors, setAllTutors] = useState<Tutor[]>([]);
+  const navigate = useNavigate();
   const [filteredTutors, setFilteredTutors] = useState<Tutor[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
@@ -54,7 +57,7 @@ const TutorMarketplace: React.FC = () => {
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      window.location.href = '/my-tutor-app/react-version/';
+      navigate(ROUTES.LANDING);
       return;
     }
     setUser(session.user);
@@ -166,7 +169,7 @@ const TutorMarketplace: React.FC = () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         alert('Please log in to contact teachers');
-        window.location.href = '/my-tutor-app/react-version/';
+        navigate(ROUTES.LANDING);
         return;
       }
 

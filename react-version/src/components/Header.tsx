@@ -1,4 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { ROUTES } from '../constants/routes';
 
 interface HeaderProps {
   onLoginClick: () => void;
@@ -10,10 +12,10 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
       <div className="responsive-container nav-container">
         <div className="nav-content">
           <div className="nav-left">
-            <a href="/my-tutor-app/react-version/" className="nav-logo">IndianTutors</a>
+            <Link to={ROUTES.LANDING} className="nav-logo">IndianTutors</Link>
           </div>
           <div className="nav-right nav-links">
-            <a href="/my-tutor-app/react-version/marketplace" className="nav-link">Find a Teacher</a>
+            <Link to={ROUTES.MARKETPLACE} className="nav-link">Find a Teacher</Link>
             <button
               className="btn btn-primary nav-btn login-btn"
               onClick={onLoginClick}
