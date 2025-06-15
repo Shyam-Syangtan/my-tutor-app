@@ -25,8 +25,8 @@ const LandingPage: React.FC = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       setUser(session.user);
-      // Redirect to home page if already authenticated
-      window.location.href = '/my-tutor-app/react-version/home';
+      // Redirect to marketplace if already authenticated
+      window.location.href = '/my-tutor-app/react-version/marketplace';
     }
   };
 

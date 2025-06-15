@@ -10,12 +10,12 @@ const Header: React.FC<HeaderProps> = ({ onLoginClick }) => {
       <div className="responsive-container nav-container">
         <div className="nav-content">
           <div className="nav-left">
-            <a href="#" className="nav-logo">IndianTutors</a>
+            <a href="/my-tutor-app/react-version/" className="nav-logo">IndianTutors</a>
           </div>
           <div className="nav-right nav-links">
-            <a href="#teachers" className="nav-link">Find a Teacher</a>
-            <button 
-              className="btn btn-primary nav-btn login-btn" 
+            <a href="/my-tutor-app/react-version/marketplace" className="nav-link">Find a Teacher</a>
+            <button
+              className="btn btn-primary nav-btn login-btn"
               onClick={onLoginClick}
             >
               Log in
