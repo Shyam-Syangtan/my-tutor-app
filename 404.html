@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <script>
+        // GitHub Pages SPA redirect
+        // This script takes the current URL and redirects to the React app
+        // so that React Router can handle the routing
+        
+        var path = window.location.pathname;
+        var search = window.location.search;
+        var hash = window.location.hash;
+        
+        // If the path starts with /my-tutor-app/react-version/, redirect to React app
+        if (path.startsWith('/my-tutor-app/react-version/')) {
+            // Extract the route part after /my-tutor-app/react-version/
+            var route = path.replace('/my-tutor-app/react-version', '');
+            
+            // Redirect to the React app with the route as a query parameter
+            window.location.replace('/my-tutor-app/react-version/?redirect=' + encodeURIComponent(route + search + hash));
+        } else {
+            // For other 404s, redirect to main site
+            window.location.replace('/my-tutor-app/');
+        }
+    </script>
+</head>
+<body>
+    <p>Redirecting...</p>
+</body>
+</html>

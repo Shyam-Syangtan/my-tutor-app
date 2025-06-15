@@ -11,6 +11,18 @@ const LandingPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check for redirect parameter from 404.html
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectPath = urlParams.get('redirect');
+
+    if (redirectPath) {
+      // Remove the redirect parameter from URL
+      window.history.replaceState({}, '', window.location.pathname);
+      // Navigate to the intended route
+      navigate(redirectPath);
+      return;
+    }
+
     // Check if user is already logged in
     checkAuthState();
 
@@ -22,7 +34,7 @@ const LandingPage: React.FC = () => {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const checkAuthState = async () => {
     const { data: { session } } = await supabase.auth.getSession();
