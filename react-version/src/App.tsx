@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import TutorMarketplace from './components/TutorMarketplace';
+import StudentDashboard from './components/StudentDashboard';
 import './App.css';
 
 function App() {
@@ -11,7 +12,8 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/marketplace" element={<TutorMarketplace />} />
-          <Route path="/home" element={<TutorMarketplace />} />
+          <Route path="/dashboard" element={<StudentDashboard />} />
+          <Route path="/home" element={<StudentDashboard />} />
         </Routes>
       </Router>
     </div>
