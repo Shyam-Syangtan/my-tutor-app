@@ -10,14 +10,14 @@ export const ROUTES = {
   
   // External links (original HTML site)
   EXTERNAL: {
-    ORIGINAL_SITE: 'https://www.shyamsyangtan.com',
-    TUTOR_DASHBOARD: '/tutor-dashboard.html' // Only if needed
+    ORIGINAL_SITE: 'https://shyam-syangtan.github.io/my-tutor-app',
+    TUTOR_DASHBOARD: '/my-tutor-app/tutor-dashboard.html' // Only if needed
   }
 } as const;
 
 // Helper function to get full URL for React routes
 export const getReactRoute = (route: string): string => {
-  const baseUrl = '/react-version';
+  const baseUrl = '/my-tutor-app/react-version';
   return route === '/' ? baseUrl : `${baseUrl}${route}`;
 };
 

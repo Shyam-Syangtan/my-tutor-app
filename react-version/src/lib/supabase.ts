@@ -14,7 +14,7 @@ export const auth = {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/react-version/dashboard`
+          redirectTo: `${window.location.origin}/my-tutor-app/react-version/dashboard`
         }
       })
       
