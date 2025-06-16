@@ -131,6 +131,7 @@ const MessagesPage: React.FC = () => {
   };
 
   const selectChat = async (chat: Chat, service?: MessagingService) => {
+    console.log('🔄 Selecting chat:', chat.participant_name, 'Setting full-screen mode to true');
     setSelectedChat(chat);
     setShowFullScreenChat(true); // Enable full-screen mode when selecting a chat
     const serviceToUse = service || messagingService;
@@ -281,6 +282,13 @@ const MessagesPage: React.FC = () => {
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
   const userAvatar = user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=40`;
   const totalUnread = chats.reduce((sum, chat) => sum + chat.unread_count, 0);
+
+  // Debug logging
+  console.log('🔍 Render state:', {
+    showFullScreenChat,
+    selectedChatName: selectedChat?.participant_name,
+    chatsCount: chats.length
+  });
 
   // Format message timestamp
   const formatMessageTime = (timestamp: string): string => {

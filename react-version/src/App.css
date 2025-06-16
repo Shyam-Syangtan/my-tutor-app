@@ -4834,36 +4834,9 @@ body {
     padding: 0 1rem;
 }
 
-.messages-layout {
-    display: grid;
-    grid-template-columns: 350px 1fr;
-    height: 100%;
-    gap: 0;
-    background: var(--surface);
-    border-radius: var(--border-radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-color);
-    margin: 1rem 0;
-}
+/* Old messages-layout removed - now using full-screen interface */
 
-@media (max-width: 768px) {
-    .messages-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .chat-sidebar {
-        display: none;
-    }
-
-    .messages-layout.show-sidebar .chat-sidebar {
-        display: block;
-    }
-
-    .messages-layout.show-sidebar .chat-area {
-        display: none;
-    }
-}
+/* Removed old conflicting mobile CSS - now using full-screen interface */
 
 /* Chat Sidebar */
 .chat-sidebar {
