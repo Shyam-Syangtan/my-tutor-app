@@ -339,7 +339,7 @@ const TutorMarketplace: React.FC = () => {
       </div>
 
       {/* Footer */}
-      <Footer />
+      <Footer variant="full" />
     </div>
   );
 };
