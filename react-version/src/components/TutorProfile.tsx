@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ROUTES } from '../constants/routes';
@@ -34,6 +34,9 @@ const TutorProfile: React.FC = () => {
   const [error, setError] = useState(false);
   const [activeTab, setActiveTab] = useState('about');
   const [user, setUser] = useState<any>(null);
+  const [showVideo, setShowVideo] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     checkAuth();
@@ -91,6 +94,26 @@ const TutorProfile: React.FC = () => {
   const bookLesson = () => {
     if (!tutor) return;
     alert(`Booking lesson with ${tutor.name} - Feature coming soon!`);
+  };
+
+  const handleVideoToggle = () => {
+    setShowVideo(!showVideo);
+    if (!showVideo && videoRef.current) {
+      // Play video when showing
+      videoRef.current.play().catch(console.error);
+    } else if (showVideo && videoRef.current) {
+      // Pause video when hiding
+      videoRef.current.pause();
+    }
+  };
+
+  const handleVideoLoad = () => {
+    setVideoLoaded(true);
+  };
+
+  const handleVideoError = (error: any) => {
+    console.error('Video failed to load:', error);
+    console.error('Video URL:', tutor?.video_url);
   };
 
   if (loading) {
@@ -270,10 +293,45 @@ const TutorProfile: React.FC = () => {
               {tutor.video_url && (
                 <div className="video-card">
                   <h3>Video Introduction</h3>
-                  <div className="video-placeholder">
-                    <p>Video introduction available</p>
-                    <button className="btn btn-outline">Watch Video</button>
-                  </div>
+                  {!showVideo ? (
+                    <div className="video-placeholder" onClick={handleVideoToggle}>
+                      <div className="video-thumbnail">
+                        <img src={avatarUrl} alt={tutor.name} className="video-poster" />
+                        <div className="video-play-overlay">
+                          <svg className="play-icon" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M8 5v10l8-5-8-5z"/>
+                          </svg>
+                        </div>
+                      </div>
+                      <button className="btn btn-outline">Watch Video</button>
+                    </div>
+                  ) : (
+                    <div className="video-player">
+                      <video
+                        ref={videoRef}
+                        controls
+                        muted={false}
+                        playsInline
+                        onLoadedData={handleVideoLoad}
+                        onError={handleVideoError}
+                        className="tutor-video"
+                        poster={avatarUrl}
+                        style={{ width: '100%', borderRadius: '8px' }}
+                      >
+                        <source src={tutor.video_url} type="video/mp4" />
+                        <source src={tutor.video_url} type="video/webm" />
+                        <source src={tutor.video_url} type="video/ogg" />
+                        Your browser does not support the video tag.
+                      </video>
+                      <button
+                        className="btn btn-outline close-video-btn"
+                        onClick={handleVideoToggle}
+                        style={{ marginTop: '10px' }}
+                      >
+                        Close Video
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 

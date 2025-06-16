@@ -96,9 +96,27 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
       setIsHovered(true);
       if (tutor.video_url && videoRef.current) {
         console.log(`▶️ Attempting to play video for ${tutor.name}`);
-        videoRef.current.play()
-          .then(() => console.log(`✅ Video playing for ${tutor.name}`))
-          .catch(error => console.error(`❌ Video play failed for ${tutor.name}:`, error));
+
+        // Ensure video is ready to play
+        if (videoRef.current.readyState >= 2) { // HAVE_CURRENT_DATA
+          videoRef.current.play()
+            .then(() => console.log(`✅ Video playing for ${tutor.name}`))
+            .catch(error => {
+              console.error(`❌ Video play failed for ${tutor.name}:`, error);
+              // Try to load the video first
+              videoRef.current?.load();
+            });
+        } else {
+          // Wait for video to be ready
+          const handleCanPlay = () => {
+            videoRef.current?.play()
+              .then(() => console.log(`✅ Video playing for ${tutor.name} (after load)`))
+              .catch(error => console.error(`❌ Video play failed after load for ${tutor.name}:`, error));
+            videoRef.current?.removeEventListener('canplay', handleCanPlay);
+          };
+          videoRef.current?.addEventListener('canplay', handleCanPlay);
+          videoRef.current?.load();
+        }
       } else {
         console.log(`⚠️ Cannot play video for ${tutor.name}:`, {
           noVideoUrl: !tutor.video_url,
@@ -126,6 +144,14 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
   const handleVideoError = (error: any) => {
     console.error(`❌ Video failed to load for ${tutor.name}:`, error);
     console.error('Video URL:', tutor.video_url);
+    console.error('Video element:', videoRef.current);
+
+    // Try alternative video loading approach
+    if (videoRef.current && tutor.video_url) {
+      console.log(`🔄 Retrying video load for ${tutor.name}`);
+      videoRef.current.src = tutor.video_url;
+      videoRef.current.load();
+    }
   };
 
   return (
@@ -246,7 +272,6 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                 <div className="video-thumbnail" onClick={handleViewProfile}>
                   <video
                     ref={videoRef}
-                    src={tutor.video_url}
                     muted={true}
                     loop={true}
                     playsInline={true}
@@ -255,10 +280,20 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                     onError={(e) => handleVideoError(e)}
                     onCanPlay={() => console.log(`📹 Video can play for ${tutor.name}`)}
                     onLoadStart={() => console.log(`🔄 Video load started for ${tutor.name}`)}
+                    onLoadedMetadata={() => console.log(`📊 Video metadata loaded for ${tutor.name}`)}
+                    onWaiting={() => console.log(`⏳ Video waiting for ${tutor.name}`)}
+                    onSuspend={() => console.log(`⏸️ Video suspended for ${tutor.name}`)}
                     className="video-preview"
                     poster={avatarUrl}
                     controls={false}
-                  />
+                    crossOrigin="anonymous"
+                    style={{ objectFit: 'cover' }}
+                  >
+                    <source src={tutor.video_url} type="video/mp4" />
+                    <source src={tutor.video_url} type="video/webm" />
+                    <source src={tutor.video_url} type="video/ogg" />
+                    Your browser does not support the video tag.
+                  </video>
                   <div className="video-play-overlay">
                     <svg className="play-icon" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M8 5v10l8-5-8-5z"/>
