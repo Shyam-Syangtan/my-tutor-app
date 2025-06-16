@@ -50,33 +50,36 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
   const rating = tutor.rating || 4.5;
   const ratingStars = '⭐'.repeat(Math.floor(rating));
 
-  // Enhanced video URL processing with better YouTube support
+  // Helper function to extract YouTube video ID
+  const getYouTubeVideoId = (url: string): string | null => {
+    if (!url) return null;
+
+    // Handle different YouTube URL formats
+    if (url.includes('youtu.be/')) {
+      return url.split('youtu.be/')[1]?.split('?')[0]?.split('&')[0] || null;
+    } else if (url.includes('youtube.com/watch?v=')) {
+      return url.split('v=')[1]?.split('&')[0] || null;
+    } else if (url.includes('youtube.com/embed/')) {
+      return url.split('embed/')[1]?.split('?')[0]?.split('&')[0] || null;
+    } else if (url.includes('youtube.com/v/')) {
+      return url.split('v/')[1]?.split('?')[0]?.split('&')[0] || null;
+    }
+
+    return null;
+  };
+
+  // Helper function to get YouTube thumbnail URL
+  const getYouTubeThumbnail = (videoId: string): string => {
+    return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+  };
+
+  // Enhanced video URL processing - for YouTube, we'll show thumbnails and open in new tab
   const processVideoUrl = (url: string): string => {
     if (!url) return '';
 
-    // Handle YouTube URLs - convert to embed format with better regex
+    // For YouTube videos, return the original URL for opening in new tab
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      let videoId = '';
-
-      // Handle different YouTube URL formats
-      if (url.includes('youtu.be/')) {
-        // Short URL format: https://youtu.be/VIDEO_ID
-        videoId = url.split('youtu.be/')[1]?.split('?')[0]?.split('&')[0];
-      } else if (url.includes('youtube.com/watch?v=')) {
-        // Standard URL format: https://www.youtube.com/watch?v=VIDEO_ID
-        videoId = url.split('v=')[1]?.split('&')[0];
-      } else if (url.includes('youtube.com/embed/')) {
-        // Already embed format: https://www.youtube.com/embed/VIDEO_ID
-        videoId = url.split('embed/')[1]?.split('?')[0]?.split('&')[0];
-      } else if (url.includes('youtube.com/v/')) {
-        // Old format: https://www.youtube.com/v/VIDEO_ID
-        videoId = url.split('v/')[1]?.split('?')[0]?.split('&')[0];
-      }
-
-      if (videoId && videoId.length === 11) {
-        // Return embed URL with enhanced parameters for better preview and embedding compatibility
-        return `https://www.youtube.com/embed/${videoId}?controls=1&showinfo=0&rel=0&modestbranding=1&enablejsapi=1&origin=${window.location.origin}`;
-      }
+      return url;
     }
 
     // Return direct video URL for other formats
@@ -87,8 +90,12 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
   const videoUrl = tutor.video_url ? processVideoUrl(tutor.video_url) : undefined;
   const isYouTubeVideo = tutor.video_url && (tutor.video_url.includes('youtube.com') || tutor.video_url.includes('youtu.be'));
 
+  // Get YouTube video ID and thumbnail
+  const youtubeVideoId = isYouTubeVideo ? getYouTubeVideoId(tutor.video_url) : null;
+  const youtubeThumbnail = youtubeVideoId ? getYouTubeThumbnail(youtubeVideoId) : null;
+
   // Validate YouTube URL processing
-  const isValidYouTubeUrl = isYouTubeVideo && videoUrl && videoUrl.includes('/embed/') && videoUrl.split('/embed/')[1]?.length >= 11;
+  const isValidYouTubeUrl = isYouTubeVideo && youtubeVideoId && youtubeVideoId.length === 11;
 
   // For development/testing: Add fallback video for specific tutors
   const fallbackVideoUrl = !videoUrl && tutor.name === 'shtm' ?
@@ -208,14 +215,9 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     });
 
     if (isYouTubeVideo && finalVideoUrl) {
-      // For YouTube videos, toggle play/pause state
-      if (!videoPlaying) {
-        console.log('📺 YouTube video - enabling playback');
-        setVideoPlaying(true);
-      } else {
-        console.log('📺 YouTube video - pausing playback');
-        setVideoPlaying(false);
-      }
+      // For YouTube videos, open in new tab
+      console.log('📺 YouTube video - opening in new tab:', finalVideoUrl);
+      window.open(finalVideoUrl, '_blank');
       return;
     }
 
@@ -375,123 +377,100 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
             {hasValidVideo ? (
               <div className="video-thumbnail">
                 {isYouTubeVideo ? (
-                  // YouTube Video Handling with enhanced playback
+                  // YouTube Video Thumbnail with Play Button
                   <div
-                    className="youtube-video-container"
+                    className="youtube-thumbnail-container"
                     style={{
                       position: 'relative',
                       width: '100%',
                       height: '100%',
                       minHeight: '216px',
-                      backgroundColor: '#000'
+                      backgroundColor: '#000',
+                      cursor: 'pointer',
+                      borderRadius: '8px',
+                      overflow: 'hidden'
                     }}
                     onClick={handleVideoClick}
                   >
-                    <iframe
-                      src={videoPlaying ?
-                        `${finalVideoUrl}&autoplay=1&mute=0` :
-                        `${finalVideoUrl}&autoplay=0&mute=1`
-                      }
-                      className="video-preview"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        minHeight: '216px',
-                        border: 'none',
-                        borderRadius: '8px',
-                        display: 'block'
-                      }}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      referrerPolicy="strict-origin-when-cross-origin"
-                      title={`${tutor.name} introduction video`}
-                      frameBorder="0"
-                      onLoad={() => {
-                        console.log(`✅ YouTube iframe loaded for ${tutor.name}:`, finalVideoUrl);
-                        setVideoLoaded(true);
-                      }}
-                      onError={(e) => {
-                        console.error(`❌ YouTube iframe error for ${tutor.name}:`, e, finalVideoUrl);
-                        setVideoError(true);
-                      }}
-                    />
+                    {youtubeThumbnail ? (
+                      <img
+                        src={youtubeThumbnail}
+                        alt={`${tutor.name} video thumbnail`}
+                        className="video-preview"
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          borderRadius: '8px'
+                        }}
+                        onLoad={() => {
+                          console.log(`✅ YouTube thumbnail loaded for ${tutor.name}`);
+                          setVideoLoaded(true);
+                        }}
+                        onError={(e) => {
+                          console.error(`❌ YouTube thumbnail error for ${tutor.name}:`, e);
+                          setVideoError(true);
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          backgroundColor: '#000',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white'
+                        }}
+                      >
+                        YouTube Video
+                      </div>
+                    )}
 
-                    {/* Clickable overlay for YouTube video control */}
+                    {/* YouTube Play Button Overlay */}
                     <div
-                      className="video-click-overlay"
+                      className="youtube-play-overlay"
                       style={{
                         position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        cursor: 'pointer',
-                        zIndex: videoPlaying ? 1 : 10,
-                        backgroundColor: videoPlaying ? 'transparent' : 'rgba(0, 0, 0, 0.1)',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '68px',
+                        height: '48px',
+                        backgroundColor: 'rgba(255, 0, 0, 0.8)',
+                        borderRadius: '8px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        pointerEvents: videoPlaying ? 'none' : 'auto'
+                        transition: 'all 0.3s ease'
                       }}
-                      onClick={handleVideoClick}
                     >
-                      {/* Play/Pause button */}
-                      {!videoPlaying ? (
-                        <div
-                          className="play-button"
-                          style={{
-                            width: '60px',
-                            height: '60px',
-                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          <div style={{
-                            width: 0,
-                            height: 0,
-                            borderLeft: '20px solid white',
-                            borderTop: '12px solid transparent',
-                            borderBottom: '12px solid transparent',
-                            marginLeft: '4px'
-                          }} />
-                        </div>
-                      ) : (
-                        <div
-                          className="pause-button"
-                          style={{
-                            width: '60px',
-                            height: '60px',
-                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            opacity: 0,
-                            transition: 'opacity 0.3s ease'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.opacity = '1';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.opacity = '0';
-                          }}
-                        >
-                          <div style={{
-                            width: '6px',
-                            height: '20px',
-                            backgroundColor: 'white',
-                            marginRight: '4px'
-                          }} />
-                          <div style={{
-                            width: '6px',
-                            height: '20px',
-                            backgroundColor: 'white'
-                          }} />
-                        </div>
-                      )}
+                      <div style={{
+                        width: 0,
+                        height: 0,
+                        borderLeft: '16px solid white',
+                        borderTop: '10px solid transparent',
+                        borderBottom: '10px solid transparent',
+                        marginLeft: '4px'
+                      }} />
+                    </div>
+
+                    {/* YouTube Logo */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: '8px',
+                        right: '8px',
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        color: 'white',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      YouTube
                     </div>
                   </div>
                 ) : (
