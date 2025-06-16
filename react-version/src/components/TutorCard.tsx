@@ -65,9 +65,10 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
   };
 
-  // Helper function to get YouTube embed URL (same as profile)
+  // Helper function to get YouTube embed URL with better parameters
   const getYouTubeEmbedUrl = (videoId: string): string => {
-    return `https://www.youtube.com/embed/${videoId}?controls=1&showinfo=1&rel=0&modestbranding=1`;
+    // Use youtube-nocookie.com for better embedding support
+    return `https://www.youtube-nocookie.com/embed/${videoId}?controls=1&rel=0&modestbranding=1&enablejsapi=1&origin=${window.location.origin}`;
   };
 
   // Process video URL
@@ -160,9 +161,10 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     e.preventDefault();
     e.stopPropagation();
 
-    // For YouTube videos, toggle video display (like profile page)
-    if (isYouTubeVideo) {
-      setVideoPlaying(!videoPlaying);
+    // For YouTube videos, open in new tab (most reliable approach)
+    if (isYouTubeVideo && finalVideoUrl) {
+      console.log('📺 Opening YouTube video:', finalVideoUrl);
+      window.open(finalVideoUrl, '_blank', 'width=800,height=600');
       return;
     }
 
@@ -311,84 +313,97 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
             {hasValidVideo ? (
               <div className="video-thumbnail">
                 {isYouTubeVideo ? (
-                  // YouTube Video (same approach as TutorProfile)
+                  // YouTube Thumbnail - Click to open in new tab
                   <div
+                    className="video-placeholder"
+                    onClick={handleVideoClick}
                     style={{
                       position: 'relative',
                       width: '100%',
                       height: '100%',
-                      minHeight: '216px'
+                      minHeight: '216px',
+                      cursor: 'pointer',
+                      borderRadius: '8px',
+                      overflow: 'hidden'
                     }}
                   >
-                    {!videoPlaying ? (
-                      // Show thumbnail first (like profile page)
-                      <div
-                        className="video-placeholder"
-                        onClick={handleVideoClick}
-                        style={{
-                          position: 'relative',
-                          width: '100%',
-                          height: '100%',
-                          minHeight: '216px',
-                          cursor: 'pointer',
-                          borderRadius: '8px',
-                          overflow: 'hidden'
-                        }}
-                      >
-                        <div className="video-thumbnail">
-                          {youtubeThumbnail ? (
-                            <img
-                              src={youtubeThumbnail}
-                              alt={`${tutor.name} video`}
-                              className="video-poster"
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                borderRadius: '8px'
-                              }}
-                              onLoad={() => setVideoLoaded(true)}
-                            />
-                          ) : (
-                            <img
-                              src={avatarUrl}
-                              alt={tutor.name}
-                              className="video-poster"
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                borderRadius: '8px'
-                              }}
-                            />
-                          )}
-                          <div className="video-play-overlay">
-                            <svg className="play-icon" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M8 5v10l8-5-8-5z"/>
-                            </svg>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      // Show iframe when playing (like profile page)
-                      <div className="video-player">
-                        <iframe
-                          src={youtubeEmbedUrl}
-                          className="video-preview"
+                    <div className="video-thumbnail">
+                      {youtubeThumbnail ? (
+                        <img
+                          src={youtubeThumbnail}
+                          alt={`${tutor.name} video`}
+                          className="video-poster"
                           style={{
                             width: '100%',
                             height: '100%',
-                            minHeight: '216px',
-                            border: 'none',
+                            objectFit: 'cover',
                             borderRadius: '8px'
                           }}
-                          allow="autoplay; encrypted-media"
-                          allowFullScreen
-                          title={`${tutor.name} introduction video`}
                           onLoad={() => setVideoLoaded(true)}
+                          onError={() => {
+                            console.log('Thumbnail failed, using avatar');
+                            setVideoError(true);
+                          }}
                         />
+                      ) : (
+                        <img
+                          src={avatarUrl}
+                          alt={tutor.name}
+                          className="video-poster"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            borderRadius: '8px'
+                          }}
+                        />
+                      )}
+
+                      {/* YouTube Play Button */}
+                      <div
+                        className="video-play-overlay"
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          transform: 'translate(-50%, -50%)',
+                          width: '68px',
+                          height: '48px',
+                          backgroundColor: 'rgba(255, 0, 0, 0.9)',
+                          borderRadius: '8px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.3s ease'
+                        }}
+                      >
+                        <div style={{
+                          width: 0,
+                          height: 0,
+                          borderLeft: '16px solid white',
+                          borderTop: '10px solid transparent',
+                          borderBottom: '10px solid transparent',
+                          marginLeft: '4px'
+                        }} />
                       </div>
-                    )}
+
+                      {/* YouTube Badge */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: '8px',
+                          right: '8px',
+                          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                          color: 'white',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          fontSize: '12px',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        YouTube
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   // Direct Video File Handling with Controls
