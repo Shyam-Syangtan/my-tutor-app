@@ -218,7 +218,7 @@ const TutorMarketplace: React.FC = () => {
             <p className="no-results-text">Try adjusting your filters or search terms.</p>
           </div>
         ) : (
-          <div className="tutors-grid">
+          <div className="tutors-list">
             {filteredTutors.map(tutor => (
               <TutorCard
                 key={tutor.id}

@@ -1703,48 +1703,42 @@ body {
     animation: spin 1s linear infinite;
 }
 
-/* Grid Layout for Horizontal Cards */
-.tutors-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
+/* List Layout for Side-by-Side Cards */
+.tutors-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
     margin-top: 2rem;
 }
 
-/* Responsive adjustments for horizontal cards */
+/* Responsive adjustments for side-by-side cards */
 @media (min-width: 768px) {
-    .tutors-grid {
-        gap: 1.5rem;
+    .tutors-list {
+        gap: 0;
     }
 
     .tutor-card {
-        min-height: 140px;
+        min-height: 200px;
     }
 }
 
 @media (min-width: 1024px) {
-    .tutor-video-section {
-        right: -320px;
-    }
-
-    /* For cards on the right edge, show video on left */
-    .tutors-grid .tutor-card:nth-child(odd) .tutor-video-section {
-        right: auto;
-        left: -320px;
+    .tutor-row-layout {
+        grid-template-columns: 70% 30%;
     }
 }
 
 @media (max-width: 1023px) {
+    .tutor-row-layout {
+        grid-template-columns: 1fr;
+    }
+
     .tutor-video-section {
         display: none;
     }
 
-    .tutor-right-section {
-        min-width: 140px;
-    }
-
-    .tutor-left-section {
-        min-width: 220px;
+    .tutor-card-section {
+        border-right: none;
     }
 }
 
