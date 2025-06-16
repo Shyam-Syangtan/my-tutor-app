@@ -71,14 +71,26 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
   const videoUrl = tutor.video_url ? processVideoUrl(tutor.video_url) : undefined;
   const isYouTubeVideo = tutor.video_url && (tutor.video_url.includes('youtube.com') || tutor.video_url.includes('youtu.be'));
 
-  // Debug video URL from database
-  console.log(`🎬 ${tutor.name} video URL:`, tutor.video_url);
+  // Enhanced debug video URL from database
+  console.log(`🎬 ${tutor.name} video debug:`, {
+    original_url: tutor.video_url,
+    processed_url: videoUrl,
+    is_youtube: isYouTubeVideo,
+    tutor_id: tutor.id
+  });
 
   const handleCardClick = (e: React.MouseEvent) => {
-    if (!(e.target as HTMLElement).closest('button')) {
-      if (onViewProfile) {
-        onViewProfile(tutor.id);
-      }
+    // Prevent navigation if clicking on buttons or video area
+    const target = e.target as HTMLElement;
+    if (target.closest('button') ||
+        target.closest('.video-container') ||
+        target.closest('.tutor-video-space')) {
+      return;
+    }
+
+    console.log('🖱️ Card clicked - navigating to profile');
+    if (onViewProfile) {
+      onViewProfile(tutor.id);
     }
   };
 
@@ -134,10 +146,27 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
   };
 
   const handleVideoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
 
-    if (isYouTubeVideo || !videoRef.current) {
-      // For YouTube videos or if no video ref, navigate to profile
+    console.log('🎬 Video clicked:', {
+      isYouTube: isYouTubeVideo,
+      hasVideoRef: !!videoRef.current,
+      videoUrl: videoUrl,
+      tutorName: tutor.name
+    });
+
+    if (isYouTubeVideo) {
+      // For YouTube videos, navigate to profile to watch full video
+      console.log('📺 YouTube video - navigating to profile');
+      if (onViewProfile) {
+        onViewProfile(tutor.id);
+      }
+      return;
+    }
+
+    if (!videoRef.current || !videoUrl) {
+      console.log('❌ No video ref or URL - navigating to profile');
       if (onViewProfile) {
         onViewProfile(tutor.id);
       }
@@ -145,13 +174,18 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     }
 
     // For direct video files, toggle play/pause
+    console.log('🎮 Direct video - toggling play/pause');
     if (videoRef.current.paused) {
       videoRef.current.muted = false; // Unmute when user explicitly clicks
       videoRef.current.play().then(() => {
+        console.log('▶️ Video started playing');
         setVideoPlaying(true);
-      }).catch(console.error);
+      }).catch((error) => {
+        console.error('❌ Video play failed:', error);
+      });
     } else {
       videoRef.current.pause();
+      console.log('⏸️ Video paused');
       setVideoPlaying(false);
     }
   };
@@ -282,9 +316,9 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
       <div className="tutor-video-space">
         {/* Video Card - Only content visible on hover */}
         <div className={`tutor-video-card ${isHovered ? 'visible' : ''}`}>
-          <div className="video-container">
+          <div className="video-container" onClick={handleVideoClick}>
             {videoUrl ? (
-              <div className="video-thumbnail" onClick={handleVideoClick}>
+              <div className="video-thumbnail">
                 {isYouTubeVideo ? (
                   // YouTube Video Handling
                   <iframe
@@ -295,7 +329,8 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                       height: '100%',
                       border: 'none',
                       borderRadius: '8px',
-                      objectFit: 'cover'
+                      objectFit: 'cover',
+                      pointerEvents: 'none' // Prevent iframe from capturing clicks
                     }}
                     allow="autoplay; encrypted-media"
                     title={`${tutor.name} introduction video`}
@@ -317,7 +352,17 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                       onPause={handleVideoPause}
                       className="video-preview"
                       poster={avatarUrl}
-                      style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                      style={{
+                        objectFit: 'cover',
+                        width: '100%',
+                        height: '100%',
+                        pointerEvents: videoPlaying ? 'auto' : 'none' // Allow controls when playing
+                      }}
+                      onClick={(e) => {
+                        if (videoPlaying) {
+                          e.stopPropagation(); // Let video controls handle clicks when playing
+                        }
+                      }}
                     />
 
                     {/* Play overlay when video is not playing */}
@@ -354,7 +399,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
               <div className="video-placeholder">
                 <div className="placeholder-content">
                   <svg className="video-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 002 2z"/>
                   </svg>
                   <p className="placeholder-text">No video available</p>
                 </div>

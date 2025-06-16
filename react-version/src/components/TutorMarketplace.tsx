@@ -96,12 +96,31 @@ const TutorMarketplace: React.FC = () => {
         setAllTutors(data || []);
         console.log('✅ Loaded tutors successfully:', data?.length || 0);
 
-        // Debug video URLs
+        // Enhanced debug video URLs
         const tutorsWithVideos = (data || []).filter(tutor => tutor.video_url);
         console.log('🎬 Tutors with video URLs:', tutorsWithVideos.length);
+        console.log('📊 Total tutors loaded:', data?.length || 0);
+
+        // Detailed video URL debugging
         tutorsWithVideos.forEach(tutor => {
-          console.log(`📹 ${tutor.name}: ${tutor.video_url}`);
+          console.log(`📹 ${tutor.name}:`, {
+            video_url: tutor.video_url,
+            id: tutor.id,
+            approved: tutor.approved
+          });
         });
+
+        // Check for tutors without videos
+        const tutorsWithoutVideos = (data || []).filter(tutor => !tutor.video_url);
+        console.log('❌ Tutors without video URLs:', tutorsWithoutVideos.length);
+
+        // Log all tutor data for debugging
+        console.log('🔍 All tutor data:', data?.map(tutor => ({
+          name: tutor.name,
+          id: tutor.id,
+          video_url: tutor.video_url,
+          approved: tutor.approved
+        })));
       }
 
     } catch (error) {
