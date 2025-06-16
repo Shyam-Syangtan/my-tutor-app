@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ROUTES } from '../constants/routes';
 import Header from './Header';
+import Footer from './Footer';
 
 interface User {
   id: string;
@@ -413,6 +414,9 @@ const HomeDashboard: React.FC = () => {
           </section>
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

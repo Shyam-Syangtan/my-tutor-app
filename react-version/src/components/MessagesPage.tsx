@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ROUTES } from '../constants/routes';
 import { MessagingService, Chat, Message } from '../lib/messagingService';
+import Footer from './Footer';
 
 const MessagesPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -509,6 +510,9 @@ const MessagesPage: React.FC = () => {
           )}
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

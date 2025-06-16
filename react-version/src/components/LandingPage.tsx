@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { ROUTES } from '../constants/routes';
 import Header from './Header';
 import LoginModal from './LoginModal';
+import Footer from './Footer';
 
 const LandingPage: React.FC = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -157,6 +158,9 @@ const LandingPage: React.FC = () => {
       {showLoginModal && (
         <LoginModal onClose={closeLoginModal} />
       )}
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

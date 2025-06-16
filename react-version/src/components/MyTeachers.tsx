@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ROUTES } from '../constants/routes';
+import Footer from './Footer';
 
 interface Tutor {
   id: string;
@@ -281,6 +282,9 @@ const MyTeachers: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

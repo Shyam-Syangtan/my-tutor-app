@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../constants/routes';
+import Footer from './Footer';
 
 const NotFoundPage: React.FC = () => {
   return (
@@ -52,6 +53,9 @@ const NotFoundPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

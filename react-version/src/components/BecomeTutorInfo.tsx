@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ROUTES } from '../constants/routes';
+import Footer from './Footer';
 
 const BecomeTutorInfo: React.FC = () => {
   const navigate = useNavigate();
@@ -139,6 +140,9 @@ const BecomeTutorInfo: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

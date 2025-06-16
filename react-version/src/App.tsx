@@ -13,6 +13,7 @@ import TutorProfile from './components/TutorProfile';
 import MyTeachers from './components/MyTeachers';
 import MyLessons from './components/MyLessons';
 import NotFoundPage from './components/NotFoundPage';
+import Footer from './components/Footer';
 import './App.css';
 
 function App() {

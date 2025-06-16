@@ -6,6 +6,7 @@ import TutorCard from './TutorCard';
 import SearchFilters from './SearchFilters';
 import LoadingSpinner from './LoadingSpinner';
 import Header from './Header';
+import Footer from './Footer';
 
 interface Tutor {
   id: string;
@@ -336,6 +337,9 @@ const TutorMarketplace: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

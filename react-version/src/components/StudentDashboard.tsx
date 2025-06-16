@@ -8,6 +8,7 @@ import AvailableTutors from './AvailableTutors';
 import UpcomingLessons from './UpcomingLessons';
 import QuickActions from './QuickActions';
 import BookingModal from './BookingModal';
+import Footer from './Footer';
 
 interface Tutor {
   id: string;
@@ -333,6 +334,9 @@ const StudentDashboard: React.FC = () => {
           }}
         />
       )}
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
