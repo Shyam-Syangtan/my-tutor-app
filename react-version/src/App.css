@@ -1471,12 +1471,115 @@ body {
     color: #333;
 }
 
-/* Video Preview Styles */
+/* Enhanced Video Preview Styles */
 .video-preview {
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Video Play Overlay */
+.video-play-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.video-play-overlay:hover {
+    background: rgba(0, 0, 0, 0.8);
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.play-icon {
+    width: 20px;
+    height: 20px;
+    color: white;
+    margin-left: 2px;
+}
+
+/* Video Loading State */
+.video-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+.loading-text {
+    font-size: 12px;
+    margin: 0;
+}
+
+/* Video Error State */
+.video-error {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.error-icon {
+    width: 24px;
+    height: 24px;
+    color: #ef4444;
+}
+
+.error-text {
+    font-size: 12px;
+    margin: 0;
+}
+
+/* Video Placeholder */
+.video-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--background-light);
+    border-radius: 8px;
+}
+
+.placeholder-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+.video-icon {
+    width: 32px;
+    height: 32px;
+}
+
+.placeholder-text {
+    font-size: 12px;
+    margin: 0;
 }
 
 .video-play-overlay {
