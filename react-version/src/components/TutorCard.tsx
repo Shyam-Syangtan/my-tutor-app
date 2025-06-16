@@ -341,13 +341,14 @@ const TutorCard: React.FC<TutorCardProps> = ({
             {hasValidVideo ? (
               <div className="video-thumbnail">
                 {isYouTubeVideo ? (
-                  // YouTube Video with inline playback attempt
+                  // YouTube Video with proper 16:9 aspect ratio
                   <div
                     style={{
                       position: 'relative',
                       width: '100%',
-                      height: '100%',
-                      minHeight: '216px'
+                      aspectRatio: '16/9', // Standard YouTube aspect ratio
+                      minHeight: '180px',
+                      maxHeight: '216px'
                     }}
                   >
                     {/* YouTube Thumbnail - Click to open modal */}
@@ -358,7 +359,6 @@ const TutorCard: React.FC<TutorCardProps> = ({
                         position: 'relative',
                         width: '100%',
                         height: '100%',
-                        minHeight: '216px',
                         cursor: 'pointer',
                         borderRadius: '8px',
                         overflow: 'hidden'
@@ -374,7 +374,8 @@ const TutorCard: React.FC<TutorCardProps> = ({
                               width: '100%',
                               height: '100%',
                               objectFit: 'cover',
-                              borderRadius: '8px'
+                              borderRadius: '8px',
+                              aspectRatio: '16/9'
                             }}
                             onLoad={() => setVideoLoaded(true)}
                             onError={() => {
@@ -391,7 +392,8 @@ const TutorCard: React.FC<TutorCardProps> = ({
                               width: '100%',
                               height: '100%',
                               objectFit: 'cover',
-                              borderRadius: '8px'
+                              borderRadius: '8px',
+                              aspectRatio: '16/9'
                             }}
                           />
                         )}
@@ -464,6 +466,8 @@ const TutorCard: React.FC<TutorCardProps> = ({
                         objectFit: 'cover',
                         width: '100%',
                         height: '100%',
+                        aspectRatio: '16/9',
+                        borderRadius: '8px',
                         pointerEvents: videoPlaying ? 'auto' : 'none' // Allow controls when playing
                       }}
                       onClick={(e) => {
