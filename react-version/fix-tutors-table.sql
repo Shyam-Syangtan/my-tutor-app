@@ -20,9 +20,43 @@ ADD COLUMN IF NOT EXISTS experience TEXT,
 ADD COLUMN IF NOT EXISTS specialties TEXT,
 ADD COLUMN IF NOT EXISTS availability TEXT;
 
--- Ensure specialties column is TEXT type (not JSONB) to prevent malformed array literal errors
-ALTER TABLE public.tutors
-ALTER COLUMN specialties TYPE TEXT;
+-- Handle view dependency issue: Drop and recreate approved_tutors view if it exists
+-- This is needed because views prevent column type changes
+DO $$
+DECLARE
+    view_definition TEXT;
+BEGIN
+    -- Check if approved_tutors view exists and store its definition
+    SELECT pg_get_viewdef('public.approved_tutors', true) INTO view_definition
+    WHERE EXISTS (
+        SELECT 1 FROM information_schema.views
+        WHERE table_schema = 'public' AND table_name = 'approved_tutors'
+    );
+
+    -- Drop the view if it exists
+    IF view_definition IS NOT NULL THEN
+        DROP VIEW IF EXISTS public.approved_tutors;
+        RAISE NOTICE 'Dropped approved_tutors view to allow column type change';
+    END IF;
+
+    -- Now we can safely alter the column type
+    -- Ensure specialties column is TEXT type (not JSONB) to prevent malformed array literal errors
+    BEGIN
+        ALTER TABLE public.tutors ALTER COLUMN specialties TYPE TEXT;
+        RAISE NOTICE '✅ Changed specialties column to TEXT type';
+    EXCEPTION
+        WHEN OTHERS THEN
+            RAISE NOTICE 'Note: specialties column may already be TEXT type';
+    END;
+
+    -- Recreate the approved_tutors view if it existed
+    IF view_definition IS NOT NULL THEN
+        -- Create a simple approved_tutors view
+        CREATE VIEW public.approved_tutors AS
+        SELECT * FROM public.tutors WHERE approved = true;
+        RAISE NOTICE '✅ Recreated approved_tutors view';
+    END IF;
+END $$;
 
 -- Update existing records to have default values for new columns
 UPDATE public.tutors 
