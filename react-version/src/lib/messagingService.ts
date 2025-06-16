@@ -119,44 +119,100 @@ export class MessagingService {
 
       for (const chat of chats) {
         const participantId = chat.user1_id === this.currentUserId ? chat.user2_id : chat.user1_id;
-        
-        // Get participant info from users table and tutors table
-        const [userResult, tutorResult, lastMessageResult] = await Promise.all([
-          supabase
-            .from('users')
-            .select('full_name, avatar_url')
-            .eq('id', participantId)
-            .single(),
-          supabase
+        console.log('Loading chat participant:', participantId);
+
+        // Get participant info - try tutor first, then user
+        let participantName = 'Unknown User';
+        let participantAvatar = '';
+
+        try {
+          // First try to get tutor info
+          console.log('Checking tutors table for user_id:', participantId);
+          const { data: tutorData, error: tutorError } = await supabase
             .from('tutors')
             .select('name, photo_url')
             .eq('user_id', participantId)
-            .single(),
-          supabase
+            .eq('approved', true)
+            .single();
+
+          console.log('Tutor query result:', { tutorData, tutorError });
+
+          if (tutorData && !tutorError) {
+            participantName = tutorData.name;
+            participantAvatar = tutorData.photo_url || '';
+            console.log('Found tutor:', participantName);
+          } else {
+            // If no tutor found, try users table
+            console.log('No tutor found, checking users table for id:', participantId);
+            const { data: userData, error: userError } = await supabase
+              .from('users')
+              .select('full_name, avatar_url, email')
+              .eq('id', participantId)
+              .single();
+
+            console.log('User query result:', { userData, userError });
+
+            if (userData && !userError) {
+              participantName = userData.full_name || userData.email?.split('@')[0] || 'User';
+              participantAvatar = userData.avatar_url || '';
+              console.log('Found user:', participantName);
+            } else {
+              // Last resort: try to get email from auth.users (if accessible)
+              console.log('No user profile found, trying auth.users table');
+              const { data: authData, error: authError } = await supabase
+                .from('auth.users')
+                .select('email, raw_user_meta_data')
+                .eq('id', participantId)
+                .single();
+
+              if (authData && !authError) {
+                participantName = authData.raw_user_meta_data?.full_name || authData.email?.split('@')[0] || 'User';
+                console.log('Found auth user:', participantName);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching participant info:', error);
+        }
+
+        // Generate default avatar if none found
+        if (!participantAvatar) {
+          participantAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(participantName)}&background=6366f1&color=fff&size=40`;
+        }
+
+        // Get last message
+        let lastMessage = 'No messages yet';
+        let lastMessageTime = '';
+
+        try {
+          const { data: messageData, error: messageError } = await supabase
             .from('messages')
             .select('content, created_at')
             .eq('chat_id', chat.id)
             .order('created_at', { ascending: false })
             .limit(1)
-            .single()
-        ]);
+            .single();
 
-        // Use tutor info if available, otherwise use user info
-        const participantName = tutorResult.data?.name || userResult.data?.full_name || 'Unknown User';
-        const participantAvatar = tutorResult.data?.photo_url || userResult.data?.avatar_url || 
-          `https://ui-avatars.com/api/?name=${encodeURIComponent(participantName)}&background=6366f1&color=fff&size=40`;
-
-        // Format last message
-        const lastMessage = lastMessageResult.data?.content || 'No messages yet';
-        const lastMessageTime = lastMessageResult.data?.created_at ? 
-          this.formatMessageTime(lastMessageResult.data.created_at) : '';
+          if (messageData && !messageError) {
+            lastMessage = messageData.content;
+            lastMessageTime = this.formatMessageTime(messageData.created_at);
+          }
+        } catch (error) {
+          console.error('Error fetching last message:', error);
+        }
 
         // Get unread count (messages not sent by current user)
-        const { count: unreadCount } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('chat_id', chat.id)
-          .neq('sender_id', this.currentUserId);
+        let unreadCount = 0;
+        try {
+          const { count } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('chat_id', chat.id)
+            .neq('sender_id', this.currentUserId);
+          unreadCount = count || 0;
+        } catch (error) {
+          console.error('Error fetching unread count:', error);
+        }
 
         enrichedChats.push({
           id: chat.id,
@@ -170,7 +226,7 @@ export class MessagingService {
           participant_avatar: participantAvatar,
           last_message: lastMessage,
           last_message_time: lastMessageTime,
-          unread_count: unreadCount || 0,
+          unread_count: unreadCount,
           is_online: false // TODO: Implement real-time online status
         });
       }

@@ -176,6 +176,23 @@ CREATE TRIGGER on_message_created
     AFTER INSERT ON public.messages
     FOR EACH ROW EXECUTE FUNCTION public.update_chat_timestamp();
 
+-- 15. Insert sample data if tables are empty (for testing)
+DO $$
+BEGIN
+    -- Check if we have any approved tutors
+    IF NOT EXISTS (SELECT 1 FROM public.tutors WHERE approved = true LIMIT 1) THEN
+        RAISE NOTICE 'No approved tutors found. You may need to:';
+        RAISE NOTICE '1. Create tutor applications through the app';
+        RAISE NOTICE '2. Approve them by setting approved = true';
+        RAISE NOTICE '3. Or run a sample data script';
+    END IF;
+
+    -- Check if we have user profiles
+    IF NOT EXISTS (SELECT 1 FROM public.users LIMIT 1) THEN
+        RAISE NOTICE 'No user profiles found. Users will be created automatically when they sign in.';
+    END IF;
+END $$;
+
 -- Success message
 DO $$
 BEGIN
@@ -187,4 +204,10 @@ BEGIN
     RAISE NOTICE '- messages (chat messages)';
     RAISE NOTICE 'All RLS policies, indexes, and triggers created!';
     RAISE NOTICE 'Your React messaging system should now work properly.';
+    RAISE NOTICE '';
+    RAISE NOTICE '🔍 DEBUGGING TIPS:';
+    RAISE NOTICE '1. Check browser console for messaging service logs';
+    RAISE NOTICE '2. Verify tutors have approved = true';
+    RAISE NOTICE '3. Ensure user profiles exist in users table';
+    RAISE NOTICE '4. Test with authenticated users only';
 END $$;
