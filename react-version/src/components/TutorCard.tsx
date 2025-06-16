@@ -50,52 +50,28 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
   const rating = tutor.rating || 4.5;
   const ratingStars = '⭐'.repeat(Math.floor(rating));
 
-  // Helper function to extract YouTube video ID
-  const getYouTubeVideoId = (url: string): string | null => {
-    if (!url) return null;
-
-    // Handle different YouTube URL formats
-    if (url.includes('youtu.be/')) {
-      return url.split('youtu.be/')[1]?.split('?')[0]?.split('&')[0] || null;
-    } else if (url.includes('youtube.com/watch?v=')) {
-      return url.split('v=')[1]?.split('&')[0] || null;
-    } else if (url.includes('youtube.com/embed/')) {
-      return url.split('embed/')[1]?.split('?')[0]?.split('&')[0] || null;
-    } else if (url.includes('youtube.com/v/')) {
-      return url.split('v/')[1]?.split('?')[0]?.split('&')[0] || null;
-    }
-
-    return null;
-  };
-
-  // Helper function to get YouTube thumbnail URL
-  const getYouTubeThumbnail = (videoId: string): string => {
-    return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-  };
-
-  // Enhanced video URL processing - for YouTube, we'll show thumbnails and open in new tab
-  const processVideoUrl = (url: string): string => {
+  // Helper function to convert YouTube URL to embed URL (same as TutorProfile)
+  const getYouTubeEmbedUrl = (url: string): string => {
     if (!url) return '';
 
-    // For YouTube videos, return the original URL for opening in new tab
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      return url;
+    // Handle different YouTube URL formats using regex (same as profile page)
+    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(youtubeRegex);
+
+    if (match) {
+      return `https://www.youtube.com/embed/${match[1]}?controls=1&showinfo=1&rel=0&modestbranding=1`;
     }
 
-    // Return direct video URL for other formats
+    // If it's not a YouTube URL, return the original URL for direct video files
     return url;
   };
 
-  // Process video URL with enhanced validation
-  const videoUrl = tutor.video_url ? processVideoUrl(tutor.video_url) : undefined;
+  // Process video URL (same as TutorProfile)
+  const videoUrl = getYouTubeEmbedUrl(tutor.video_url || '');
   const isYouTubeVideo = tutor.video_url && (tutor.video_url.includes('youtube.com') || tutor.video_url.includes('youtu.be'));
 
-  // Get YouTube video ID and thumbnail
-  const youtubeVideoId = isYouTubeVideo ? getYouTubeVideoId(tutor.video_url) : null;
-  const youtubeThumbnail = youtubeVideoId ? getYouTubeThumbnail(youtubeVideoId) : null;
-
   // Validate YouTube URL processing
-  const isValidYouTubeUrl = isYouTubeVideo && youtubeVideoId && youtubeVideoId.length === 11;
+  const isValidYouTubeUrl = isYouTubeVideo && videoUrl && videoUrl.includes('/embed/');
 
   // For development/testing: Add fallback video for specific tutors
   const fallbackVideoUrl = !videoUrl && tutor.name === 'shtm' ?
@@ -215,9 +191,14 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     });
 
     if (isYouTubeVideo && finalVideoUrl) {
-      // For YouTube videos, open in new tab
-      console.log('📺 YouTube video - opening in new tab:', finalVideoUrl);
-      window.open(finalVideoUrl, '_blank');
+      // For YouTube videos, toggle play/pause state (same as before)
+      if (!videoPlaying) {
+        console.log('📺 YouTube video - enabling playback');
+        setVideoPlaying(true);
+      } else {
+        console.log('📺 YouTube video - pausing playback');
+        setVideoPlaying(false);
+      }
       return;
     }
 
@@ -377,101 +358,40 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
             {hasValidVideo ? (
               <div className="video-thumbnail">
                 {isYouTubeVideo ? (
-                  // YouTube Video Thumbnail with Play Button
+                  // YouTube Video Iframe (same approach as TutorProfile)
                   <div
-                    className="youtube-thumbnail-container"
+                    className="youtube-video-container"
                     style={{
                       position: 'relative',
                       width: '100%',
                       height: '100%',
                       minHeight: '216px',
-                      backgroundColor: '#000',
-                      cursor: 'pointer',
-                      borderRadius: '8px',
-                      overflow: 'hidden'
+                      backgroundColor: '#000'
                     }}
-                    onClick={handleVideoClick}
                   >
-                    {youtubeThumbnail ? (
-                      <img
-                        src={youtubeThumbnail}
-                        alt={`${tutor.name} video thumbnail`}
-                        className="video-preview"
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          borderRadius: '8px'
-                        }}
-                        onLoad={() => {
-                          console.log(`✅ YouTube thumbnail loaded for ${tutor.name}`);
-                          setVideoLoaded(true);
-                        }}
-                        onError={(e) => {
-                          console.error(`❌ YouTube thumbnail error for ${tutor.name}:`, e);
-                          setVideoError(true);
-                        }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          backgroundColor: '#000',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white'
-                        }}
-                      >
-                        YouTube Video
-                      </div>
-                    )}
-
-                    {/* YouTube Play Button Overlay */}
-                    <div
-                      className="youtube-play-overlay"
+                    <iframe
+                      src={videoUrl}
+                      className="video-preview"
                       style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        width: '68px',
-                        height: '48px',
-                        backgroundColor: 'rgba(255, 0, 0, 0.8)',
+                        width: '100%',
+                        height: '100%',
+                        minHeight: '216px',
+                        border: 'none',
                         borderRadius: '8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 0.3s ease'
+                        display: 'block'
                       }}
-                    >
-                      <div style={{
-                        width: 0,
-                        height: 0,
-                        borderLeft: '16px solid white',
-                        borderTop: '10px solid transparent',
-                        borderBottom: '10px solid transparent',
-                        marginLeft: '4px'
-                      }} />
-                    </div>
-
-                    {/* YouTube Logo */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        bottom: '8px',
-                        right: '8px',
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        color: 'white',
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        fontWeight: 'bold'
+                      allow="autoplay; encrypted-media"
+                      allowFullScreen
+                      title={`${tutor.name} introduction video`}
+                      onLoad={() => {
+                        console.log(`✅ YouTube iframe loaded for ${tutor.name}:`, videoUrl);
+                        setVideoLoaded(true);
                       }}
-                    >
-                      YouTube
-                    </div>
+                      onError={(e) => {
+                        console.error(`❌ YouTube iframe error for ${tutor.name}:`, e, videoUrl);
+                        setVideoError(true);
+                      }}
+                    />
                   </div>
                 ) : (
                   // Direct Video File Handling with Controls
