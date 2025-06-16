@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface Tutor {
   id: string;
@@ -24,16 +24,41 @@ interface TutorCardProps {
   tutor: Tutor;
   onContact: (tutorUserId: string, tutorName: string) => void;
   onViewProfile?: (tutorId: string) => void;
+  onHover?: (tutorId: string) => void;
+  onLeave?: (tutorId: string) => void;
+  isVideoActive?: boolean;
 }
 
-const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }) => {
-  const [isHovered, setIsHovered] = useState(false);
+const TutorCard: React.FC<TutorCardProps> = ({
+  tutor,
+  onContact,
+  onViewProfile,
+  onHover,
+  onLeave,
+  isVideoActive = false
+}) => {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const avatarUrl = tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff&size=80`;
+
+  // Handle video state when card becomes inactive (sticky behavior)
+  useEffect(() => {
+    if (!isVideoActive) {
+      // Pause and reset video when this card becomes inactive
+      if (videoRef.current && !isYouTubeVideo) {
+        videoRef.current.pause();
+        videoRef.current.currentTime = 0;
+        setVideoPlaying(false);
+      }
+      // Close YouTube modal if it was open
+      if (isYouTubeVideo && videoPlaying) {
+        setVideoPlaying(false);
+      }
+    }
+  }, [isVideoActive, isYouTubeVideo, videoPlaying]);
 
   const languages = tutor.languages_spoken && tutor.languages_spoken.length > 0 ?
     (typeof tutor.languages_spoken === 'string' ? JSON.parse(tutor.languages_spoken) : tutor.languages_spoken) :
@@ -125,24 +150,28 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     }
   };
 
-  // Enhanced hover handlers for video functionality
+  // Enhanced hover handlers for sticky video functionality (italki-style)
   const handleMouseEnter = () => {
-    setIsHovered(true);
-    // Auto-play video on hover (muted for better UX)
-    if (videoRef.current && !isYouTubeVideo && finalVideoUrl) {
+    // Notify parent about hover - this will make video card sticky
+    if (onHover) {
+      onHover(tutor.id);
+    }
+
+    // Auto-play video on hover (muted for better UX) - only for direct videos
+    if (videoRef.current && !isYouTubeVideo && finalVideoUrl && isVideoActive) {
       videoRef.current.muted = true;
       videoRef.current.play().catch(console.error);
     }
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
-    // Pause and reset video when leaving hover
-    if (videoRef.current && !isYouTubeVideo) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-      setVideoPlaying(false);
+    // Notify parent about leave - but video card stays sticky
+    if (onLeave) {
+      onLeave(tutor.id);
     }
+
+    // Don't pause video immediately - let it continue playing
+    // Video will only stop when another tutor is hovered
   };
 
   // Enhanced video event handlers
@@ -200,7 +229,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     >
       {/* Main Tutor Card - Fixed 70% width */}
       <div
-        className={`tutor-card ${isHovered ? 'hovered' : ''}`}
+        className={`tutor-card ${isVideoActive ? 'hovered' : ''}`}
         onClick={handleCardClick}
         data-has-video={hasValidVideo ? 'true' : 'false'}
       >
@@ -307,8 +336,8 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
 
       {/* Reserved Video Card Space - Fixed 30% width */}
       <div className="tutor-video-space">
-        {/* Video Card - Only content visible on hover */}
-        <div className={`tutor-video-card ${isHovered ? 'visible' : ''}`}>
+        {/* Video Card - Sticky visibility based on parent state */}
+        <div className={`tutor-video-card ${isVideoActive ? 'visible' : ''}`}>
           <div className="video-container" onClick={handleVideoClick}>
             {hasValidVideo ? (
               <div className="video-thumbnail">

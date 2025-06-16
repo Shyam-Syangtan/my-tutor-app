@@ -45,6 +45,9 @@ const TutorMarketplace: React.FC = () => {
     searchTerm: ''
   });
 
+  // Sticky video card state - only one video card visible at a time
+  const [activeVideoTutorId, setActiveVideoTutorId] = useState<string | null>(null);
+
   useEffect(() => {
     checkAuth();
     loadTutors();
@@ -212,6 +215,19 @@ const TutorMarketplace: React.FC = () => {
     navigate(`/tutor/${tutorId}`);
   };
 
+  // Sticky video card handlers - italki-style behavior
+  const handleTutorHover = (tutorId: string) => {
+    // Only change if hovering over a different tutor
+    if (activeVideoTutorId !== tutorId) {
+      setActiveVideoTutorId(tutorId);
+    }
+  };
+
+  const handleTutorLeave = (tutorId: string) => {
+    // Don't close video card on mouse leave - keep it sticky
+    // Video card only changes when hovering over a different tutor
+  };
+
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -251,6 +267,9 @@ const TutorMarketplace: React.FC = () => {
                 tutor={tutor}
                 onContact={contactTeacher}
                 onViewProfile={viewTutorProfile}
+                onHover={handleTutorHover}
+                onLeave={handleTutorLeave}
+                isVideoActive={activeVideoTutorId === tutor.id}
               />
             ))}
           </div>
