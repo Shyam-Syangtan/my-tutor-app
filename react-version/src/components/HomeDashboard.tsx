@@ -36,12 +36,23 @@ const HomeDashboard: React.FC = () => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [tutorStatus, setTutorStatus] = useState<{
+    hasApplication: boolean;
+    isApproved: boolean;
+    applicationData?: any;
+  }>({ hasApplication: false, isApproved: false });
   const navigate = useNavigate();
 
   useEffect(() => {
     checkAuth();
     loadDashboardData();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      checkTutorStatus();
+    }
+  }, [user]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -63,6 +74,38 @@ const HomeDashboard: React.FC = () => {
       return;
     }
     setUser(session.user as User);
+  };
+
+  const checkTutorStatus = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('tutors')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking tutor status:', error);
+        return;
+      }
+
+      if (data) {
+        setTutorStatus({
+          hasApplication: true,
+          isApproved: data.approved || false,
+          applicationData: data
+        });
+      } else {
+        setTutorStatus({
+          hasApplication: false,
+          isApproved: false
+        });
+      }
+    } catch (error) {
+      console.error('Error checking tutor status:', error);
+    }
   };
 
   const loadDashboardData = async () => {
@@ -143,6 +186,55 @@ const HomeDashboard: React.FC = () => {
     action();
   };
 
+  const getTutorToggleInfo = () => {
+    if (!tutorStatus.hasApplication) {
+      return {
+        text: '🎓 Become a Tutor',
+        action: () => navigate(ROUTES.BECOME_TUTOR_INFO),
+        icon: (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+          </svg>
+        )
+      };
+    } else if (tutorStatus.hasApplication && !tutorStatus.isApproved) {
+      return {
+        text: '⏳ Application Pending',
+        action: () => alert('Your tutor application is under review. We\'ll notify you once it\'s approved!'),
+        icon: (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12,6 12,12 16,14"></polyline>
+          </svg>
+        )
+      };
+    } else if (tutorStatus.isApproved) {
+      return {
+        text: '🎓 Switch to Teacher Mode',
+        action: () => navigate(ROUTES.TUTOR_DASHBOARD),
+        icon: (
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        )
+      };
+    }
+
+    // Fallback
+    return {
+      text: '🎓 Become a Tutor',
+      action: () => navigate(ROUTES.BECOME_TUTOR_INFO),
+      icon: (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+          <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+        </svg>
+      )
+    };
+  };
+
   if (loading) {
     return (
       <div className="loading-screen">
@@ -214,12 +306,9 @@ const HomeDashboard: React.FC = () => {
                       </svg>
                       Account Settings
                     </a>
-                    <a href="#" className="mode-toggle">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
-                      Become a Tutor
+                    <a href="#" className="mode-toggle" onClick={(e) => handleDropdownClick(e, getTutorToggleInfo().action)}>
+                      {getTutorToggleInfo().icon}
+                      {getTutorToggleInfo().text}
                     </a>
                     <hr className="dropdown-divider" />
                     <a href="#" onClick={(e) => handleDropdownClick(e, handleSignOut)} className="logout-link">

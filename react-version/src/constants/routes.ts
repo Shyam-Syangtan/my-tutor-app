@@ -9,6 +9,10 @@ export const ROUTES = {
   MESSAGES: '/messages',
   PROFILE: '/profile',
 
+  // Tutor-related routes
+  BECOME_TUTOR_INFO: '/become-tutor-info',
+  TUTOR_DASHBOARD: '/tutor-dashboard',
+
   // External links (if needed)
   EXTERNAL: {
     ORIGINAL_SITE: 'https://shyam-syangtan.github.io/my-tutor-app',
