@@ -1089,7 +1089,7 @@ body {
 /* Single Column Layout Container */
 .tutor-row-layout {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     min-height: 200px;
     width: 100%;
     overflow: hidden;
@@ -1957,27 +1957,27 @@ body {
 @media (max-width: 767px) {
     .tutor-card-layout {
         flex-direction: column;
-        text-align: center;
+        text-align: left;
     }
 
     .tutor-header {
         flex-direction: column;
-        text-align: center;
+        text-align: left;
         gap: 0.5rem;
     }
 
     .tutor-pricing {
-        text-align: center;
+        text-align: left;
     }
 
     .tutor-stats {
-        justify-content: center;
+        justify-content: flex-start;
         flex-wrap: wrap;
     }
 
     .language-badges,
     .tutor-tags {
-        justify-content: center;
+        justify-content: flex-start;
     }
 
     .tutor-actions {
