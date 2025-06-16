@@ -102,7 +102,7 @@ const TutorCard: React.FC<TutorCardProps> = ({
   };
 
   // Process YouTube-specific data
-  const youtubeVideoId = isYouTubeVideo ? getYouTubeVideoId(tutor.video_url) : null;
+  const youtubeVideoId = isYouTubeVideo && tutor.video_url ? getYouTubeVideoId(tutor.video_url) : null;
   const youtubeThumbnail = youtubeVideoId ? getYouTubeThumbnail(youtubeVideoId) : null;
   const youtubeEmbedUrl = youtubeVideoId ? getYouTubeEmbedUrl(youtubeVideoId) : null;
 
