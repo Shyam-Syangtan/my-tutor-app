@@ -5463,7 +5463,8 @@ body {
     color: #ffffff;
     margin-top: 4rem; /* Add proper spacing from page content */
     position: relative;
-    width: 100%; /* Full width */
+    width: 100vw; /* Full viewport width */
+    margin-left: calc(-50vw + 50%); /* Break out of container */
     clear: both; /* Ensure footer clears any floated content */
 }
 
