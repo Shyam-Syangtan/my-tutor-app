@@ -106,13 +106,15 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
 
 
   return (
-    <div className="tutor-card-container">
-      {/* Main Tutor Card */}
+    <div
+      className="tutor-card-container"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Main Tutor Card - Fixed 70% width */}
       <div
         className={`tutor-card ${isHovered ? 'hovered' : ''}`}
         onClick={handleCardClick}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
       >
         <div className="tutor-card-content">
           {/* Left Section: Avatar & Basic Info */}
@@ -215,9 +217,10 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
         </div>
       </div>
 
-      {/* Separate Video Card - Only visible on hover */}
-      {isHovered && (
-        <div className="tutor-video-card">
+      {/* Reserved Video Card Space - Fixed 30% width */}
+      <div className="tutor-video-space">
+        {/* Video Card - Only content visible on hover */}
+        <div className={`tutor-video-card ${isHovered ? 'visible' : ''}`}>
           <div className="video-container">
             <div className="video-thumbnail" onClick={handleViewProfile}>
               {isYouTubeVideo ? (
@@ -261,7 +264,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

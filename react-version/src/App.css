@@ -1065,17 +1065,18 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* TUTOR CARD STYLES - MAIN CARD WITH HOVER VIDEO */
+/* TUTOR CARD STYLES - FIXED WIDTH LAYOUT WITH RESERVED SPACE */
 
-/* Container for main card + video card */
+/* Container for main card + video space - Fixed proportions */
 .tutor-card-container {
     display: flex;
     gap: 20px;
     position: relative;
     width: 100%;
+    min-height: 180px;
 }
 
-/* Main Tutor Card */
+/* Main Tutor Card - Fixed 70% width */
 .tutor-card {
     background: var(--surface);
     border-radius: var(--border-radius);
@@ -1085,7 +1086,8 @@ body {
     transition: all 0.3s ease;
     cursor: pointer;
     position: relative;
-    flex: 1;
+    width: 70%;
+    flex-shrink: 0;
 }
 
 .tutor-card:hover {
@@ -1135,17 +1137,30 @@ body {
     width: 100%;
 }
 
-/* Separate Video Card - Hover Only */
+/* Reserved Video Space - Fixed 30% width (always present) */
+.tutor-video-space {
+    width: 30%;
+    flex-shrink: 0;
+    position: relative;
+}
+
+/* Video Card - Only visibility changes on hover */
 .tutor-video-card {
-    width: 280px;
+    width: 100%;
     height: 180px;
     background: var(--surface);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-lg);
     border: 2px solid var(--primary-color);
     overflow: hidden;
-    animation: slideInFromRight 0.3s ease-out;
-    flex-shrink: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.tutor-video-card.visible {
+    opacity: 1;
+    visibility: visible;
 }
 
 .tutor-video-card .video-container {
@@ -1821,10 +1836,14 @@ body {
     }
 }
 
-/* Responsive Design for Main Card + Video Card Layout */
+/* Responsive Design for Fixed Width Layout */
 @media (max-width: 1023px) {
-    .tutor-video-card {
+    .tutor-video-space {
         display: none;
+    }
+
+    .tutor-card {
+        width: 100%;
     }
 
     .tutor-card-container {
