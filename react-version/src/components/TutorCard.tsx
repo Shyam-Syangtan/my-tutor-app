@@ -31,6 +31,13 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
   const [videoLoaded, setVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Debug video data
+  console.log(`🎬 TutorCard for ${tutor.name}:`, {
+    hasVideoUrl: !!tutor.video_url,
+    videoUrl: tutor.video_url,
+    tutorId: tutor.id
+  });
+
   const avatarUrl = tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff&size=80`;
 
   const languages = tutor.languages_spoken && tutor.languages_spoken.length > 0 ?
@@ -77,29 +84,48 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
 
   // Video handling functions
   const handleMouseEnter = () => {
+    console.log(`🖱️ Mouse enter on ${tutor.name}:`, {
+      hasHoverSupport: window.matchMedia('(hover: hover)').matches,
+      hasVideoUrl: !!tutor.video_url,
+      hasVideoRef: !!videoRef.current,
+      videoUrl: tutor.video_url
+    });
+
     // Only enable video preview on non-touch devices (desktop/tablet)
     if (window.matchMedia('(hover: hover)').matches) {
       setIsHovered(true);
       if (tutor.video_url && videoRef.current) {
-        videoRef.current.play().catch(console.error);
+        console.log(`▶️ Attempting to play video for ${tutor.name}`);
+        videoRef.current.play()
+          .then(() => console.log(`✅ Video playing for ${tutor.name}`))
+          .catch(error => console.error(`❌ Video play failed for ${tutor.name}:`, error));
+      } else {
+        console.log(`⚠️ Cannot play video for ${tutor.name}:`, {
+          noVideoUrl: !tutor.video_url,
+          noVideoRef: !videoRef.current
+        });
       }
     }
   };
 
   const handleMouseLeave = () => {
+    console.log(`🖱️ Mouse leave on ${tutor.name}`);
     setIsHovered(false);
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
+      console.log(`⏹️ Video stopped for ${tutor.name}`);
     }
   };
 
   const handleVideoLoad = () => {
+    console.log(`📹 Video loaded for ${tutor.name}`);
     setVideoLoaded(true);
   };
 
-  const handleVideoError = () => {
-    console.error('Video failed to load for tutor:', tutor.name);
+  const handleVideoError = (error: any) => {
+    console.error(`❌ Video failed to load for ${tutor.name}:`, error);
+    console.error('Video URL:', tutor.video_url);
   };
 
   return (
@@ -210,20 +236,28 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
 
           {/* Right 30%: Video Section */}
           <div className="tutor-video-section">
+            {/* Debug info - temporary */}
+            <div style={{fontSize: '10px', color: 'red', marginBottom: '5px'}}>
+              Video: {tutor.video_url ? 'YES' : 'NO'} | Loaded: {videoLoaded ? 'YES' : 'NO'} | Hovered: {isHovered ? 'YES' : 'NO'}
+            </div>
+
             {tutor.video_url ? (
               <div className="video-container">
                 <div className="video-thumbnail" onClick={handleViewProfile}>
                   <video
                     ref={videoRef}
                     src={tutor.video_url}
-                    muted
-                    loop
-                    playsInline
+                    muted={true}
+                    loop={true}
+                    playsInline={true}
                     preload="metadata"
                     onLoadedData={handleVideoLoad}
-                    onError={handleVideoError}
+                    onError={(e) => handleVideoError(e)}
+                    onCanPlay={() => console.log(`📹 Video can play for ${tutor.name}`)}
+                    onLoadStart={() => console.log(`🔄 Video load started for ${tutor.name}`)}
                     className="video-preview"
                     poster={avatarUrl}
+                    controls={false}
                   />
                   <div className="video-play-overlay">
                     <svg className="play-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -242,6 +276,10 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                 >
                   View full schedule
                 </button>
+                {/* Debug: Show video URL */}
+                <div style={{fontSize: '8px', color: 'blue', wordBreak: 'break-all'}}>
+                  {tutor.video_url}
+                </div>
               </div>
             ) : (
               <div className="video-placeholder">
