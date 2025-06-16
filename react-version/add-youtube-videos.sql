@@ -8,8 +8,10 @@
 SELECT id, name, video_url, approved FROM tutors WHERE approved = true ORDER BY name LIMIT 10;
 
 -- Update tutors with different YouTube URL formats for testing
+-- Using embeddable educational videos that allow iframe embedding
+
 UPDATE tutors
-SET video_url = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+SET video_url = 'https://www.youtube.com/watch?v=YQHsXMglC9A'
 WHERE id IN (
     SELECT id FROM tutors
     WHERE approved = true AND video_url IS NULL
@@ -18,7 +20,7 @@ WHERE id IN (
 );
 
 UPDATE tutors
-SET video_url = 'https://youtu.be/dQw4w9WgXcQ'
+SET video_url = 'https://youtu.be/VuNIsY6JdUw'
 WHERE id IN (
     SELECT id FROM tutors
     WHERE approved = true AND video_url IS NULL
@@ -27,7 +29,7 @@ WHERE id IN (
 );
 
 UPDATE tutors
-SET video_url = 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+SET video_url = 'https://www.youtube.com/watch?v=3i_HEzPHMOc'
 WHERE id IN (
     SELECT id FROM tutors
     WHERE approved = true AND video_url IS NULL
@@ -49,9 +51,9 @@ WHERE id IN (
 -- First run: SELECT id, name FROM tutors WHERE approved = true ORDER BY name;
 -- Then use the actual IDs below:
 
--- UPDATE tutors SET video_url = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' WHERE id = 'your-tutor-id-1';
--- UPDATE tutors SET video_url = 'https://youtu.be/dQw4w9WgXcQ' WHERE id = 'your-tutor-id-2';
--- UPDATE tutors SET video_url = 'https://www.youtube.com/embed/dQw4w9WgXcQ' WHERE id = 'your-tutor-id-3';
+-- UPDATE tutors SET video_url = 'https://www.youtube.com/watch?v=YQHsXMglC9A' WHERE id = 'your-tutor-id-1';
+-- UPDATE tutors SET video_url = 'https://youtu.be/VuNIsY6JdUw' WHERE id = 'your-tutor-id-2';
+-- UPDATE tutors SET video_url = 'https://www.youtube.com/watch?v=3i_HEzPHMOc' WHERE id = 'your-tutor-id-3';
 
 -- Check the results
 SELECT name, video_url, approved

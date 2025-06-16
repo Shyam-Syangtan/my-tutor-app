@@ -74,8 +74,8 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
       }
 
       if (videoId && videoId.length === 11) {
-        // Return embed URL with enhanced parameters for better preview
-        return `https://www.youtube.com/embed/${videoId}?controls=1&showinfo=0&rel=0&modestbranding=1&autoplay=0&mute=1`;
+        // Return embed URL with enhanced parameters for better preview and embedding compatibility
+        return `https://www.youtube.com/embed/${videoId}?controls=1&showinfo=0&rel=0&modestbranding=1&autoplay=0&mute=1&enablejsapi=1&origin=${window.location.origin}`;
       }
     }
 
@@ -394,9 +394,19 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                         objectFit: 'cover',
                         pointerEvents: videoPlaying ? 'auto' : 'none' // Allow interaction when playing
                       }}
-                      allow="autoplay; encrypted-media; fullscreen"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       allowFullScreen
+                      referrerPolicy="strict-origin-when-cross-origin"
                       title={`${tutor.name} introduction video`}
+                      loading="lazy"
+                      onLoad={() => {
+                        console.log(`✅ YouTube iframe loaded for ${tutor.name}:`, finalVideoUrl);
+                        setVideoLoaded(true);
+                      }}
+                      onError={(e) => {
+                        console.error(`❌ YouTube iframe error for ${tutor.name}:`, e, finalVideoUrl);
+                        setVideoError(true);
+                      }}
                     />
 
                     {/* Play overlay for YouTube videos when not playing */}
