@@ -208,16 +208,13 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     });
 
     if (isYouTubeVideo && finalVideoUrl) {
-      // For YouTube videos, toggle between preview and playable iframe
+      // For YouTube videos, toggle play/pause state
       if (!videoPlaying) {
         console.log('📺 YouTube video - enabling playback');
         setVideoPlaying(true);
-        // The iframe src will be updated in the render section based on videoPlaying state
       } else {
-        console.log('📺 YouTube video - navigating to profile for full experience');
-        if (onViewProfile) {
-          onViewProfile(tutor.id);
-        }
+        console.log('📺 YouTube video - pausing playback');
+        setVideoPlaying(false);
       }
       return;
     }
@@ -379,7 +376,13 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
               <div className="video-thumbnail">
                 {isYouTubeVideo ? (
                   // YouTube Video Handling with enhanced playback
-                  <div className="youtube-video-container" style={{ position: 'relative', width: '100%', height: '100%' }}>
+                  <div className="youtube-video-container" style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: '100%',
+                    minHeight: '180px',
+                    backgroundColor: '#000'
+                  }}>
                     <iframe
                       src={videoPlaying ?
                         finalVideoUrl.replace('autoplay=0', 'autoplay=1').replace('mute=1', 'mute=0') :
@@ -389,16 +392,18 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                       style={{
                         width: '100%',
                         height: '100%',
+                        minHeight: '180px',
                         border: 'none',
                         borderRadius: '8px',
-                        objectFit: 'cover',
-                        pointerEvents: videoPlaying ? 'auto' : 'none' // Allow interaction when playing
+                        display: 'block',
+                        pointerEvents: 'none' // Prevent iframe from capturing clicks
                       }}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       allowFullScreen
                       referrerPolicy="strict-origin-when-cross-origin"
                       title={`${tutor.name} introduction video`}
                       loading="lazy"
+                      frameBorder="0"
                       onLoad={() => {
                         console.log(`✅ YouTube iframe loaded for ${tutor.name}:`, finalVideoUrl);
                         setVideoLoaded(true);
@@ -409,21 +414,82 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                       }}
                     />
 
-                    {/* Play overlay for YouTube videos when not playing */}
-                    {!videoPlaying && (
-                      <div className="video-play-overlay" style={{
+                    {/* Clickable overlay for YouTube video control */}
+                    <div
+                      className="video-click-overlay"
+                      style={{
                         position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        cursor: 'pointer',
                         zIndex: 10,
-                        pointerEvents: 'none'
-                      }}>
-                        <svg className="play-icon" fill="currentColor" viewBox="0 0 20 20" style={{ width: '24px', height: '24px' }}>
-                          <path d="M8 5v10l8-5-8-5z"/>
-                        </svg>
-                      </div>
-                    )}
+                        backgroundColor: videoPlaying ? 'transparent' : 'rgba(0, 0, 0, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                      onClick={handleVideoClick}
+                    >
+                      {/* Play/Pause button */}
+                      {!videoPlaying ? (
+                        <div
+                          className="play-button"
+                          style={{
+                            width: '60px',
+                            height: '60px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <div style={{
+                            width: 0,
+                            height: 0,
+                            borderLeft: '20px solid white',
+                            borderTop: '12px solid transparent',
+                            borderBottom: '12px solid transparent',
+                            marginLeft: '4px'
+                          }} />
+                        </div>
+                      ) : (
+                        <div
+                          className="pause-button"
+                          style={{
+                            width: '60px',
+                            height: '60px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            opacity: 0,
+                            transition: 'opacity 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.opacity = '1';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.opacity = '0';
+                          }}
+                        >
+                          <div style={{
+                            width: '6px',
+                            height: '20px',
+                            backgroundColor: 'white',
+                            marginRight: '4px'
+                          }} />
+                          <div style={{
+                            width: '6px',
+                            height: '20px',
+                            backgroundColor: 'white'
+                          }} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   // Direct Video File Handling with Controls

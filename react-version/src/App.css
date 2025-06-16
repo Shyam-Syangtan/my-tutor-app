@@ -1169,6 +1169,7 @@ body {
     position: relative;
     width: 100%;
     height: 100%;
+    min-height: 180px;
     border-radius: 8px;
     overflow: hidden;
     background: #000;
@@ -1176,10 +1177,37 @@ body {
 
 .youtube-video-container iframe {
     transition: all 0.3s ease;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .youtube-video-container:hover iframe {
     transform: scale(1.02);
+}
+
+/* Video click overlay for YouTube videos */
+.video-click-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-click-overlay .play-button,
+.video-click-overlay .pause-button {
+    transition: all 0.3s ease;
+}
+
+.video-click-overlay .play-button:hover,
+.video-click-overlay .pause-button:hover {
+    transform: scale(1.1);
 }
 
 .tutor-video-card .video-container {
