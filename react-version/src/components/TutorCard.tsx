@@ -382,7 +382,8 @@ const TutorCard: React.FC<TutorCardProps> = ({
                               objectFit: 'cover',
                               position: 'absolute',
                               top: 0,
-                              left: 0
+                              left: 0,
+                              borderRadius: '8px'
                             }}
                             onLoad={() => setVideoLoaded(true)}
                             onError={() => {
@@ -401,7 +402,8 @@ const TutorCard: React.FC<TutorCardProps> = ({
                               objectFit: 'cover',
                               position: 'absolute',
                               top: 0,
-                              left: 0
+                              left: 0,
+                              borderRadius: '8px'
                             }}
                           />
                         )}
