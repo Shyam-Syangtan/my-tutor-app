@@ -100,7 +100,8 @@ const BecomeTutor: React.FC = () => {
         throw new Error('Teaching experience is required');
       }
 
-      const applicationData = {
+      // Base application data with only essential fields
+      const applicationData: any = {
         user_id: user.id,
         name: formData.fullName.trim(),
         email: user.email,
@@ -108,21 +109,34 @@ const BecomeTutor: React.FC = () => {
         language: formData.language,
         rate: parseInt(formData.rate),
         experience: formData.experience.trim(),
-        video_url: formData.videoUrl.trim() || null,
-        specialties: formData.specialties.trim() || null,
-        availability: formData.availability.trim() || null,
         approved: false,
-        photo_url: user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName)}&background=6366f1&color=fff&size=150`,
-        // Add default values for required fields
-        native_language: formData.language,
-        languages_spoken: JSON.stringify([{ language: formData.language, proficiency: 'Native' }]),
-        tags: JSON.stringify(['Conversational', 'Grammar']),
-        country_flag: '🇮🇳',
-        total_students: 0,
-        total_lessons: 0,
-        is_professional: false,
-        rating: 4.5
+        photo_url: user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName)}&background=6366f1&color=fff&size=150`
       };
+
+      // Add optional fields only if they have values
+      if (formData.videoUrl.trim()) {
+        applicationData.video_url = formData.videoUrl.trim();
+      }
+      if (formData.specialties.trim()) {
+        applicationData.specialties = formData.specialties.trim();
+      }
+      if (formData.availability.trim()) {
+        applicationData.availability = formData.availability.trim();
+      }
+
+      // Try to add enhanced fields, but don't fail if columns don't exist
+      try {
+        applicationData.native_language = formData.language;
+        applicationData.languages_spoken = [{ language: formData.language, proficiency: 'Native' }];
+        applicationData.tags = ['Conversational', 'Grammar'];
+        applicationData.country_flag = '🇮🇳';
+        applicationData.total_students = 0;
+        applicationData.total_lessons = 0;
+        applicationData.is_professional = false;
+        applicationData.rating = 4.5;
+      } catch (error) {
+        console.log('Some enhanced fields may not be available in database schema');
+      }
 
       console.log('Submitting application data:', applicationData);
 

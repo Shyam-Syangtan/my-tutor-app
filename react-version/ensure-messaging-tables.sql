@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 2. Ensure tutors table exists
+-- 2. Ensure tutors table exists with all required columns
 CREATE TABLE IF NOT EXISTS public.tutors (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -43,6 +43,23 @@ CREATE TABLE IF NOT EXISTS public.tutors (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Add missing columns if they don't exist (for existing databases)
+ALTER TABLE public.tutors
+ADD COLUMN IF NOT EXISTS is_professional BOOLEAN DEFAULT false,
+ADD COLUMN IF NOT EXISTS native_language TEXT,
+ADD COLUMN IF NOT EXISTS languages_spoken JSONB,
+ADD COLUMN IF NOT EXISTS tags JSONB,
+ADD COLUMN IF NOT EXISTS country_flag TEXT DEFAULT '🇮🇳',
+ADD COLUMN IF NOT EXISTS total_students INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS total_lessons INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS video_url TEXT,
+ADD COLUMN IF NOT EXISTS about_me TEXT,
+ADD COLUMN IF NOT EXISTS teaching_style TEXT,
+ADD COLUMN IF NOT EXISTS resume TEXT,
+ADD COLUMN IF NOT EXISTS experience TEXT,
+ADD COLUMN IF NOT EXISTS specialties TEXT,
+ADD COLUMN IF NOT EXISTS availability TEXT;
 
 -- 3. Ensure chats table exists with proper structure
 CREATE TABLE IF NOT EXISTS public.chats (
