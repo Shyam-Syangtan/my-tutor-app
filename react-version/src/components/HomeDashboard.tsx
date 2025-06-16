@@ -416,7 +416,7 @@ const HomeDashboard: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <Footer />
+      <Footer variant="full" />
     </div>
   );
 };
