@@ -14,6 +14,7 @@ const MessagesPage: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [messagingService, setMessagingService] = useState<MessagingService | null>(null);
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [messageSubscription, setMessageSubscription] = useState<any>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -40,6 +41,10 @@ const MessagesPage: React.FC = () => {
 
       return () => {
         chatSubscription.unsubscribe();
+        // Clean up message subscription when component unmounts
+        if (messageSubscription) {
+          messageSubscription.unsubscribe();
+        }
       };
     }
   }, [user, searchParams]);
@@ -110,26 +115,35 @@ const MessagesPage: React.FC = () => {
     if (serviceToUse) {
       await loadMessages(chat, serviceToUse);
 
-      // Subscribe to new messages in this chat
-      const messageSubscription = serviceToUse.subscribeToMessages(chat.id, (newMessage) => {
-        setMessages(prev => [...prev, newMessage]);
+      // Clean up previous subscription
+      if (messageSubscription) {
+        messageSubscription.unsubscribe();
+      }
 
-        // Update last message in chat list if it's not from current user
-        if (!newMessage.is_sent) {
-          setChats(prevChats =>
-            prevChats.map(c =>
-              c.id === chat.id
-                ? { ...c, last_message: newMessage.content, last_message_time: 'now', unread_count: c.unread_count + 1 }
-                : c
-            )
-          );
-        }
+      // Subscribe to new messages in this chat
+      const newSubscription = serviceToUse.subscribeToMessages(chat.id, (newMessage) => {
+        // Add message to the list (only messages from other users reach here due to service filtering)
+        setMessages(prev => {
+          // Double-check for duplicates by message ID
+          const messageExists = prev.some(msg => msg.id === newMessage.id);
+          if (messageExists) {
+            return prev; // Don't add duplicate
+          }
+          return [...prev, newMessage];
+        });
+
+        // Update last message in chat list (only for messages from other users)
+        setChats(prevChats =>
+          prevChats.map(c =>
+            c.id === chat.id
+              ? { ...c, last_message: newMessage.content, last_message_time: 'now', unread_count: c.unread_count + 1 }
+              : c
+          )
+        );
       });
 
       // Store subscription for cleanup
-      return () => {
-        messageSubscription.unsubscribe();
-      };
+      setMessageSubscription(newSubscription);
     }
 
     // Mark as read (update local state)
@@ -147,9 +161,29 @@ const MessagesPage: React.FC = () => {
     const messageContent = newMessage;
     setNewMessage(''); // Clear input immediately for better UX
 
+    // Create optimistic message for immediate UI feedback
+    const optimisticMessage = {
+      id: `temp-${Date.now()}`, // Temporary ID
+      chat_id: selectedChat.id,
+      sender_id: user?.id || '',
+      content: messageContent,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      is_sent: true
+    };
+
+    // Add optimistic message immediately
+    setMessages(prev => [...prev, optimisticMessage]);
+
     try {
       const sentMessage = await messagingService.sendMessage(selectedChat.id, messageContent);
-      setMessages(prev => [...prev, sentMessage]);
+
+      // Replace optimistic message with real message from database
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === optimisticMessage.id ? sentMessage : msg
+        )
+      );
 
       // Update last message in chat list
       setChats(prevChats =>
@@ -161,6 +195,9 @@ const MessagesPage: React.FC = () => {
       );
     } catch (error) {
       console.error('Error sending message:', error);
+
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
       setNewMessage(messageContent); // Restore message on error
       alert('Failed to send message. Please try again.');
     } finally {

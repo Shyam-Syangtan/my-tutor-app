@@ -330,10 +330,15 @@ export class MessagingService {
         },
         (payload) => {
           const message = payload.new as any;
-          callback({
-            ...message,
-            is_sent: message.sender_id === this.currentUserId
-          });
+
+          // Only process messages from OTHER users to avoid duplicates
+          // Messages from current user are already added optimistically
+          if (message.sender_id !== this.currentUserId) {
+            callback({
+              ...message,
+              is_sent: false // Always false since it's from another user
+            });
+          }
         }
       )
       .subscribe();
