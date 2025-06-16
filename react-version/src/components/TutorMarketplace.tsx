@@ -173,20 +173,18 @@ const TutorMarketplace: React.FC = () => {
         return;
       }
 
-      // Initialize messaging service
-      const messaging = new (window as any).SimpleMessaging(supabase);
-      await messaging.initialize();
-
-      // Get or create chat
-      const chatId = await messaging.getOrCreateChat(tutorUserId);
-
-      // For now, show success message (later we'll implement messaging page)
-      alert(`Chat created with ${tutorName}! Chat ID: ${chatId}`);
+      // For now, navigate to messages page
+      alert(`Starting conversation with ${tutorName}...`);
+      navigate(ROUTES.MESSAGES);
 
     } catch (error) {
       console.error('Error contacting teacher:', error);
       alert('Failed to start conversation. Please try again.');
     }
+  };
+
+  const viewTutorProfile = (tutorId: string) => {
+    navigate(`/tutor/${tutorId}`);
   };
 
   if (loading) {
@@ -227,6 +225,7 @@ const TutorMarketplace: React.FC = () => {
                 key={tutor.id}
                 tutor={tutor}
                 onContact={contactTeacher}
+                onViewProfile={viewTutorProfile}
               />
             ))}
           </div>

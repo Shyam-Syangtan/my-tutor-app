@@ -9,6 +9,7 @@ import ProfilePage from './components/ProfilePage';
 import BecomeTutorInfo from './components/BecomeTutorInfo';
 import BecomeTutor from './components/BecomeTutor';
 import TutorDashboard from './components/TutorDashboard';
+import TutorProfile from './components/TutorProfile';
 import NotFoundPage from './components/NotFoundPage';
 import './App.css';
 
@@ -27,6 +28,7 @@ function App() {
           <Route path="/become-tutor-info" element={<BecomeTutorInfo />} />
           <Route path="/become-tutor" element={<BecomeTutor />} />
           <Route path="/tutor-dashboard" element={<TutorDashboard />} />
+          <Route path="/tutor/:id" element={<TutorProfile />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>

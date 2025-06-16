@@ -23,9 +23,10 @@ interface Tutor {
 interface TutorCardProps {
   tutor: Tutor;
   onContact: (tutorUserId: string, tutorName: string) => void;
+  onViewProfile?: (tutorId: string) => void;
 }
 
-const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact }) => {
+const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }) => {
   const avatarUrl = tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff&size=80`;
   
   const languages = tutor.languages_spoken && tutor.languages_spoken.length > 0 ?
@@ -45,7 +46,9 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact }) => {
 
   const handleCardClick = (e: React.MouseEvent) => {
     if (!(e.target as HTMLElement).closest('button')) {
-      window.open(`/my-tutor-app/react-version/profile?id=${tutor.id}`, '_blank');
+      if (onViewProfile) {
+        onViewProfile(tutor.id);
+      }
     }
   };
 
@@ -56,12 +59,16 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact }) => {
 
   const handleBookLesson = (e: React.MouseEvent) => {
     e.stopPropagation();
-    window.open(`/my-tutor-app/react-version/profile?id=${tutor.id}`, '_blank');
+    if (onViewProfile) {
+      onViewProfile(tutor.id);
+    }
   };
 
   const handleViewProfile = (e: React.MouseEvent) => {
     e.stopPropagation();
-    window.open(`/my-tutor-app/react-version/profile?id=${tutor.id}`, '_blank');
+    if (onViewProfile) {
+      onViewProfile(tutor.id);
+    }
   };
 
   return (
