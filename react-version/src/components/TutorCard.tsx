@@ -145,8 +145,8 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     >
       {/* Side-by-Side Layout: 70% Card + 30% Video */}
         <div className="tutor-row-layout">
-          {/* Left 70%: Tutor Card */}
-          <div className="tutor-card-section">
+          {/* Tutor Card - Dynamic width based on hover state */}
+          <div className={`tutor-card-section ${isHovered ? 'with-video' : 'full-width'}`}>
             <div className="tutor-card-content">
               {/* Avatar & Basic Info */}
               <div className="tutor-left-info">
@@ -242,13 +242,13 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
             </div>
           </div>
 
-          {/* Right 30%: Video Section */}
-          <div className="tutor-video-section">
-            <div className="video-container">
-              <div className="video-thumbnail" onClick={handleViewProfile}>
-                {isYouTubeVideo ? (
-                  // YouTube Video Handling
-                  isHovered ? (
+          {/* Right 30%: Video Section - Only visible on hover */}
+          {isHovered && (
+            <div className="tutor-video-section">
+              <div className="video-container">
+                <div className="video-thumbnail" onClick={handleViewProfile}>
+                  {isYouTubeVideo ? (
+                    // YouTube Video Handling
                     <iframe
                       src={videoUrl}
                       className="video-preview"
@@ -263,54 +263,32 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                       title={`${tutor.name} introduction video`}
                     />
                   ) : (
-                    <img
-                      src={avatarUrl}
-                      alt={tutor.name}
+                    // Direct Video File Handling
+                    <video
+                      ref={videoRef}
+                      src={videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
+                      muted
+                      loop
+                      playsInline
+                      preload="auto"
+                      onLoadedData={handleVideoLoad}
+                      onError={handleVideoError}
                       className="video-preview"
-                      style={{ objectFit: 'cover', width: '100%', height: '100%', borderRadius: '8px' }}
+                      poster={avatarUrl}
+                      style={{ objectFit: 'cover', width: '100%', height: '100%' }}
                     />
-                  )
-                ) : (
-                  // Direct Video File Handling
-                  <video
-                    ref={videoRef}
-                    src={videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
-                    muted
-                    loop
-                    playsInline
-                    preload="auto"
-                    onLoadedData={handleVideoLoad}
-                    onError={handleVideoError}
-                    className="video-preview"
-                    poster={avatarUrl}
-                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                  />
-                )}
+                  )}
 
-                {/* Play overlay - only show when not hovered or for direct videos */}
-                {(!isHovered || !isYouTubeVideo) && (
-                  <div className="video-play-overlay">
-                    <svg className="play-icon" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M8 5v10l8-5-8-5z"/>
-                    </svg>
-                  </div>
-                )}
-
-                {/* Loading spinner for direct videos */}
-                {!isYouTubeVideo && !videoLoaded && (
-                  <div className="video-loading">
-                    <div className="loading-spinner"></div>
-                  </div>
-                )}
+                  {/* Loading spinner for direct videos */}
+                  {!isYouTubeVideo && !videoLoaded && (
+                    <div className="video-loading">
+                      <div className="loading-spinner"></div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <button
-                className="video-action-btn"
-                onClick={handleViewProfile}
-              >
-                View full schedule
-              </button>
             </div>
-          </div>
+          )}
         </div>
     </div>
   );

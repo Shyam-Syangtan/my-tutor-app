@@ -1099,6 +1099,18 @@ body {
 .tutor-card-section {
     padding: 20px;
     border-right: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+/* Dynamic width based on hover state */
+.tutor-card-section.full-width {
+    width: 100%;
+    border-right: none;
+}
+
+.tutor-card-section.with-video {
+    width: 70%;
+    border-right: 1px solid var(--border-color);
 }
 
 .tutor-card-content {
@@ -1330,6 +1342,8 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
+    width: 30%;
+    animation: slideInFromRight 0.3s ease-out;
     background: #fafbfc;
     overflow: hidden;
     max-width: 100%;
@@ -4907,6 +4921,19 @@ body {
     100% {
         opacity: 1;
         transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromRight {
+    0% {
+        opacity: 0;
+        transform: translateX(100%);
+        width: 0;
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+        width: 30%;
     }
 }
 
