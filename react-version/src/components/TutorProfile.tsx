@@ -80,9 +80,8 @@ const TutorProfile: React.FC = () => {
     if (!tutor || !user) return;
 
     try {
-      // Initialize messaging service (placeholder for now)
-      alert(`Starting conversation with ${tutor.name}...`);
-      navigate(ROUTES.MESSAGES);
+      // Navigate to messages page with tutor parameter to create conversation
+      navigate(`${ROUTES.MESSAGES}?tutor=${tutor.user_id}`);
     } catch (error) {
       console.error('Error contacting tutor:', error);
       alert('Failed to start conversation. Please try again.');

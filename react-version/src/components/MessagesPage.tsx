@@ -1,25 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ROUTES } from '../constants/routes';
-
-interface Chat {
-  id: string;
-  participant_name: string;
-  participant_avatar: string;
-  last_message: string;
-  last_message_time: string;
-  unread_count: number;
-  is_online: boolean;
-}
-
-interface Message {
-  id: string;
-  content: string;
-  sender_id: string;
-  created_at: string;
-  is_sent: boolean;
-}
+import { MessagingService, Chat, Message } from '../lib/messagingService';
 
 const MessagesPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -29,7 +12,10 @@ const MessagesPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [messagingService, setMessagingService] = useState<MessagingService | null>(null);
+  const [sendingMessage, setSendingMessage] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     checkAuth();
@@ -37,9 +23,26 @@ const MessagesPage: React.FC = () => {
 
   useEffect(() => {
     if (user) {
-      loadChats();
+      const service = new MessagingService(user.id);
+      setMessagingService(service);
+      loadChats(service);
+
+      // Check if we need to create a new chat from URL params
+      const tutorUserId = searchParams.get('tutor');
+      if (tutorUserId) {
+        createChatWithTutor(service, tutorUserId);
+      }
+
+      // Subscribe to chat updates
+      const chatSubscription = service.subscribeToChats(() => {
+        loadChats(service);
+      });
+
+      return () => {
+        chatSubscription.unsubscribe();
+      };
     }
-  }, [user]);
+  }, [user, searchParams]);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -64,72 +67,72 @@ const MessagesPage: React.FC = () => {
     setLoading(false);
   };
 
-  const loadChats = async () => {
-    // Sample chat data for now
-    const sampleChats: Chat[] = [
-      {
-        id: '1',
-        participant_name: 'Rajesh Kumar',
-        participant_avatar: 'https://ui-avatars.com/api/?name=Rajesh+Kumar&background=6366f1&color=fff&size=40',
-        last_message: 'Great! I\'ve prepared some new vocabulary for you.',
-        last_message_time: '10:32 AM',
-        unread_count: 0,
-        is_online: true
-      },
-      {
-        id: '2',
-        participant_name: 'Priya Sharma',
-        participant_avatar: 'https://ui-avatars.com/api/?name=Priya+Sharma&background=ec4899&color=fff&size=40',
-        last_message: 'When would you like to schedule our next lesson?',
-        last_message_time: 'Yesterday',
-        unread_count: 2,
-        is_online: false
-      },
-      {
-        id: '3',
-        participant_name: 'Amit Patel',
-        participant_avatar: 'https://ui-avatars.com/api/?name=Amit+Patel&background=10b981&color=fff&size=40',
-        last_message: 'Thank you for the lesson today!',
-        last_message_time: '2 days ago',
-        unread_count: 0,
-        is_online: false
-      }
-    ];
-    setChats(sampleChats);
+  const loadChats = async (service: MessagingService) => {
+    try {
+      const userChats = await service.getUserChats();
+      setChats(userChats);
+    } catch (error) {
+      console.error('Error loading chats:', error);
+      setChats([]);
+    }
   };
 
-  const loadMessages = (chat: Chat) => {
-    // Sample messages for the selected chat
-    const sampleMessages: Message[] = [
-      {
-        id: '1',
-        content: 'Hi! I\'m looking forward to our Hindi lesson tomorrow.',
-        sender_id: chat.id,
-        created_at: '10:30 AM',
-        is_sent: false
-      },
-      {
-        id: '2',
-        content: 'Great! I\'ve prepared some new vocabulary for you.',
-        sender_id: user?.id || '',
-        created_at: '10:32 AM',
-        is_sent: true
-      },
-      {
-        id: '3',
-        content: 'What time works best for you?',
-        sender_id: chat.id,
-        created_at: '10:35 AM',
-        is_sent: false
+  const createChatWithTutor = async (service: MessagingService, tutorUserId: string) => {
+    try {
+      const chatId = await service.getOrCreateChat(tutorUserId);
+      // Reload chats to include the new one
+      await loadChats(service);
+      // Find and select the new chat
+      const userChats = await service.getUserChats();
+      const newChat = userChats.find(chat => chat.id === chatId);
+      if (newChat) {
+        selectChat(newChat, service);
       }
-    ];
-    setMessages(sampleMessages);
+    } catch (error) {
+      console.error('Error creating chat with tutor:', error);
+      alert('Failed to start conversation. Please try again.');
+    }
   };
 
-  const selectChat = (chat: Chat) => {
+  const loadMessages = async (chat: Chat, service: MessagingService) => {
+    try {
+      const chatMessages = await service.getChatMessages(chat.id);
+      setMessages(chatMessages);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+      setMessages([]);
+    }
+  };
+
+  const selectChat = async (chat: Chat, service?: MessagingService) => {
     setSelectedChat(chat);
-    loadMessages(chat);
-    // Mark as read
+    const serviceToUse = service || messagingService;
+    if (serviceToUse) {
+      await loadMessages(chat, serviceToUse);
+
+      // Subscribe to new messages in this chat
+      const messageSubscription = serviceToUse.subscribeToMessages(chat.id, (newMessage) => {
+        setMessages(prev => [...prev, newMessage]);
+
+        // Update last message in chat list if it's not from current user
+        if (!newMessage.is_sent) {
+          setChats(prevChats =>
+            prevChats.map(c =>
+              c.id === chat.id
+                ? { ...c, last_message: newMessage.content, last_message_time: 'now', unread_count: c.unread_count + 1 }
+                : c
+            )
+          );
+        }
+      });
+
+      // Store subscription for cleanup
+      return () => {
+        messageSubscription.unsubscribe();
+      };
+    }
+
+    // Mark as read (update local state)
     setChats(prevChats =>
       prevChats.map(c =>
         c.id === chat.id ? { ...c, unread_count: 0 } : c
@@ -137,28 +140,32 @@ const MessagesPage: React.FC = () => {
     );
   };
 
-  const sendMessage = () => {
-    if (!newMessage.trim() || !selectedChat) return;
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !selectedChat || !messagingService || sendingMessage) return;
 
-    const message: Message = {
-      id: Date.now().toString(),
-      content: newMessage,
-      sender_id: user?.id || '',
-      created_at: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      is_sent: true
-    };
+    setSendingMessage(true);
+    const messageContent = newMessage;
+    setNewMessage(''); // Clear input immediately for better UX
 
-    setMessages(prev => [...prev, message]);
-    setNewMessage('');
+    try {
+      const sentMessage = await messagingService.sendMessage(selectedChat.id, messageContent);
+      setMessages(prev => [...prev, sentMessage]);
 
-    // Update last message in chat list
-    setChats(prevChats =>
-      prevChats.map(c =>
-        c.id === selectedChat.id
-          ? { ...c, last_message: newMessage, last_message_time: 'now' }
-          : c
-      )
-    );
+      // Update last message in chat list
+      setChats(prevChats =>
+        prevChats.map(c =>
+          c.id === selectedChat.id
+            ? { ...c, last_message: messageContent, last_message_time: 'now' }
+            : c
+        )
+      );
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setNewMessage(messageContent); // Restore message on error
+      alert('Failed to send message. Please try again.');
+    } finally {
+      setSendingMessage(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -203,6 +210,12 @@ const MessagesPage: React.FC = () => {
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
   const userAvatar = user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=40`;
   const totalUnread = chats.reduce((sum, chat) => sum + chat.unread_count, 0);
+
+  // Format message timestamp
+  const formatMessageTime = (timestamp: string): string => {
+    const messageDate = new Date(timestamp);
+    return messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   return (
     <div className="messages-page">
@@ -354,7 +367,7 @@ const MessagesPage: React.FC = () => {
                         >
                           <div className="message-bubble">
                             <p className="message-content">{message.content}</p>
-                            <span className="message-time">{message.created_at}</span>
+                            <span className="message-time">{formatMessageTime(message.created_at)}</span>
                           </div>
                         </div>
                       ))}
@@ -374,7 +387,7 @@ const MessagesPage: React.FC = () => {
                       />
                       <button
                         onClick={sendMessage}
-                        disabled={!newMessage.trim()}
+                        disabled={!newMessage.trim() || sendingMessage}
                         className="send-btn"
                       >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

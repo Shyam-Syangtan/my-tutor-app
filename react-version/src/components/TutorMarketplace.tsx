@@ -173,9 +173,8 @@ const TutorMarketplace: React.FC = () => {
         return;
       }
 
-      // For now, navigate to messages page
-      alert(`Starting conversation with ${tutorName}...`);
-      navigate(ROUTES.MESSAGES);
+      // Navigate to messages page with tutor parameter to create conversation
+      navigate(`${ROUTES.MESSAGES}?tutor=${tutorUserId}`);
 
     } catch (error) {
       console.error('Error contacting teacher:', error);
