@@ -1145,12 +1145,13 @@ body {
     position: relative;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
 }
 
 /* Video Card - Only visibility changes on hover */
 .tutor-video-card {
     width: 100%;
-    flex: 1;
+    height: 98px;
     background: var(--surface);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-lg);
