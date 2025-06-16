@@ -106,18 +106,17 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
 
 
   return (
-    <div
-      className={`tutor-card ${isHovered ? 'hovered' : ''}`}
-      onClick={handleCardClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {/* Preply-style Two-Column Layout */}
-      <div className="tutor-card-layout">
-        {/* Left Column: Tutor Information */}
-        <div className="tutor-left-column">
-          {/* Avatar & Basic Info Row */}
-          <div className="tutor-profile-row">
+    <div className="tutor-card-container">
+      {/* Main Tutor Card */}
+      <div
+        className={`tutor-card ${isHovered ? 'hovered' : ''}`}
+        onClick={handleCardClick}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        <div className="tutor-card-content">
+          {/* Left Section: Avatar & Basic Info */}
+          <div className="tutor-left-section">
             <div className="tutor-avatar-container">
               <img
                 src={avatarUrl}
@@ -189,79 +188,80 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Column: Video & Actions */}
-        <div className="tutor-right-column">
-          {/* Video Section */}
-          <div className="tutor-video-section">
-            <div className="video-container">
-              <div className="video-thumbnail" onClick={handleViewProfile}>
-                {isYouTubeVideo ? (
-                  // YouTube Video Handling
-                  <iframe
-                    src={videoUrl}
-                    className="video-preview"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      border: 'none',
-                      borderRadius: '8px',
-                      objectFit: 'cover'
-                    }}
-                    allow="autoplay; encrypted-media"
-                    title={`${tutor.name} introduction video`}
-                  />
-                ) : (
-                  // Direct Video File Handling
-                  <video
-                    ref={videoRef}
-                    src={videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
-                    muted
-                    loop
-                    playsInline
-                    preload="auto"
-                    onLoadedData={handleVideoLoad}
-                    onError={handleVideoError}
-                    className="video-preview"
-                    poster={avatarUrl}
-                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                  />
-                )}
-
-                {/* Loading spinner for direct videos */}
-                {!isYouTubeVideo && !videoLoaded && (
-                  <div className="video-loading">
-                    <div className="loading-spinner"></div>
-                  </div>
-                )}
-              </div>
+          {/* Right Section: Action Buttons */}
+          <div className="tutor-right-section">
+            <div className="tutor-actions">
+              <button
+                className="action-btn contact-btn"
+                onClick={handleContact}
+              >
+                Send message
+              </button>
+              <button
+                className="action-btn book-btn"
+                onClick={handleBookLesson}
+              >
+                Book trial lesson
+              </button>
+              <button
+                className="action-btn view-schedule-btn"
+                onClick={handleViewProfile}
+              >
+                View full schedule
+              </button>
             </div>
-          </div>
-
-          {/* Actions Section */}
-          <div className="tutor-actions-section">
-            <button
-              className="action-btn contact-btn"
-              onClick={handleContact}
-            >
-              Send message
-            </button>
-            <button
-              className="action-btn book-btn"
-              onClick={handleBookLesson}
-            >
-              Book trial lesson
-            </button>
-            <button
-              className="view-schedule-btn"
-              onClick={handleViewProfile}
-            >
-              View full schedule
-            </button>
           </div>
         </div>
       </div>
+
+      {/* Separate Video Card - Only visible on hover */}
+      {isHovered && (
+        <div className="tutor-video-card">
+          <div className="video-container">
+            <div className="video-thumbnail" onClick={handleViewProfile}>
+              {isYouTubeVideo ? (
+                // YouTube Video Handling
+                <iframe
+                  src={videoUrl}
+                  className="video-preview"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                    borderRadius: '8px',
+                    objectFit: 'cover'
+                  }}
+                  allow="autoplay; encrypted-media"
+                  title={`${tutor.name} introduction video`}
+                />
+              ) : (
+                // Direct Video File Handling
+                <video
+                  ref={videoRef}
+                  src={videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  onLoadedData={handleVideoLoad}
+                  onError={handleVideoError}
+                  className="video-preview"
+                  poster={avatarUrl}
+                  style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                />
+              )}
+
+              {/* Loading spinner for direct videos */}
+              {!isYouTubeVideo && !videoLoaded && (
+                <div className="video-loading">
+                  <div className="loading-spinner"></div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

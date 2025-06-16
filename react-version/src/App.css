@@ -1065,8 +1065,17 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* TUTOR CARD STYLES - PREPLY-STYLE TWO-COLUMN LAYOUT */
+/* TUTOR CARD STYLES - MAIN CARD WITH HOVER VIDEO */
 
+/* Container for main card + video card */
+.tutor-card-container {
+    display: flex;
+    gap: 20px;
+    position: relative;
+    width: 100%;
+}
+
+/* Main Tutor Card */
 .tutor-card {
     background: var(--surface);
     border-radius: var(--border-radius);
@@ -1076,7 +1085,7 @@ body {
     transition: all 0.3s ease;
     cursor: pointer;
     position: relative;
-    width: 100%;
+    flex: 1;
 }
 
 .tutor-card:hover {
@@ -1085,36 +1094,21 @@ body {
     border-color: var(--primary-color);
 }
 
-/* Preply-style Two-Column Layout */
-.tutor-card-layout {
+/* Main Card Content Layout */
+.tutor-card-content {
     display: flex;
     min-height: 180px;
     width: 100%;
-}
-
-/* Left Column: Tutor Information (70%) */
-.tutor-left-column {
-    flex: 1;
     padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    gap: 20px;
 }
 
-/* Right Column: Video & Actions (30%) */
-.tutor-right-column {
-    width: 280px;
-    display: flex;
-    flex-direction: column;
-    border-left: 1px solid var(--border-color);
-    background: var(--background-light);
-}
-
-/* Profile Row: Avatar + Info */
-.tutor-profile-row {
+/* Left Section: Avatar & Info */
+.tutor-left-section {
     display: flex;
     align-items: flex-start;
     gap: 15px;
+    flex: 1;
 }
 
 .tutor-info-section {
@@ -1125,22 +1119,49 @@ body {
     gap: 8px;
 }
 
-/* Video Section in Right Column */
-.tutor-video-section {
-    flex: 1;
-    padding: 15px;
+/* Right Section: Action Buttons */
+.tutor-right-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    min-width: 200px;
+}
+
+.tutor-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Separate Video Card - Hover Only */
+.tutor-video-card {
+    width: 280px;
+    height: 180px;
+    background: var(--surface);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    border: 2px solid var(--primary-color);
+    overflow: hidden;
+    animation: slideInFromRight 0.3s ease-out;
+    flex-shrink: 0;
+}
+
+.tutor-video-card .video-container {
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Actions Section in Right Column */
-.tutor-actions-section {
-    padding: 15px;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.tutor-video-card .video-thumbnail {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    cursor: pointer;
+    background: #f0f0f0;
 }
 
 .video-container {
@@ -1370,7 +1391,7 @@ body {
     border-top: 1px solid var(--border-color);
 }
 
-/* Pricing in Left Column */
+/* Pricing in Left Section */
 .tutor-pricing {
     text-align: left;
     margin-top: 8px;
@@ -1389,12 +1410,12 @@ body {
     margin-top: 2px;
 }
 
-/* Actions in Right Column */
-.tutor-actions-section .action-btn {
-    padding: 8px 16px;
+/* Action Buttons in Right Section */
+.tutor-actions .action-btn {
+    padding: 10px 16px;
     border: none;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -1402,71 +1423,45 @@ body {
     width: 100%;
 }
 
-.tutor-actions-section .contact-btn {
+.tutor-actions .contact-btn {
     background: transparent;
     color: var(--primary-color);
     border: 1px solid var(--primary-color);
 }
 
-.tutor-actions-section .contact-btn:hover {
+.tutor-actions .contact-btn:hover {
     background: var(--primary-color);
     color: white;
 }
 
-.tutor-actions-section .book-btn {
+.tutor-actions .book-btn {
     background: var(--primary-color);
     color: white;
 }
 
-.tutor-actions-section .book-btn:hover {
+.tutor-actions .book-btn:hover {
     background: var(--primary-dark);
     transform: translateY(-1px);
 }
 
-.tutor-actions-section .view-schedule-btn {
+.tutor-actions .view-schedule-btn {
     background: #f0f0f0;
     color: #666;
-    font-size: 11px;
-    padding: 6px 12px;
+    font-size: 12px;
+    padding: 8px 16px;
 }
 
-.tutor-actions-section .view-schedule-btn:hover {
+.tutor-actions .view-schedule-btn:hover {
     background: #e0e0e0;
     color: #333;
 }
 
-/* Video Section in Right Column */
-.tutor-video-section {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 120px;
-}
-
-.video-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.video-thumbnail {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    background: #f0f0f0;
-    box-sizing: border-box;
-}
-
+/* Video Preview Styles */
 .video-preview {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border-radius: 8px;
 }
 
 .video-play-overlay {
@@ -1826,27 +1821,33 @@ body {
     }
 }
 
-/* Responsive Design for Preply-style Layout */
+/* Responsive Design for Main Card + Video Card Layout */
 @media (max-width: 1023px) {
-    .tutor-right-column {
+    .tutor-video-card {
         display: none;
     }
 
-    .tutor-card-layout {
-        flex-direction: column;
-    }
-
-    .tutor-left-column {
-        width: 100%;
+    .tutor-card-container {
+        gap: 0;
     }
 }
 
 @media (max-width: 768px) {
-    .tutor-profile-row {
+    .tutor-card-content {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .tutor-left-section {
         flex-direction: column;
         align-items: center;
         text-align: center;
         gap: 12px;
+    }
+
+    .tutor-right-section {
+        align-items: center;
+        min-width: auto;
     }
 
     .tutor-info-section {
@@ -1864,6 +1865,11 @@ body {
 
     .tutor-pricing {
         text-align: center;
+    }
+
+    .tutor-actions {
+        width: 100%;
+        max-width: 300px;
     }
 }
 
