@@ -44,6 +44,11 @@ const TutorCard: React.FC<TutorCardProps> = ({
 
   const avatarUrl = tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff&size=80`;
 
+  // Process video URL first (needed for useEffect)
+  const isYouTubeVideo = tutor.video_url && (tutor.video_url.includes('youtube.com') || tutor.video_url.includes('youtu.be'));
+  const finalVideoUrl = tutor.video_url;
+  const hasValidVideo = finalVideoUrl && finalVideoUrl.length > 0;
+
   // Handle video state when card becomes inactive (sticky behavior)
   useEffect(() => {
     if (!isVideoActive) {
@@ -96,16 +101,10 @@ const TutorCard: React.FC<TutorCardProps> = ({
     return `https://www.youtube-nocookie.com/embed/${videoId}?controls=1&rel=0&modestbranding=1&enablejsapi=1&origin=${window.location.origin}`;
   };
 
-  // Process video URL
-  const isYouTubeVideo = tutor.video_url && (tutor.video_url.includes('youtube.com') || tutor.video_url.includes('youtu.be'));
+  // Process YouTube-specific data
   const youtubeVideoId = isYouTubeVideo ? getYouTubeVideoId(tutor.video_url) : null;
   const youtubeThumbnail = youtubeVideoId ? getYouTubeThumbnail(youtubeVideoId) : null;
   const youtubeEmbedUrl = youtubeVideoId ? getYouTubeEmbedUrl(youtubeVideoId) : null;
-
-  const finalVideoUrl = tutor.video_url;
-
-  // Simple validation for video URL
-  const hasValidVideo = finalVideoUrl && finalVideoUrl.length > 0;
 
   // Simple debug logging
   if (tutor.video_url) {
