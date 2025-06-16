@@ -147,14 +147,14 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
           </div>
         )}
 
-        {/* Horizontal Layout */}
-        <div className="tutor-card-layout">
-          {/* Left: Avatar and Video Thumbnail */}
-          <div className="tutor-avatar-section">
+        {/* Horizontal Rectangular Layout - Like Reference Image */}
+        <div className="tutor-card-horizontal">
+          {/* Left Section: Avatar & Basic Info */}
+          <div className="tutor-left-section">
             <div className="tutor-avatar-container">
-              <img 
-                src={avatarUrl} 
-                alt={tutor.name} 
+              <img
+                src={avatarUrl}
+                alt={tutor.name}
                 className="tutor-avatar"
               />
               {tutor.video_url && (
@@ -162,62 +162,51 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                   <svg className="video-icon" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M8 5v10l8-5-8-5z"/>
                   </svg>
-                  <span className="video-tooltip">Hover to preview</span>
                 </div>
               )}
+            </div>
+
+            <div className="tutor-basic-info">
+              <div className="tutor-name-row">
+                <h3 className="tutor-name">{tutor.name}</h3>
+                <span className="country-flag">{countryFlag}</span>
+              </div>
+              <p className="tutor-subtitle">
+                {tutor.bio_headline || `${tutor.native_language || tutor.language} Teacher`}
+              </p>
+
+              {/* Language Badges */}
+              <div className="language-badges">
+                <span className="language-badge primary">
+                  {tutor.native_language || tutor.language}
+                </span>
+                {languages.slice(0, 1).map((lang: any, index: number) => (
+                  <span key={index} className="language-badge secondary">
+                    {lang.language}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Right: Content */}
-          <div className="tutor-content">
-            {/* Header */}
-            <div className="tutor-header">
-              <div className="tutor-info">
-                <div className="tutor-name-row">
-                  <h3 className="tutor-name">{tutor.name}</h3>
-                  <span className="country-flag">{countryFlag}</span>
-                  {isProfessional && (
-                    <span className="professional-badge">Professional</span>
-                  )}
-                </div>
-                <p className="tutor-headline">
-                  {tutor.bio_headline || `${tutor.native_language || tutor.language} Teacher`}
-                </p>
-              </div>
-              <div className="tutor-pricing">
-                <div className="price-amount">₹{tutor.rate}</div>
-                <div className="price-label">per lesson</div>
-              </div>
-            </div>
-
-            {/* Language Badges */}
-            <div className="language-badges">
-              <span className="language-badge primary">
-                {tutor.native_language || tutor.language}
-              </span>
-              {languages.slice(0, 2).map((lang: any, index: number) => (
-                <span key={index} className={`language-badge secondary-${index + 1}`}>
-                  {lang.language}
-                </span>
-              ))}
-              {languages.length > 2 && (
-                <span className="language-badge more">+{languages.length - 2}</span>
-              )}
-            </div>
-
-            {/* Stats */}
-            <div className="tutor-stats">
-              <div className="stat-item">
+          {/* Center Section: Stats & Tags */}
+          <div className="tutor-center-section">
+            {/* Stats Row */}
+            <div className="tutor-stats-row">
+              <div className="stat-item rating">
                 <span className="rating-stars">{ratingStars}</span>
                 <span className="rating-value">{rating.toFixed(1)}</span>
               </div>
-              <div className="stat-item">
+              <div className="stat-item students">
                 <svg className="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                 </svg>
                 <span>{totalStudents} students</span>
               </div>
-              <div className="stat-item">
+            </div>
+
+            <div className="tutor-stats-row">
+              <div className="stat-item lessons">
                 <svg className="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                 </svg>
@@ -233,34 +222,60 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                     {tag}
                   </span>
                 ))}
-                {tags.length > 2 && (
-                  <span className="tag tag-more">+{tags.length - 2}</span>
-                )}
               </div>
             )}
+          </div>
 
-            {/* Action Buttons */}
+          {/* Right Section: Price & Actions */}
+          <div className="tutor-right-section">
+            <div className="tutor-pricing">
+              <div className="price-amount">₹{tutor.rate}</div>
+              <div className="price-label">per lesson</div>
+            </div>
+
             <div className="tutor-actions">
-              <button 
+              <button
                 className="action-btn contact-btn"
                 onClick={handleContact}
               >
-                Contact
+                CONTACT
               </button>
-              <button 
+              <button
                 className="action-btn book-btn"
                 onClick={handleBookLesson}
               >
-                Book Lesson
+                BOOK LESSON
               </button>
-              <button 
+              <button
                 className="action-btn profile-btn"
                 onClick={handleViewProfile}
               >
-                Profile
+                PROFILE
               </button>
             </div>
           </div>
+
+          {/* Video Preview Section (appears on hover) */}
+          {tutor.video_url && isHovered && (
+            <div className="tutor-video-section">
+              <video
+                ref={videoRef}
+                src={tutor.video_url}
+                muted
+                loop
+                playsInline
+                preload="none"
+                onLoadedData={handleVideoLoad}
+                onError={handleVideoError}
+                className="preview-video"
+              />
+              {!videoLoaded && (
+                <div className="video-loading">
+                  <div className="loading-spinner"></div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
