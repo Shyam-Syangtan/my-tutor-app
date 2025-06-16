@@ -5503,6 +5503,23 @@ body {
     margin-right: 0;
 }
 
+/* Ensure full footer content is visible */
+.site-footer.full .footer-content {
+    display: grid !important;
+}
+
+.site-footer.full .footer-section {
+    display: flex !important;
+}
+
+.site-footer.full .social-links {
+    display: flex !important;
+}
+
+.site-footer.full .footer-bottom {
+    display: block !important;
+}
+
 .footer-content {
     display: grid;
     grid-template-columns: 1fr;
