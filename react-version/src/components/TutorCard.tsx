@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 
 interface Tutor {
   id: string;
@@ -27,6 +27,10 @@ interface TutorCardProps {
 }
 
 const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   const avatarUrl = tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff&size=80`;
 
   const languages = tutor.languages_spoken && tutor.languages_spoken.length > 0 ?
@@ -43,6 +47,10 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
   const isProfessional = tutor.is_professional || false;
   const rating = tutor.rating || 4.5;
   const ratingStars = '⭐'.repeat(Math.floor(rating));
+
+  // Video URL processing
+  const videoUrl = tutor.video_url || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+  const isYouTubeVideo = videoUrl?.includes('youtube.com') || videoUrl?.includes('youtu.be');
 
   const handleCardClick = (e: React.MouseEvent) => {
     if (!(e.target as HTMLElement).closest('button')) {
@@ -71,12 +79,43 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     }
   };
 
+  // Hover handlers for video functionality
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    if (videoRef.current && !isYouTubeVideo) {
+      videoRef.current.play().catch(console.error);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    if (videoRef.current && !isYouTubeVideo) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  };
+
+  const handleVideoLoad = () => {
+    setVideoLoaded(true);
+  };
+
+  const handleVideoError = () => {
+    console.error('Video failed to load:', videoUrl);
+  };
+
 
 
   return (
-    <div className="tutor-card" onClick={handleCardClick}>
-      <div className="tutor-row-layout">
-        <div className="tutor-card-section full-width">
+    <div
+      className={`tutor-card ${isHovered ? 'hovered' : ''}`}
+      onClick={handleCardClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Side-by-Side Layout: 70% Card + 30% Video */}
+        <div className="tutor-row-layout">
+          {/* Tutor Card - Dynamic width based on hover state */}
+          <div className={`tutor-card-section ${isHovered ? 'with-video' : 'full-width'}`}>
             <div className="tutor-card-content">
               {/* Avatar & Basic Info */}
               <div className="tutor-left-info">
@@ -171,6 +210,62 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
               </div>
             </div>
           </div>
+
+          {/* Right 30%: Video Section - Only visible on hover */}
+          {isHovered && (
+            <div className="tutor-video-section">
+              <div className="video-container">
+                <div className="video-thumbnail" onClick={handleViewProfile}>
+                  {isYouTubeVideo ? (
+                    // YouTube Video Handling
+                    <iframe
+                      src={videoUrl}
+                      className="video-preview"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        border: 'none',
+                        borderRadius: '8px',
+                        objectFit: 'cover'
+                      }}
+                      allow="autoplay; encrypted-media"
+                      title={`${tutor.name} introduction video`}
+                    />
+                  ) : (
+                    // Direct Video File Handling
+                    <video
+                      ref={videoRef}
+                      src={videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
+                      muted
+                      loop
+                      playsInline
+                      preload="auto"
+                      onLoadedData={handleVideoLoad}
+                      onError={handleVideoError}
+                      className="video-preview"
+                      poster={avatarUrl}
+                      style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                    />
+                  )}
+
+                  {/* Loading spinner for direct videos */}
+                  {!isYouTubeVideo && !videoLoaded && (
+                    <div className="video-loading">
+                      <div className="loading-spinner"></div>
+                    </div>
+                  )}
+                </div>
+
+                {/* View Full Schedule Button */}
+                <button
+                  className="view-schedule-btn"
+                  onClick={handleViewProfile}
+                >
+                  View full schedule
+                </button>
+              </div>
+            </div>
+          )}
         </div>
     </div>
   );
