@@ -7,6 +7,9 @@ interface FooterProps {
 const Footer: React.FC<FooterProps> = ({ variant = 'minimal' }) => {
   const currentYear = new Date().getFullYear();
 
+  // Debug logging
+  console.log('Footer component rendered with variant:', variant);
+
   // Social media links - these can be configured here or moved to a config file
   const socialLinks = [
     {
@@ -77,6 +80,7 @@ const Footer: React.FC<FooterProps> = ({ variant = 'minimal' }) => {
 
   // Render minimal footer for most pages
   if (variant === 'minimal') {
+    console.log('Rendering minimal footer');
     return (
       <footer className="site-footer minimal">
         <div className="footer-container">
@@ -91,6 +95,7 @@ const Footer: React.FC<FooterProps> = ({ variant = 'minimal' }) => {
   }
 
   // Render full footer for dashboard pages
+  console.log('Rendering full footer');
   return (
     <footer className="site-footer full">
       <div className="footer-container">
