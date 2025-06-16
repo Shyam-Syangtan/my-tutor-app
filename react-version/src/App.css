@@ -1065,7 +1065,7 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* TUTOR CARD STYLES - SIDE-BY-SIDE LAYOUT (70% Card + 30% Video) */
+/* TUTOR CARD STYLES - PREPLY-STYLE TWO-COLUMN LAYOUT */
 
 .tutor-card {
     background: var(--surface);
@@ -1085,55 +1085,62 @@ body {
     border-color: var(--primary-color);
 }
 
-/* Side-by-Side Layout Container */
-.tutor-row-layout {
-    display: grid;
-    grid-template-columns: 1fr;
-    min-height: 200px;
+/* Preply-style Two-Column Layout */
+.tutor-card-layout {
+    display: flex;
+    min-height: 180px;
     width: 100%;
-    overflow: hidden;
-    transition: grid-template-columns 0.3s ease;
 }
 
-.tutor-card.hovered .tutor-row-layout {
-    grid-template-columns: 70% 30%;
-}
-
-/* Left 70%: Tutor Card Section */
-.tutor-card-section {
+/* Left Column: Tutor Information (70%) */
+.tutor-left-column {
+    flex: 1;
     padding: 20px;
-    border-right: 1px solid var(--border-color);
-    transition: all 0.3s ease;
-}
-
-/* Dynamic width based on hover state */
-.tutor-card-section.full-width {
-    width: 100%;
-    border-right: none;
-}
-
-.tutor-card-section.with-video {
-    width: 100%;
-    border-right: 1px solid var(--border-color);
-}
-
-.tutor-card-content {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    height: 100%;
+    gap: 12px;
 }
 
-/* Right 30%: Video Section */
-.tutor-video-section {
-    padding: 20px;
-    background: var(--background-light);
+/* Right Column: Video & Actions (30%) */
+.tutor-right-column {
+    width: 280px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
     border-left: 1px solid var(--border-color);
-    animation: slideInFromRight 0.3s ease-out;
+    background: var(--background-light);
+}
+
+/* Profile Row: Avatar + Info */
+.tutor-profile-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.tutor-info-section {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Video Section in Right Column */
+.tutor-video-section {
+    flex: 1;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Actions Section in Right Column */
+.tutor-actions-section {
+    padding: 15px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .video-container {
@@ -1363,14 +1370,16 @@ body {
     border-top: 1px solid var(--border-color);
 }
 
+/* Pricing in Left Column */
 .tutor-pricing {
     text-align: left;
+    margin-top: 8px;
 }
 
 .price-amount {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--primary-color);
     line-height: 1;
 }
 
@@ -1380,72 +1389,73 @@ body {
     margin-top: 2px;
 }
 
-.tutor-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.action-btn {
-    padding: 10px 16px;
+/* Actions in Right Column */
+.tutor-actions-section .action-btn {
+    padding: 8px 16px;
     border: none;
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
+    width: 100%;
 }
 
-.contact-btn {
-    background: #f0f0f0;
-    color: #666;
+.tutor-actions-section .contact-btn {
+    background: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
 }
 
-.contact-btn:hover {
-    background: #e0e0e0;
-    color: #333;
-}
-
-.book-btn {
+.tutor-actions-section .contact-btn:hover {
     background: var(--primary-color);
     color: white;
 }
 
-.book-btn:hover {
+.tutor-actions-section .book-btn {
+    background: var(--primary-color);
+    color: white;
+}
+
+.tutor-actions-section .book-btn:hover {
     background: var(--primary-dark);
     transform: translateY(-1px);
 }
 
-/* Right 30%: Video Section */
+.tutor-actions-section .view-schedule-btn {
+    background: #f0f0f0;
+    color: #666;
+    font-size: 11px;
+    padding: 6px 12px;
+}
+
+.tutor-actions-section .view-schedule-btn:hover {
+    background: #e0e0e0;
+    color: #333;
+}
+
+/* Video Section in Right Column */
 .tutor-video-section {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px;
-    width: 30%;
-    animation: slideInFromRight 0.3s ease-out;
-    background: #fafbfc;
-    overflow: hidden;
-    max-width: 100%;
-    box-sizing: border-box;
+    width: 100%;
+    height: 120px;
 }
 
 .video-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
     width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .video-thumbnail {
     position: relative;
     width: 100%;
-    max-width: 180px;
-    aspect-ratio: 16/9;
+    height: 100%;
     border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
@@ -1816,23 +1826,44 @@ body {
     }
 }
 
+/* Responsive Design for Preply-style Layout */
 @media (max-width: 1023px) {
-    .tutor-video-section {
+    .tutor-right-column {
         display: none;
     }
 
-    .tutor-card.hovered .tutor-row-layout {
-        grid-template-columns: 1fr;
+    .tutor-card-layout {
+        flex-direction: column;
     }
 
-    .tutor-card-section {
-        border-right: none;
+    .tutor-left-column {
+        width: 100%;
     }
 }
 
 @media (max-width: 768px) {
-    .tutor-card-section.full-width {
-        width: 100%;
+    .tutor-profile-row {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+    }
+
+    .tutor-info-section {
+        align-items: center;
+    }
+
+    .tutor-stats-row {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .language-badges {
+        justify-content: center;
+    }
+
+    .tutor-pricing {
+        text-align: center;
     }
 }
 

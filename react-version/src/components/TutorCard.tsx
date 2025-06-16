@@ -112,161 +112,156 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Side-by-Side Layout: 70% Card + 30% Video */}
-        <div className="tutor-row-layout">
-          {/* Tutor Card - Dynamic width based on hover state */}
-          <div className={`tutor-card-section ${isHovered ? 'with-video' : 'full-width'}`}>
-            <div className="tutor-card-content">
-              {/* Avatar & Basic Info */}
-              <div className="tutor-left-info">
-                <div className="tutor-avatar-container">
-                  <img
-                    src={avatarUrl}
-                    alt={tutor.name}
-                    className="tutor-avatar"
-                  />
+      {/* Preply-style Two-Column Layout */}
+      <div className="tutor-card-layout">
+        {/* Left Column: Tutor Information */}
+        <div className="tutor-left-column">
+          {/* Avatar & Basic Info Row */}
+          <div className="tutor-profile-row">
+            <div className="tutor-avatar-container">
+              <img
+                src={avatarUrl}
+                alt={tutor.name}
+                className="tutor-avatar"
+              />
+            </div>
+
+            <div className="tutor-info-section">
+              <div className="tutor-name-row">
+                <h3 className="tutor-name">{tutor.name}</h3>
+                <span className="country-flag">{countryFlag}</span>
+                {isProfessional && (
+                  <span className="professional-badge">Professional</span>
+                )}
+              </div>
+
+              <p className="tutor-subtitle">
+                {tutor.bio_headline || `${tutor.native_language || tutor.language} Teacher`}
+              </p>
+
+              {/* Language Badges */}
+              <div className="language-badges">
+                <span className="language-badge primary">
+                  {tutor.native_language || tutor.language}
+                </span>
+                {languages.slice(0, 1).map((lang: any, index: number) => (
+                  <span key={index} className="language-badge secondary">
+                    {lang.language}
+                  </span>
+                ))}
+              </div>
+
+              {/* Stats Row */}
+              <div className="tutor-stats-row">
+                <div className="stat-item rating">
+                  <span className="rating-stars">{ratingStars}</span>
+                  <span className="rating-value">{rating.toFixed(1)}</span>
                 </div>
-
-                <div className="tutor-basic-info">
-                  <div className="tutor-name-row">
-                    <h3 className="tutor-name">{tutor.name}</h3>
-                    <span className="country-flag">{countryFlag}</span>
-                    {isProfessional && (
-                      <span className="professional-badge">Professional</span>
-                    )}
-                  </div>
-                  <p className="tutor-subtitle">
-                    {tutor.bio_headline || `${tutor.native_language || tutor.language} Teacher`}
-                  </p>
-
-                  {/* Language Badges */}
-                  <div className="language-badges">
-                    <span className="language-badge primary">
-                      {tutor.native_language || tutor.language}
-                    </span>
-                    {languages.slice(0, 1).map((lang: any, index: number) => (
-                      <span key={index} className="language-badge secondary">
-                        {lang.language}
-                      </span>
-                    ))}
-                  </div>
+                <div className="stat-item students">
+                  <svg className="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                  </svg>
+                  <span>{totalStudents} students</span>
+                </div>
+                <div className="stat-item lessons">
+                  <svg className="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                  </svg>
+                  <span>{totalLessons} lessons</span>
                 </div>
               </div>
 
-              {/* Stats & Details */}
-              <div className="tutor-details">
-                <div className="tutor-stats-row">
-                  <div className="stat-item rating">
-                    <span className="rating-stars">{ratingStars}</span>
-                    <span className="rating-value">{rating.toFixed(1)}</span>
-                  </div>
-                  <div className="stat-item students">
-                    <svg className="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                    </svg>
-                    <span>{totalStudents} students</span>
-                  </div>
-                  <div className="stat-item lessons">
-                    <svg className="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                    </svg>
-                    <span>{totalLessons} lessons</span>
-                  </div>
+              {/* Tags */}
+              {tags.length > 0 && (
+                <div className="tutor-tags">
+                  {tags.slice(0, 2).map((tag: string, index: number) => (
+                    <span key={index} className={`tag tag-${index + 1}`}>
+                      {tag}
+                    </span>
+                  ))}
                 </div>
+              )}
 
-                {/* Tags */}
-                {tags.length > 0 && (
-                  <div className="tutor-tags">
-                    {tags.slice(0, 2).map((tag: string, index: number) => (
-                      <span key={index} className={`tag tag-${index + 1}`}>
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+              {/* Pricing */}
+              <div className="tutor-pricing">
+                <div className="price-amount">₹{tutor.rate}</div>
+                <div className="price-label">per lesson</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Video & Actions */}
+        <div className="tutor-right-column">
+          {/* Video Section */}
+          <div className="tutor-video-section">
+            <div className="video-container">
+              <div className="video-thumbnail" onClick={handleViewProfile}>
+                {isYouTubeVideo ? (
+                  // YouTube Video Handling
+                  <iframe
+                    src={videoUrl}
+                    className="video-preview"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      border: 'none',
+                      borderRadius: '8px',
+                      objectFit: 'cover'
+                    }}
+                    allow="autoplay; encrypted-media"
+                    title={`${tutor.name} introduction video`}
+                  />
+                ) : (
+                  // Direct Video File Handling
+                  <video
+                    ref={videoRef}
+                    src={videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                    onLoadedData={handleVideoLoad}
+                    onError={handleVideoError}
+                    className="video-preview"
+                    poster={avatarUrl}
+                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                  />
                 )}
 
-                {/* Price & Actions */}
-                <div className="tutor-bottom-section">
-                  <div className="tutor-pricing">
-                    <div className="price-amount">₹{tutor.rate}</div>
-                    <div className="price-label">per lesson</div>
+                {/* Loading spinner for direct videos */}
+                {!isYouTubeVideo && !videoLoaded && (
+                  <div className="video-loading">
+                    <div className="loading-spinner"></div>
                   </div>
-
-                  <div className="tutor-actions">
-                    <button
-                      className="action-btn contact-btn"
-                      onClick={handleContact}
-                    >
-                      Send message
-                    </button>
-                    <button
-                      className="action-btn book-btn"
-                      onClick={handleBookLesson}
-                    >
-                      Book trial lesson
-                    </button>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Right 30%: Video Section - Only visible on hover */}
-          {isHovered && (
-            <div className="tutor-video-section">
-              <div className="video-container">
-                <div className="video-thumbnail" onClick={handleViewProfile}>
-                  {isYouTubeVideo ? (
-                    // YouTube Video Handling
-                    <iframe
-                      src={videoUrl}
-                      className="video-preview"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        border: 'none',
-                        borderRadius: '8px',
-                        objectFit: 'cover'
-                      }}
-                      allow="autoplay; encrypted-media"
-                      title={`${tutor.name} introduction video`}
-                    />
-                  ) : (
-                    // Direct Video File Handling
-                    <video
-                      ref={videoRef}
-                      src={videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
-                      muted
-                      loop
-                      playsInline
-                      preload="auto"
-                      onLoadedData={handleVideoLoad}
-                      onError={handleVideoError}
-                      className="video-preview"
-                      poster={avatarUrl}
-                      style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                    />
-                  )}
-
-                  {/* Loading spinner for direct videos */}
-                  {!isYouTubeVideo && !videoLoaded && (
-                    <div className="video-loading">
-                      <div className="loading-spinner"></div>
-                    </div>
-                  )}
-                </div>
-
-                {/* View Full Schedule Button */}
-                <button
-                  className="view-schedule-btn"
-                  onClick={handleViewProfile}
-                >
-                  View full schedule
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Actions Section */}
+          <div className="tutor-actions-section">
+            <button
+              className="action-btn contact-btn"
+              onClick={handleContact}
+            >
+              Send message
+            </button>
+            <button
+              className="action-btn book-btn"
+              onClick={handleBookLesson}
+            >
+              Book trial lesson
+            </button>
+            <button
+              className="view-schedule-btn"
+              onClick={handleViewProfile}
+            >
+              View full schedule
+            </button>
+          </div>
         </div>
+      </div>
     </div>
   );
 };
