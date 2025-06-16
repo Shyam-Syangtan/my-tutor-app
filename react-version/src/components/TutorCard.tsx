@@ -75,7 +75,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
 
       if (videoId && videoId.length === 11) {
         // Return embed URL with enhanced parameters for better preview and embedding compatibility
-        return `https://www.youtube.com/embed/${videoId}?controls=1&showinfo=0&rel=0&modestbranding=1&autoplay=0&mute=1&enablejsapi=1&origin=${window.location.origin}`;
+        return `https://www.youtube.com/embed/${videoId}?controls=1&showinfo=0&rel=0&modestbranding=1&enablejsapi=1&origin=${window.location.origin}`;
       }
     }
 
@@ -376,17 +376,21 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
               <div className="video-thumbnail">
                 {isYouTubeVideo ? (
                   // YouTube Video Handling with enhanced playback
-                  <div className="youtube-video-container" style={{
-                    position: 'relative',
-                    width: '100%',
-                    height: '100%',
-                    minHeight: '216px',
-                    backgroundColor: '#000'
-                  }}>
+                  <div
+                    className="youtube-video-container"
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                      height: '100%',
+                      minHeight: '216px',
+                      backgroundColor: '#000'
+                    }}
+                    onClick={handleVideoClick}
+                  >
                     <iframe
                       src={videoPlaying ?
-                        finalVideoUrl.replace('autoplay=0', 'autoplay=1').replace('mute=1', 'mute=0') :
-                        finalVideoUrl
+                        `${finalVideoUrl}&autoplay=1&mute=0` :
+                        `${finalVideoUrl}&autoplay=0&mute=1`
                       }
                       className="video-preview"
                       style={{
@@ -395,14 +399,12 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                         minHeight: '216px',
                         border: 'none',
                         borderRadius: '8px',
-                        display: 'block',
-                        pointerEvents: 'none' // Prevent iframe from capturing clicks
+                        display: 'block'
                       }}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       allowFullScreen
                       referrerPolicy="strict-origin-when-cross-origin"
                       title={`${tutor.name} introduction video`}
-                      loading="lazy"
                       frameBorder="0"
                       onLoad={() => {
                         console.log(`✅ YouTube iframe loaded for ${tutor.name}:`, finalVideoUrl);
@@ -424,11 +426,12 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                         right: 0,
                         bottom: 0,
                         cursor: 'pointer',
-                        zIndex: 10,
+                        zIndex: videoPlaying ? 1 : 10,
                         backgroundColor: videoPlaying ? 'transparent' : 'rgba(0, 0, 0, 0.1)',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        pointerEvents: videoPlaying ? 'none' : 'auto'
                       }}
                       onClick={handleVideoClick}
                     >
