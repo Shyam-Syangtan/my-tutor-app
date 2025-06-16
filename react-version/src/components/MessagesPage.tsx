@@ -7,6 +7,8 @@ import { MessagingService, Chat, Message } from '../lib/messagingService';
 const MessagesPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [chatsLoading, setChatsLoading] = useState(false);
+  const [messagesLoading, setMessagesLoading] = useState(false);
   const [chats, setChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -74,11 +76,20 @@ const MessagesPage: React.FC = () => {
 
   const loadChats = async (service: MessagingService) => {
     try {
+      setChatsLoading(true);
+      console.log('🔄 Loading chats...');
+      const startTime = performance.now();
+
       const userChats = await service.getUserChats();
       setChats(userChats);
+
+      const endTime = performance.now();
+      console.log(`✅ Chats loaded in ${(endTime - startTime).toFixed(2)}ms`);
     } catch (error) {
-      console.error('Error loading chats:', error);
+      console.error('❌ Error loading chats:', error);
       setChats([]);
+    } finally {
+      setChatsLoading(false);
     }
   };
 
@@ -101,11 +112,20 @@ const MessagesPage: React.FC = () => {
 
   const loadMessages = async (chat: Chat, service: MessagingService) => {
     try {
+      setMessagesLoading(true);
+      console.log('🔄 Loading messages for chat:', chat.id);
+      const startTime = performance.now();
+
       const chatMessages = await service.getChatMessages(chat.id);
       setMessages(chatMessages);
+
+      const endTime = performance.now();
+      console.log(`✅ Messages loaded in ${(endTime - startTime).toFixed(2)}ms`);
     } catch (error) {
-      console.error('Error loading messages:', error);
+      console.error('❌ Error loading messages:', error);
       setMessages([]);
+    } finally {
+      setMessagesLoading(false);
     }
   };
 
@@ -340,7 +360,12 @@ const MessagesPage: React.FC = () => {
               </div>
 
               <div className="chat-list">
-                {chats.length === 0 ? (
+                {chatsLoading ? (
+                  <div className="loading-chats">
+                    <div className="loading-spinner"></div>
+                    <p>Loading conversations...</p>
+                  </div>
+                ) : chats.length === 0 ? (
                   <div className="no-chats">
                     <svg className="no-chats-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
@@ -397,17 +422,24 @@ const MessagesPage: React.FC = () => {
                   {/* Messages Area */}
                   <div className="messages-area">
                     <div className="messages-list">
-                      {messages.map(message => (
-                        <div
-                          key={message.id}
-                          className={`message ${message.is_sent ? 'sent' : 'received'}`}
-                        >
-                          <div className="message-bubble">
-                            <p className="message-content">{message.content}</p>
-                            <span className="message-time">{formatMessageTime(message.created_at)}</span>
-                          </div>
+                      {messagesLoading ? (
+                        <div className="loading-messages">
+                          <div className="loading-spinner"></div>
+                          <p>Loading messages...</p>
                         </div>
-                      ))}
+                      ) : (
+                        messages.map(message => (
+                          <div
+                            key={message.id}
+                            className={`message ${message.is_sent ? 'sent' : 'received'}`}
+                          >
+                            <div className="message-bubble">
+                              <p className="message-content">{message.content}</p>
+                              <span className="message-time">{formatMessageTime(message.created_at)}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
 
