@@ -17,6 +17,7 @@ const MessagesPage: React.FC = () => {
   const [messagingService, setMessagingService] = useState<MessagingService | null>(null);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [messageSubscription, setMessageSubscription] = useState<any>(null);
+  const [showFullScreenChat, setShowFullScreenChat] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -102,7 +103,7 @@ const MessagesPage: React.FC = () => {
       const userChats = await service.getUserChats();
       const newChat = userChats.find(chat => chat.id === chatId);
       if (newChat) {
-        selectChat(newChat, service);
+        selectChat(newChat, service); // This will automatically set showFullScreenChat to true
       }
     } catch (error) {
       console.error('Error creating chat with tutor:', error);
@@ -131,6 +132,7 @@ const MessagesPage: React.FC = () => {
 
   const selectChat = async (chat: Chat, service?: MessagingService) => {
     setSelectedChat(chat);
+    setShowFullScreenChat(true); // Enable full-screen mode when selecting a chat
     const serviceToUse = service || messagingService;
     if (serviceToUse) {
       await loadMessages(chat, serviceToUse);
@@ -172,6 +174,18 @@ const MessagesPage: React.FC = () => {
         c.id === chat.id ? { ...c, unread_count: 0 } : c
       )
     );
+  };
+
+  const goBackToConversations = () => {
+    setShowFullScreenChat(false);
+    setSelectedChat(null);
+    setMessages([]);
+
+    // Clean up message subscription
+    if (messageSubscription) {
+      messageSubscription.unsubscribe();
+      setMessageSubscription(null);
+    }
   };
 
   const sendMessage = async () => {
@@ -281,10 +295,20 @@ const MessagesPage: React.FC = () => {
         <div className="nav-container">
           <div className="nav-content">
             <div className="nav-left">
-              <h2 className="nav-logo">IndianTutors</h2>
+              {showFullScreenChat && selectedChat ? (
+                <button className="nav-back-btn" onClick={goBackToConversations}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                  </svg>
+                </button>
+              ) : (
+                <h2 className="nav-logo">IndianTutors</h2>
+              )}
             </div>
             <div className="nav-center">
-              <h1 className="messages-title">Messages {totalUnread > 0 && <span className="unread-badge">{totalUnread}</span>}</h1>
+              <h1 className="messages-title">
+                {showFullScreenChat && selectedChat ? selectedChat.participant_name : `Messages ${totalUnread > 0 ? `(${totalUnread})` : ''}`}
+              </h1>
             </div>
             <div className="nav-right nav-links">
               {/* Profile Dropdown */}
@@ -347,9 +371,9 @@ const MessagesPage: React.FC = () => {
       {/* Main Messages Interface */}
       <main className="messages-main">
         <div className="messages-container">
-          <div className="messages-layout">
-            {/* Left Sidebar - Chat List */}
-            <div className="chat-sidebar">
+          {!showFullScreenChat ? (
+            /* Conversations List View */
+            <div className="conversations-list-view">
               <div className="chat-sidebar-header">
                 <h3>Conversations</h3>
                 <button className="new-chat-btn">
@@ -401,13 +425,18 @@ const MessagesPage: React.FC = () => {
                 )}
               </div>
             </div>
-
-            {/* Right Side - Chat Area */}
-            <div className="chat-area">
-              {selectedChat ? (
+          ) : (
+            /* Full-Screen Chat View */
+            <div className="fullscreen-chat-view">
+              {selectedChat && (
                 <>
-                  {/* Chat Header */}
-                  <div className="chat-header-bar">
+                  {/* Full-Screen Chat Header with Back Button */}
+                  <div className="fullscreen-chat-header">
+                    <button className="back-btn" onClick={goBackToConversations}>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                      </svg>
+                    </button>
                     <div className="chat-participant">
                       <img src={selectedChat.participant_avatar} alt={selectedChat.participant_name} className="participant-avatar" />
                       <div className="participant-info">
@@ -419,8 +448,8 @@ const MessagesPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Messages Area */}
-                  <div className="messages-area">
+                  {/* Full-Screen Messages Area */}
+                  <div className="fullscreen-messages-area">
                     <div className="messages-list">
                       {messagesLoading ? (
                         <div className="loading-messages">
@@ -443,8 +472,8 @@ const MessagesPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Message Input */}
-                  <div className="message-input-area">
+                  {/* Full-Screen Message Input */}
+                  <div className="fullscreen-message-input-area">
                     <div className="message-input-container">
                       <textarea
                         value={newMessage}
@@ -467,17 +496,10 @@ const MessagesPage: React.FC = () => {
                     </div>
                   </div>
                 </>
-              ) : (
-                <div className="no-chat-selected">
-                  <svg className="no-chat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                  </svg>
-                  <h3>Select a conversation</h3>
-                  <p>Choose a conversation from the sidebar to start messaging</p>
-                </div>
               )}
             </div>
-          </div>
+          )}
+        </div>
         </div>
       </main>
     </div>

@@ -5286,6 +5286,81 @@ body {
     transform: none;
 }
 
+/* Full-Screen Chat Interface */
+.conversations-list-view {
+    height: 100%;
+    background: var(--background);
+    display: flex;
+    flex-direction: column;
+}
+
+.fullscreen-chat-view {
+    height: 100%;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+}
+
+.fullscreen-chat-header {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border-color);
+    gap: 1rem;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+    min-width: 44px;
+    min-height: 44px;
+}
+
+.back-btn:hover {
+    background: var(--background);
+}
+
+.nav-back-btn {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+    min-width: 44px;
+    min-height: 44px;
+}
+
+.nav-back-btn:hover {
+    background: var(--background);
+}
+
+.fullscreen-messages-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    background: var(--background);
+}
+
+.fullscreen-message-input-area {
+    padding: 1rem;
+    background: var(--surface);
+    border-top: 1px solid var(--border-color);
+}
+
 /* Responsive Messages */
 @media (max-width: 768px) {
     .messages-page {
@@ -5301,12 +5376,13 @@ body {
         padding: 0;
         margin: 0;
         box-sizing: border-box;
+        height: calc(100vh - 80px);
     }
 
-    .messages-layout {
-        margin: 0;
+    .conversations-list-view,
+    .fullscreen-chat-view {
+        height: 100%;
         border-radius: 0;
-        height: calc(100vh - 80px);
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
@@ -5355,8 +5431,13 @@ body {
         padding: 0.75rem 1rem;
     }
 
-    .chat-header-bar {
+    .fullscreen-chat-header {
         padding: 1rem;
+    }
+
+    .back-btn {
+        min-width: 44px;
+        min-height: 44px;
     }
 }
 
