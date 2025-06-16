@@ -19,7 +19,7 @@ const LandingPage: React.FC = () => {
       // Remove the redirect parameter from URL
       window.history.replaceState({}, '', window.location.pathname);
       // Navigate to the intended route
-      navigate(redirectPath);
+      navigate(redirectPath === '/dashboard' ? ROUTES.HOME : redirectPath);
       return;
     }
 
@@ -40,8 +40,8 @@ const LandingPage: React.FC = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       setUser(session.user);
-      // Redirect to dashboard if already authenticated
-      navigate(ROUTES.DASHBOARD);
+      // Redirect to home dashboard if already authenticated
+      navigate(ROUTES.HOME);
     }
   };
 

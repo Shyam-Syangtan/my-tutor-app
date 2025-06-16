@@ -2,13 +2,14 @@
 export const ROUTES = {
   // Main pages
   LANDING: '/',
-  DASHBOARD: '/dashboard',
-  HOME: '/home', // Alias for dashboard
+  HOME: '/home',
+  DASHBOARD: '/dashboard', // Alias for home
   MARKETPLACE: '/marketplace',
+  STUDENT_DASHBOARD: '/student-dashboard', // Advanced dashboard
   MESSAGES: '/messages',
   PROFILE: '/profile',
-  
-  // External links (original HTML site)
+
+  // External links (if needed)
   EXTERNAL: {
     ORIGINAL_SITE: 'https://shyam-syangtan.github.io/my-tutor-app',
     TUTOR_DASHBOARD: '/my-tutor-app/tutor-dashboard.html' // Only if needed
@@ -17,7 +18,7 @@ export const ROUTES = {
 
 // Helper function to get full URL for React routes
 export const getReactRoute = (route: string): string => {
-  const baseUrl = '/my-tutor-app/react-version';
+  const baseUrl = '/my-tutor-app';
   return route === '/' ? baseUrl : `${baseUrl}${route}`;
 };
 

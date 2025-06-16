@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/my-tutor-app/static/css/main.c8e94b85.css",
+    "main.js": "/my-tutor-app/static/js/main.326b560d.js",
+    "static/js/453.f17adc29.chunk.js": "/my-tutor-app/static/js/453.f17adc29.chunk.js",
+    "index.html": "/my-tutor-app/index.html",
+    "main.c8e94b85.css.map": "/my-tutor-app/static/css/main.c8e94b85.css.map",
+    "main.326b560d.js.map": "/my-tutor-app/static/js/main.326b560d.js.map",
+    "453.f17adc29.chunk.js.map": "/my-tutor-app/static/js/453.f17adc29.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.c8e94b85.css",
+    "static/js/main.326b560d.js"
+  ]
+}
