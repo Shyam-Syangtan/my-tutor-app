@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 
 interface Tutor {
   id: string;
@@ -27,16 +27,20 @@ interface TutorCardProps {
 }
 
 const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   const avatarUrl = tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff&size=80`;
-  
+
   const languages = tutor.languages_spoken && tutor.languages_spoken.length > 0 ?
     (typeof tutor.languages_spoken === 'string' ? JSON.parse(tutor.languages_spoken) : tutor.languages_spoken) :
     [{ language: tutor.native_language || tutor.language, proficiency: 'Native' }];
-  
+
   const tags = tutor.tags && tutor.tags.length > 0 ?
     (typeof tutor.tags === 'string' ? JSON.parse(tutor.tags) : tutor.tags) :
     ['Conversational', 'Grammar'];
-  
+
   const countryFlag = tutor.country_flag || '🇮🇳';
   const totalStudents = tutor.total_students || Math.floor(Math.random() * 50 + 10);
   const totalLessons = tutor.total_lessons || Math.floor(Math.random() * 200 + 50);
@@ -71,12 +75,78 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     }
   };
 
+  // Video handling functions
+  const handleMouseEnter = () => {
+    // Only enable video preview on non-touch devices (desktop/tablet)
+    if (window.matchMedia('(hover: hover)').matches) {
+      setIsHovered(true);
+      if (tutor.video_url && videoRef.current) {
+        videoRef.current.play().catch(console.error);
+      }
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  };
+
+  const handleVideoLoad = () => {
+    setVideoLoaded(true);
+  };
+
+  const handleVideoError = () => {
+    console.error('Video failed to load for tutor:', tutor.name);
+  };
+
   return (
-    <div 
-      className="tutor-card"
+    <div
+      className={`tutor-card ${isHovered ? 'hovered' : ''}`}
       onClick={handleCardClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <div className="tutor-card-content">
+        {/* Video Preview */}
+        {tutor.video_url && (
+          <div className={`video-preview ${isHovered ? 'visible' : ''}`}>
+            <video
+              ref={videoRef}
+              src={isHovered ? tutor.video_url : undefined}
+              muted
+              loop
+              playsInline
+              preload="none"
+              onLoadedData={handleVideoLoad}
+              onError={handleVideoError}
+              className="preview-video"
+            />
+            {!videoLoaded && isHovered && (
+              <div className="video-loading">
+                <div className="loading-spinner"></div>
+                <p>Loading video...</p>
+              </div>
+            )}
+            {!isHovered && (
+              <div className="video-placeholder">
+                <img
+                  src={avatarUrl}
+                  alt={tutor.name}
+                  className="placeholder-image"
+                />
+                <div className="play-overlay">
+                  <svg className="play-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M8 5v10l8-5-8-5z"/>
+                  </svg>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Horizontal Layout */}
         <div className="tutor-card-layout">
           {/* Left: Avatar and Video Thumbnail */}
@@ -88,10 +158,11 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                 className="tutor-avatar"
               />
               {tutor.video_url && (
-                <div className="video-indicator">
+                <div className={`video-indicator ${isHovered ? 'playing' : ''}`}>
                   <svg className="video-icon" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M8 5v10l8-5-8-5z"/>
                   </svg>
+                  <span className="video-tooltip">Hover to preview</span>
                 </div>
               )}
             </div>
