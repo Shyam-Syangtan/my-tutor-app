@@ -35,12 +35,26 @@ const HomeDashboard: React.FC = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     checkAuth();
     loadDashboardData();
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isDropdownOpen) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -118,12 +132,23 @@ const HomeDashboard: React.FC = () => {
     }
   };
 
+  const toggleDropdown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleDropdownClick = (e: React.MouseEvent, action: () => void) => {
+    e.preventDefault();
+    setIsDropdownOpen(false);
+    action();
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+      <div className="loading-screen">
+        <div className="loading-content">
+          <div className="loading-spinner"></div>
+          <p className="loading-text">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -156,8 +181,8 @@ const HomeDashboard: React.FC = () => {
               </button>
 
               {/* Profile Dropdown */}
-              <div className="profile-dropdown">
-                <button className="profile-btn">
+              <div className={`profile-dropdown ${isDropdownOpen ? 'active' : ''}`}>
+                <button className="profile-btn" onClick={toggleDropdown}>
                   <img
                     src={userAvatar}
                     alt={userName}
@@ -168,43 +193,45 @@ const HomeDashboard: React.FC = () => {
                     <polyline points="6,9 12,15 18,9"></polyline>
                   </svg>
                 </button>
-                <div className="profile-dropdown-content">
-                  <div className="profile-info">
-                    <img
-                      src={userAvatar}
-                      alt={userName}
-                      className="dropdown-avatar"
-                    />
-                    <div className="dropdown-user-info">
-                      <div className="dropdown-name">{userName}</div>
-                      <div className="dropdown-email">{user?.email}</div>
+                {isDropdownOpen && (
+                  <div className="profile-dropdown-content">
+                    <div className="profile-info">
+                      <img
+                        src={userAvatar}
+                        alt={userName}
+                        className="dropdown-avatar"
+                      />
+                      <div className="dropdown-user-info">
+                        <div className="dropdown-name">{userName}</div>
+                        <div className="dropdown-email">{user?.email}</div>
+                      </div>
                     </div>
+                    <hr className="dropdown-divider" />
+                    <a href="#" onClick={(e) => handleDropdownClick(e, () => navigate(ROUTES.PROFILE))}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                      Account Settings
+                    </a>
+                    <a href="#" className="mode-toggle">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                      Become a Tutor
+                    </a>
+                    <hr className="dropdown-divider" />
+                    <a href="#" onClick={(e) => handleDropdownClick(e, handleSignOut)} className="logout-link">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16,17 21,12 16,7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                      </svg>
+                      Logout
+                    </a>
                   </div>
-                  <hr className="dropdown-divider" />
-                  <a href="#" onClick={() => navigate(ROUTES.PROFILE)}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    Account Settings
-                  </a>
-                  <a href="#" className="mode-toggle">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    Become a Tutor
-                  </a>
-                  <hr className="dropdown-divider" />
-                  <a href="#" onClick={handleSignOut} className="logout-link">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                      <polyline points="16,17 21,12 16,7"></polyline>
-                      <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    Logout
-                  </a>
-                </div>
+                )}
               </div>
             </div>
           </div>
