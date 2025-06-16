@@ -73,43 +73,18 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
   // Validate YouTube URL processing
   const isValidYouTubeUrl = isYouTubeVideo && videoUrl && videoUrl.includes('/embed/');
 
-  // For development/testing: Add fallback video for specific tutors
-  const fallbackVideoUrl = !videoUrl && tutor.name === 'shtm' ?
-    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' :
-    videoUrl;
+  const finalVideoUrl = videoUrl;
 
-  const finalVideoUrl = fallbackVideoUrl;
+  // Simple validation for video URL
+  const hasValidVideo = finalVideoUrl && finalVideoUrl.length > 0;
 
-  // Enhanced validation for final video URL
-  const hasValidVideo = finalVideoUrl && (
-    (isYouTubeVideo && isValidYouTubeUrl) ||
-    (!isYouTubeVideo && finalVideoUrl.length > 0)
-  );
-
-  // Enhanced debug video URL from database
-  console.log(`🎬 ${tutor.name} video debug:`, {
-    original_url: tutor.video_url,
-    processed_url: videoUrl,
-    final_url: finalVideoUrl,
-    is_youtube: isYouTubeVideo,
-    is_valid_youtube: isValidYouTubeUrl,
-    has_valid_video: hasValidVideo,
-    tutor_id: tutor.id,
-    has_video: !!tutor.video_url,
-    has_final_video: !!finalVideoUrl
-  });
-
-  // Additional debugging for video issues
-  if (!tutor.video_url) {
-    console.log(`❌ ${tutor.name} has no video_url in database`);
-  } else if (!videoUrl) {
-    console.log(`⚠️ ${tutor.name} has video_url but processing failed:`, tutor.video_url);
-  } else if (isYouTubeVideo && !isValidYouTubeUrl) {
-    console.log(`⚠️ ${tutor.name} has invalid YouTube URL:`, tutor.video_url);
-  }
-
-  if (finalVideoUrl && !tutor.video_url) {
-    console.log(`🔄 ${tutor.name} using fallback video for testing`);
+  // Simple debug logging
+  if (tutor.video_url) {
+    console.log(`🎬 ${tutor.name} video:`, {
+      original: tutor.video_url,
+      processed: finalVideoUrl,
+      isYouTube: isYouTubeVideo
+    });
   }
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -182,48 +157,23 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     e.preventDefault();
     e.stopPropagation();
 
-    console.log('🎬 Video clicked:', {
-      isYouTube: isYouTubeVideo,
-      hasVideoRef: !!videoRef.current,
-      videoUrl: finalVideoUrl,
-      tutorName: tutor.name,
-      videoPlaying: videoPlaying
-    });
-
-    if (isYouTubeVideo && finalVideoUrl) {
-      // For YouTube videos, toggle play/pause state (same as before)
-      if (!videoPlaying) {
-        console.log('📺 YouTube video - enabling playback');
-        setVideoPlaying(true);
-      } else {
-        console.log('📺 YouTube video - pausing playback');
-        setVideoPlaying(false);
-      }
-      return;
-    }
-
-    if (!videoRef.current || !finalVideoUrl) {
-      console.log('❌ No video ref or URL - navigating to profile');
-      if (onViewProfile) {
-        onViewProfile(tutor.id);
-      }
+    // For YouTube videos, do nothing - let iframe handle it
+    if (isYouTubeVideo) {
+      console.log('📺 YouTube video clicked - iframe will handle');
       return;
     }
 
     // For direct video files, toggle play/pause
-    console.log('🎮 Direct video - toggling play/pause');
-    if (videoRef.current.paused) {
-      videoRef.current.muted = false; // Unmute when user explicitly clicks
-      videoRef.current.play().then(() => {
-        console.log('▶️ Video started playing');
-        setVideoPlaying(true);
-      }).catch((error) => {
-        console.error('❌ Video play failed:', error);
-      });
-    } else {
-      videoRef.current.pause();
-      console.log('⏸️ Video paused');
-      setVideoPlaying(false);
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.muted = false;
+        videoRef.current.play().then(() => {
+          setVideoPlaying(true);
+        }).catch(console.error);
+      } else {
+        videoRef.current.pause();
+        setVideoPlaying(false);
+      }
     }
   };
 
