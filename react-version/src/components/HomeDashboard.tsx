@@ -130,38 +130,65 @@ const HomeDashboard: React.FC = () => {
         }
       ]);
 
-      // Load teachers (mock data for now)
-      setTeachers([
-        {
-          id: '1',
-          name: 'Rajesh Kumar',
-          language: 'Hindi Teacher',
-          rating: 4.9,
-          rate: 500,
-          avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'
-        },
-        {
-          id: '2',
-          name: 'Priya Sharma',
-          language: 'Tamil Teacher',
-          rating: 4.8,
-          rate: 450,
-          avatar_url: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
-        },
-        {
-          id: '3',
-          name: 'Amit Patel',
-          language: 'Bengali Teacher',
-          rating: 4.7,
-          rate: 400,
-          avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
-        }
-      ]);
+      // Load top 3 approved tutors from database
+      await loadTopTutors();
 
       setLoading(false);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
       setLoading(false);
+    }
+  };
+
+  const loadTopTutors = async () => {
+    try {
+      console.log('🔍 Loading top 3 approved tutors...');
+
+      const { data: tutorsData, error } = await supabase
+        .from('tutors')
+        .select('*')
+        .eq('approved', true)
+        .order('rating', { ascending: false })
+        .limit(3);
+
+      if (error) {
+        console.error('Error loading tutors:', error);
+        return;
+      }
+
+      if (!tutorsData || tutorsData.length === 0) {
+        console.log('No approved tutors found');
+        setTeachers([]);
+        return;
+      }
+
+      // Transform tutor data to match Teacher interface
+      const transformedTeachers: Teacher[] = tutorsData.map(tutor => ({
+        id: tutor.id,
+        name: tutor.name,
+        language: `${tutor.language} Teacher`,
+        rating: tutor.rating || 4.5,
+        rate: tutor.rate,
+        avatar_url: tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff`
+      }));
+
+      // If we have fewer than 3 tutors, fill with empty placeholders
+      while (transformedTeachers.length < 3) {
+        transformedTeachers.push({
+          id: `placeholder-${transformedTeachers.length}`,
+          name: 'Find More Tutors',
+          language: 'Available Soon',
+          rating: 0,
+          rate: 0,
+          avatar_url: 'https://ui-avatars.com/api/?name=Find+Tutors&background=e5e7eb&color=6b7280'
+        });
+      }
+
+      console.log('✅ Loaded', tutorsData.length, 'approved tutors');
+      setTeachers(transformedTeachers);
+    } catch (error) {
+      console.error('Error in loadTopTutors:', error);
+      setTeachers([]);
     }
   };
 
@@ -299,6 +326,19 @@ const HomeDashboard: React.FC = () => {
                       </div>
                     </div>
                     <hr className="dropdown-divider" />
+                    <a href="#" onClick={(e) => handleDropdownClick(e, () => navigate(ROUTES.MY_TEACHERS))}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                      </svg>
+                      My Teachers
+                    </a>
+                    <a href="#" onClick={(e) => handleDropdownClick(e, () => navigate(ROUTES.MY_LESSONS))}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                      </svg>
+                      My Lessons
+                    </a>
+                    <hr className="dropdown-divider" />
                     <a href="#" onClick={(e) => handleDropdownClick(e, () => navigate(ROUTES.PROFILE))}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -410,20 +450,20 @@ const HomeDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* My Teachers Section */}
+          {/* Top 3 Tutors Section */}
           <section className="teachers-section">
             <div className="section-header">
-              <h2 className="section-title">My Teachers</h2>
+              <h2 className="section-title">Top 3 Tutors</h2>
               <button
                 onClick={() => navigate(ROUTES.MARKETPLACE)}
                 className="view-all-btn"
               >
-                View all
+                Find Tutors
               </button>
             </div>
             <div className="teachers-grid">
               {teachers.map((teacher) => (
-                <div key={teacher.id} className="tutor-card">
+                <div key={teacher.id} className={`tutor-card ${teacher.id.startsWith('placeholder') ? 'placeholder-card' : ''}`}>
                   <div className="tutor-header">
                     <img
                       src={teacher.avatar_url}
@@ -435,16 +475,40 @@ const HomeDashboard: React.FC = () => {
                       <p className="tutor-language">{teacher.language}</p>
                     </div>
                   </div>
-                  <div className="tutor-stats">
-                    <div className="tutor-rating">
-                      <span className="star-icon">★</span>
-                      <span className="rating-value">{teacher.rating}</span>
+                  {!teacher.id.startsWith('placeholder') ? (
+                    <>
+                      <div className="tutor-stats">
+                        <div className="tutor-rating">
+                          <span className="star-icon">★</span>
+                          <span className="rating-value">{teacher.rating}</span>
+                        </div>
+                        <span className="tutor-rate">₹{teacher.rate}/hour</span>
+                      </div>
+                      <div className="tutor-actions">
+                        <button
+                          onClick={() => navigate(`/tutor/${teacher.id}`)}
+                          className="btn btn-secondary tutor-view-btn"
+                        >
+                          View Profile
+                        </button>
+                        <button
+                          onClick={() => navigate(`${ROUTES.MESSAGES}?tutor=${teacher.id}`)}
+                          className="btn btn-primary tutor-contact-btn"
+                        >
+                          Contact
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="placeholder-actions">
+                      <button
+                        onClick={() => navigate(ROUTES.MARKETPLACE)}
+                        className="btn btn-primary find-tutors-btn"
+                      >
+                        Find Tutors
+                      </button>
                     </div>
-                    <span className="tutor-rate">₹{teacher.rate}/hour</span>
-                  </div>
-                  <button className="btn btn-primary tutor-book-btn">
-                    Book
-                  </button>
+                  )}
                 </div>
               ))}
             </div>

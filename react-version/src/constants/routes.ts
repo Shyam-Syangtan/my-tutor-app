@@ -9,6 +9,10 @@ export const ROUTES = {
   MESSAGES: '/messages',
   PROFILE: '/profile',
 
+  // Student-specific pages
+  MY_TEACHERS: '/my-teachers',
+  MY_LESSONS: '/my-lessons',
+
   // Tutor-related routes
   BECOME_TUTOR_INFO: '/become-tutor-info',
   BECOME_TUTOR: '/become-tutor',
