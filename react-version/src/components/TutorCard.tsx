@@ -380,7 +380,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                     position: 'relative',
                     width: '100%',
                     height: '100%',
-                    minHeight: '180px',
+                    minHeight: '162px',
                     backgroundColor: '#000'
                   }}>
                     <iframe
@@ -392,7 +392,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                       style={{
                         width: '100%',
                         height: '100%',
-                        minHeight: '180px',
+                        minHeight: '162px',
                         border: 'none',
                         borderRadius: '8px',
                         display: 'block',
