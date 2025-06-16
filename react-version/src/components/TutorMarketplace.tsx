@@ -5,6 +5,7 @@ import { ROUTES } from '../constants/routes';
 import TutorCard from './TutorCard';
 import SearchFilters from './SearchFilters';
 import LoadingSpinner from './LoadingSpinner';
+import Header from './Header';
 
 interface Tutor {
   id: string;
@@ -39,6 +40,11 @@ const TutorMarketplace: React.FC = () => {
   const [filteredTutors, setFilteredTutors] = useState<Tutor[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [tutorStatus, setTutorStatus] = useState<{
+    hasApplication: boolean;
+    isApproved: boolean;
+    applicationData?: any;
+  }>({ hasApplication: false, isApproved: false });
   const [filters, setFilters] = useState<FilterState>({
     language: '',
     priceRange: '',
@@ -54,6 +60,12 @@ const TutorMarketplace: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (user) {
+      checkTutorStatus();
+    }
+  }, [user]);
+
+  useEffect(() => {
     filterTutors();
   }, [filters, allTutors]);
 
@@ -64,6 +76,48 @@ const TutorMarketplace: React.FC = () => {
       return;
     }
     setUser(session.user);
+  };
+
+  const checkTutorStatus = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('tutors')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking tutor status:', error);
+        return;
+      }
+
+      if (data) {
+        setTutorStatus({
+          hasApplication: true,
+          isApproved: data.approved || false,
+          applicationData: data
+        });
+      } else {
+        setTutorStatus({
+          hasApplication: false,
+          isApproved: false
+        });
+      }
+    } catch (error) {
+      console.error('Error checking tutor status:', error);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate(ROUTES.LANDING);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const loadTutors = async () => {
@@ -234,6 +288,13 @@ const TutorMarketplace: React.FC = () => {
 
   return (
     <div className="tutor-marketplace">
+      <Header
+        user={user}
+        onSignOut={handleSignOut}
+        unreadCount={0}
+        tutorStatus={tutorStatus}
+      />
+
       {/* Header */}
       <div className="marketplace-header">
         <h1 className="marketplace-title">Find Your Perfect Language Tutor</h1>
