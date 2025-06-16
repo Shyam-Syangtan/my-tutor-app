@@ -133,40 +133,78 @@ const HomeDashboard: React.FC = () => {
   const userAvatar = user?.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=6366f1&color=fff&size=40`;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="dashboard-page">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-teal-600">IndianTutors</h1>
+      <nav className="navbar">
+        <div className="nav-container">
+          <div className="nav-content">
+            <div className="nav-left">
+              <a href="#" className="nav-logo">IndianTutors</a>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="nav-right nav-links">
               <button
                 onClick={() => navigate(ROUTES.MARKETPLACE)}
-                className="text-gray-600 hover:text-teal-600 transition-colors"
+                className="nav-link"
               >
                 Find a Teacher
               </button>
               <button
                 onClick={() => navigate(ROUTES.MESSAGES)}
-                className="text-gray-600 hover:text-teal-600 transition-colors"
+                className="nav-link"
               >
                 Messages
               </button>
-              <div className="flex items-center space-x-2">
-                <img
-                  src={userAvatar}
-                  alt={userName}
-                  className="w-8 h-8 rounded-full"
-                />
-                <span className="text-gray-700">{userName}</span>
-                <button
-                  onClick={handleSignOut}
-                  className="text-gray-600 hover:text-red-600 transition-colors ml-4"
-                >
-                  Logout
+
+              {/* Profile Dropdown */}
+              <div className="profile-dropdown">
+                <button className="profile-btn">
+                  <img
+                    src={userAvatar}
+                    alt={userName}
+                    className="profile-avatar"
+                  />
+                  <span className="profile-name">{userName}</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="6,9 12,15 18,9"></polyline>
+                  </svg>
                 </button>
+                <div className="profile-dropdown-content">
+                  <div className="profile-info">
+                    <img
+                      src={userAvatar}
+                      alt={userName}
+                      className="dropdown-avatar"
+                    />
+                    <div className="dropdown-user-info">
+                      <div className="dropdown-name">{userName}</div>
+                      <div className="dropdown-email">{user?.email}</div>
+                    </div>
+                  </div>
+                  <hr className="dropdown-divider" />
+                  <a href="#" onClick={() => navigate(ROUTES.PROFILE)}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Account Settings
+                  </a>
+                  <a href="#" className="mode-toggle">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    Become a Tutor
+                  </a>
+                  <hr className="dropdown-divider" />
+                  <a href="#" onClick={handleSignOut} className="logout-link">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                      <polyline points="16,17 21,12 16,7"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -174,126 +212,128 @@ const HomeDashboard: React.FC = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <section className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {userName}!
-          </h1>
-          <p className="text-gray-600">Continue your language learning journey</p>
-        </section>
+      <main className="dashboard-main">
+        <div className="responsive-container">
+          {/* Welcome Section */}
+          <section className="welcome-section">
+            <h1 className="welcome-title">
+              Welcome back, {userName}!
+            </h1>
+            <p className="welcome-subtitle">Continue your language learning journey</p>
+          </section>
 
-        {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Profile Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Progress</h3>
-            <div className="flex items-center space-x-4">
-              <img
-                src={userAvatar}
-                alt={userName}
-                className="w-16 h-16 rounded-full"
-              />
-              <div className="flex-1">
-                <h4 className="font-semibold text-gray-900">{userName}</h4>
-                <div className="grid grid-cols-3 gap-4 mt-2">
-                  <div className="text-center">
-                    <div className="text-xl font-bold text-teal-600">7</div>
-                    <div className="text-sm text-gray-500">Week streak</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xl font-bold text-teal-600">24</div>
-                    <div className="text-sm text-gray-500">Total hours</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xl font-bold text-teal-600">85</div>
-                    <div className="text-sm text-gray-500">Knowledge score</div>
+          {/* Dashboard Grid */}
+          <div className="dashboard-grid">
+            {/* Profile Card */}
+            <div className="dashboard-card">
+              <h3 className="card-title">Your Progress</h3>
+              <div className="progress-content">
+                <img
+                  src={userAvatar}
+                  alt={userName}
+                  className="progress-avatar"
+                />
+                <div className="progress-info">
+                  <h4 className="progress-name">{userName}</h4>
+                  <div className="progress-stats">
+                    <div className="stat-item">
+                      <div className="stat-number">7</div>
+                      <div className="stat-label">Week streak</div>
+                    </div>
+                    <div className="stat-item">
+                      <div className="stat-number">24</div>
+                      <div className="stat-label">Total hours</div>
+                    </div>
+                    <div className="stat-item">
+                      <div className="stat-number">85</div>
+                      <div className="stat-label">Knowledge score</div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Upcoming Lessons Card */}
+            <div className="dashboard-card">
+              <div className="card-header">
+                <h3 className="card-title">Upcoming Lessons</h3>
+                <button className="view-all-btn">
+                  View all
+                </button>
+              </div>
+              <div className="lessons-list">
+                {lessons.map((lesson) => (
+                  <div key={lesson.id} className="lesson-item">
+                    <div className="lesson-info">
+                      <div className="lesson-date">
+                        <div className="date-text">{lesson.date}</div>
+                        <div className="time-text">{lesson.time}</div>
+                      </div>
+                      <div className="lesson-details">
+                        <div className="lesson-language">{lesson.language}</div>
+                        <div className="lesson-duration">{lesson.duration} min</div>
+                      </div>
+                    </div>
+                    <button className="btn btn-primary lesson-join-btn">
+                      Join
+                    </button>
+                  </div>
+                ))}
+                {lessons.length === 0 && (
+                  <div className="no-lessons">
+                    <p className="no-lessons-text">No upcoming lessons</p>
+                    <button
+                      onClick={() => navigate(ROUTES.MARKETPLACE)}
+                      className="book-lesson-btn"
+                    >
+                      Book a lesson
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Upcoming Lessons Card */}
-          <div className="bg-white rounded-xl shadow-sm p-6 border">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Upcoming Lessons</h3>
-              <button className="text-teal-600 hover:text-teal-700 text-sm font-medium">
+          {/* My Teachers Section */}
+          <section className="teachers-section">
+            <div className="section-header">
+              <h2 className="section-title">My Teachers</h2>
+              <button
+                onClick={() => navigate(ROUTES.MARKETPLACE)}
+                className="view-all-btn"
+              >
                 View all
               </button>
             </div>
-            <div className="space-y-3">
-              {lessons.map((lesson) => (
-                <div key={lesson.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="text-center">
-                      <div className="text-sm font-medium text-gray-900">{lesson.date}</div>
-                      <div className="text-sm text-gray-500">{lesson.time}</div>
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">{lesson.language}</div>
-                      <div className="text-sm text-gray-500">{lesson.duration} min</div>
+            <div className="teachers-grid">
+              {teachers.map((teacher) => (
+                <div key={teacher.id} className="tutor-card">
+                  <div className="tutor-header">
+                    <img
+                      src={teacher.avatar_url}
+                      alt={teacher.name}
+                      className="tutor-avatar"
+                    />
+                    <div className="tutor-info">
+                      <h4 className="tutor-name">{teacher.name}</h4>
+                      <p className="tutor-language">{teacher.language}</p>
                     </div>
                   </div>
-                  <button className="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors">
-                    Join
+                  <div className="tutor-stats">
+                    <div className="tutor-rating">
+                      <span className="star-icon">★</span>
+                      <span className="rating-value">{teacher.rating}</span>
+                    </div>
+                    <span className="tutor-rate">₹{teacher.rate}/hour</span>
+                  </div>
+                  <button className="btn btn-primary tutor-book-btn">
+                    Book
                   </button>
                 </div>
               ))}
-              {lessons.length === 0 && (
-                <div className="text-center py-4">
-                  <p className="text-gray-500">No upcoming lessons</p>
-                  <button
-                    onClick={() => navigate(ROUTES.MARKETPLACE)}
-                    className="mt-2 text-teal-600 hover:text-teal-700 font-medium"
-                  >
-                    Book a lesson
-                  </button>
-                </div>
-              )}
             </div>
-          </div>
+          </section>
         </div>
-
-        {/* My Teachers Section */}
-        <section>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">My Teachers</h2>
-            <button
-              onClick={() => navigate(ROUTES.MARKETPLACE)}
-              className="text-teal-600 hover:text-teal-700 font-medium"
-            >
-              View all
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {teachers.map((teacher) => (
-              <div key={teacher.id} className="bg-white rounded-xl shadow-sm p-6 border hover:shadow-md transition-shadow">
-                <div className="flex items-center space-x-4 mb-4">
-                  <img
-                    src={teacher.avatar_url}
-                    alt={teacher.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{teacher.name}</h4>
-                    <p className="text-sm text-gray-500">{teacher.language}</p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-1">
-                    <span className="text-yellow-400">★</span>
-                    <span className="font-medium text-gray-900">{teacher.rating}</span>
-                  </div>
-                  <span className="font-semibold text-gray-900">₹{teacher.rate}/hour</span>
-                </div>
-                <button className="w-full bg-teal-600 text-white py-2 rounded-lg font-medium hover:bg-teal-700 transition-colors">
-                  Book
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
       </main>
     </div>
   );

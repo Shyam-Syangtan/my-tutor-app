@@ -1556,6 +1556,309 @@ body {
     box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
 }
 
+/* Dashboard Styles */
+.dashboard-page {
+    min-height: 100vh;
+    background: var(--background);
+    padding-top: 80px;
+}
+
+.dashboard-main {
+    padding: 2rem 0;
+}
+
+.welcome-section {
+    margin-bottom: 2rem;
+}
+
+.welcome-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.welcome-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+@media (min-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.dashboard-card {
+    background: var(--surface);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+}
+
+.dashboard-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.view-all-btn {
+    color: var(--primary-color);
+    font-weight: 500;
+    font-size: 0.875rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.view-all-btn:hover {
+    color: var(--primary-hover);
+}
+
+/* Progress Card Styles */
+.progress-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.progress-avatar {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.progress-info {
+    flex: 1;
+}
+
+.progress-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.progress-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-light);
+}
+
+/* Lessons Card Styles */
+.lessons-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.lesson-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--background);
+    border-radius: var(--border-radius);
+}
+
+.lesson-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.lesson-date {
+    text-align: center;
+}
+
+.date-text {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.time-text {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.lesson-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.lesson-language {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.lesson-duration {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.lesson-join-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.no-lessons {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.no-lessons-text {
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+}
+
+.book-lesson-btn {
+    color: var(--primary-color);
+    background: none;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.book-lesson-btn:hover {
+    color: var(--primary-hover);
+}
+
+/* Teachers Section */
+.teachers-section {
+    margin-top: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.teachers-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .teachers-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .teachers-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.tutor-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.tutor-avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.tutor-info {
+    flex: 1;
+}
+
+.tutor-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.tutor-language {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.tutor-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.tutor-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.star-icon {
+    color: var(--star-rating);
+}
+
+.rating-value {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.tutor-rate {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.tutor-book-btn {
+    width: 100%;
+    padding: 0.75rem;
+}
+
 /* Flexbox Utilities */
 .flex {
     display: flex;
