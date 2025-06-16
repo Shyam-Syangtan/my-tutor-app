@@ -367,9 +367,14 @@ const TutorCard: React.FC<TutorCardProps> = ({
                       <div className="video-thumbnail" style={{
                         width: '100%',
                         height: '100%',
-                        position: 'relative',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
                         overflow: 'hidden',
-                        borderRadius: '8px'
+                        borderRadius: '8px',
+                        padding: 0,
+                        margin: 0,
+                        boxSizing: 'border-box'
                       }}>
                         {youtubeThumbnail ? (
                           <img
@@ -383,7 +388,11 @@ const TutorCard: React.FC<TutorCardProps> = ({
                               position: 'absolute',
                               top: 0,
                               left: 0,
-                              borderRadius: '8px'
+                              borderRadius: '8px',
+                              padding: 0,
+                              margin: 0,
+                              boxSizing: 'border-box',
+                              display: 'block'
                             }}
                             onLoad={() => setVideoLoaded(true)}
                             onError={() => {
@@ -403,7 +412,11 @@ const TutorCard: React.FC<TutorCardProps> = ({
                               position: 'absolute',
                               top: 0,
                               left: 0,
-                              borderRadius: '8px'
+                              borderRadius: '8px',
+                              padding: 0,
+                              margin: 0,
+                              boxSizing: 'border-box',
+                              display: 'block'
                             }}
                           />
                         )}
