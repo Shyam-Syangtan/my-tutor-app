@@ -161,10 +161,10 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     e.preventDefault();
     e.stopPropagation();
 
-    // For YouTube videos, open in new tab (most reliable approach)
-    if (isYouTubeVideo && finalVideoUrl) {
-      console.log('📺 Opening YouTube video:', finalVideoUrl);
-      window.open(finalVideoUrl, '_blank', 'width=800,height=600');
+    // For YouTube videos, open in modal overlay (like italki)
+    if (isYouTubeVideo) {
+      console.log('📺 Opening YouTube video in modal');
+      setVideoPlaying(true);
       return;
     }
 
@@ -313,95 +313,105 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
             {hasValidVideo ? (
               <div className="video-thumbnail">
                 {isYouTubeVideo ? (
-                  // YouTube Thumbnail - Click to open in new tab
+                  // YouTube Video with inline playback attempt
                   <div
-                    className="video-placeholder"
-                    onClick={handleVideoClick}
                     style={{
                       position: 'relative',
                       width: '100%',
                       height: '100%',
-                      minHeight: '216px',
-                      cursor: 'pointer',
-                      borderRadius: '8px',
-                      overflow: 'hidden'
+                      minHeight: '216px'
                     }}
                   >
-                    <div className="video-thumbnail">
-                      {youtubeThumbnail ? (
-                        <img
-                          src={youtubeThumbnail}
-                          alt={`${tutor.name} video`}
-                          className="video-poster"
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            borderRadius: '8px'
-                          }}
-                          onLoad={() => setVideoLoaded(true)}
-                          onError={() => {
-                            console.log('Thumbnail failed, using avatar');
-                            setVideoError(true);
-                          }}
-                        />
-                      ) : (
-                        <img
-                          src={avatarUrl}
-                          alt={tutor.name}
-                          className="video-poster"
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            borderRadius: '8px'
-                          }}
-                        />
-                      )}
+                    {/* YouTube Thumbnail - Click to open modal */}
+                    <div
+                      className="video-placeholder"
+                      onClick={handleVideoClick}
+                      style={{
+                        position: 'relative',
+                        width: '100%',
+                        height: '100%',
+                        minHeight: '216px',
+                        cursor: 'pointer',
+                        borderRadius: '8px',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <div className="video-thumbnail">
+                        {youtubeThumbnail ? (
+                          <img
+                            src={youtubeThumbnail}
+                            alt={`${tutor.name} video`}
+                            className="video-poster"
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              borderRadius: '8px'
+                            }}
+                            onLoad={() => setVideoLoaded(true)}
+                            onError={() => {
+                              console.log('Thumbnail failed, using avatar');
+                              setVideoError(true);
+                            }}
+                          />
+                        ) : (
+                          <img
+                            src={avatarUrl}
+                            alt={tutor.name}
+                            className="video-poster"
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              borderRadius: '8px'
+                            }}
+                          />
+                        )}
 
-                      {/* YouTube Play Button */}
-                      <div
-                        className="video-play-overlay"
-                        style={{
-                          position: 'absolute',
-                          top: '50%',
-                          left: '50%',
-                          transform: 'translate(-50%, -50%)',
-                          width: '68px',
-                          height: '48px',
-                          backgroundColor: 'rgba(255, 0, 0, 0.9)',
-                          borderRadius: '8px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.3s ease'
-                        }}
-                      >
-                        <div style={{
-                          width: 0,
-                          height: 0,
-                          borderLeft: '16px solid white',
-                          borderTop: '10px solid transparent',
-                          borderBottom: '10px solid transparent',
-                          marginLeft: '4px'
-                        }} />
-                      </div>
+                        {/* YouTube Play Button */}
+                        <div
+                          className="video-play-overlay"
+                          style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '68px',
+                            height: '48px',
+                            backgroundColor: 'rgba(255, 0, 0, 0.9)',
+                            borderRadius: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.3s ease'
+                          }}
+                        >
+                          <div style={{
+                            width: 0,
+                            height: 0,
+                            borderLeft: '16px solid white',
+                            borderTop: '10px solid transparent',
+                            borderBottom: '10px solid transparent',
+                            marginLeft: '4px'
+                          }} />
+                        </div>
 
-                      {/* YouTube Badge */}
-                      <div
-                        style={{
-                          position: 'absolute',
-                          bottom: '8px',
-                          right: '8px',
-                          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                          color: 'white',
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        YouTube
+                        {/* YouTube Badge */}
+                        <div
+                          style={{
+                            position: 'absolute',
+                            bottom: '8px',
+                            right: '8px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          YouTube
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -478,6 +488,81 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
           </div>
         </div>
       </div>
+
+      {/* Video Modal Overlay - Like italki */}
+      {hasValidVideo && videoPlaying && isYouTubeVideo && (
+        <div
+          className="video-modal-overlay"
+          style={{
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setVideoPlaying(false);
+            }
+          }}
+        >
+          <div
+            className="video-modal-content"
+            style={{
+              width: '90%',
+              maxWidth: '800px',
+              height: '90%',
+              maxHeight: '600px',
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              position: 'relative',
+            }}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setVideoPlaying(false)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                color: 'white',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '20px',
+                zIndex: 10,
+              }}
+            >
+              ×
+            </button>
+
+            {/* YouTube Video */}
+            <iframe
+              src={`${youtubeEmbedUrl}&autoplay=1`}
+              style={{
+                width: '100%',
+                height: '100%',
+                border: 'none',
+              }}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title={`${tutor.name} introduction video`}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
