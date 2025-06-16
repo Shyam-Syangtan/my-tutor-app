@@ -50,30 +50,33 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
   const rating = tutor.rating || 4.5;
   const ratingStars = '⭐'.repeat(Math.floor(rating));
 
-  // Helper function to convert YouTube URL to embed URL (same as TutorProfile)
-  const getYouTubeEmbedUrl = (url: string): string => {
-    if (!url) return '';
+  // Helper function to extract YouTube video ID
+  const getYouTubeVideoId = (url: string): string | null => {
+    if (!url) return null;
 
-    // Handle different YouTube URL formats using regex (same as profile page)
     const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
     const match = url.match(youtubeRegex);
 
-    if (match) {
-      return `https://www.youtube.com/embed/${match[1]}?controls=1&showinfo=1&rel=0&modestbranding=1`;
-    }
-
-    // If it's not a YouTube URL, return the original URL for direct video files
-    return url;
+    return match ? match[1] : null;
   };
 
-  // Process video URL (same as TutorProfile)
-  const videoUrl = getYouTubeEmbedUrl(tutor.video_url || '');
+  // Helper function to get YouTube thumbnail
+  const getYouTubeThumbnail = (videoId: string): string => {
+    return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+  };
+
+  // Helper function to get YouTube embed URL (same as profile)
+  const getYouTubeEmbedUrl = (videoId: string): string => {
+    return `https://www.youtube.com/embed/${videoId}?controls=1&showinfo=1&rel=0&modestbranding=1`;
+  };
+
+  // Process video URL
   const isYouTubeVideo = tutor.video_url && (tutor.video_url.includes('youtube.com') || tutor.video_url.includes('youtu.be'));
+  const youtubeVideoId = isYouTubeVideo ? getYouTubeVideoId(tutor.video_url) : null;
+  const youtubeThumbnail = youtubeVideoId ? getYouTubeThumbnail(youtubeVideoId) : null;
+  const youtubeEmbedUrl = youtubeVideoId ? getYouTubeEmbedUrl(youtubeVideoId) : null;
 
-  // Validate YouTube URL processing
-  const isValidYouTubeUrl = isYouTubeVideo && videoUrl && videoUrl.includes('/embed/');
-
-  const finalVideoUrl = videoUrl;
+  const finalVideoUrl = tutor.video_url;
 
   // Simple validation for video URL
   const hasValidVideo = finalVideoUrl && finalVideoUrl.length > 0;
@@ -157,9 +160,9 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     e.preventDefault();
     e.stopPropagation();
 
-    // For YouTube videos, do nothing - let iframe handle it
+    // For YouTube videos, toggle video display (like profile page)
     if (isYouTubeVideo) {
-      console.log('📺 YouTube video clicked - iframe will handle');
+      setVideoPlaying(!videoPlaying);
       return;
     }
 
@@ -308,40 +311,84 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
             {hasValidVideo ? (
               <div className="video-thumbnail">
                 {isYouTubeVideo ? (
-                  // YouTube Video Iframe (same approach as TutorProfile)
+                  // YouTube Video (same approach as TutorProfile)
                   <div
-                    className="youtube-video-container"
                     style={{
                       position: 'relative',
                       width: '100%',
                       height: '100%',
-                      minHeight: '216px',
-                      backgroundColor: '#000'
+                      minHeight: '216px'
                     }}
                   >
-                    <iframe
-                      src={videoUrl}
-                      className="video-preview"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        minHeight: '216px',
-                        border: 'none',
-                        borderRadius: '8px',
-                        display: 'block'
-                      }}
-                      allow="autoplay; encrypted-media"
-                      allowFullScreen
-                      title={`${tutor.name} introduction video`}
-                      onLoad={() => {
-                        console.log(`✅ YouTube iframe loaded for ${tutor.name}:`, videoUrl);
-                        setVideoLoaded(true);
-                      }}
-                      onError={(e) => {
-                        console.error(`❌ YouTube iframe error for ${tutor.name}:`, e, videoUrl);
-                        setVideoError(true);
-                      }}
-                    />
+                    {!videoPlaying ? (
+                      // Show thumbnail first (like profile page)
+                      <div
+                        className="video-placeholder"
+                        onClick={handleVideoClick}
+                        style={{
+                          position: 'relative',
+                          width: '100%',
+                          height: '100%',
+                          minHeight: '216px',
+                          cursor: 'pointer',
+                          borderRadius: '8px',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        <div className="video-thumbnail">
+                          {youtubeThumbnail ? (
+                            <img
+                              src={youtubeThumbnail}
+                              alt={`${tutor.name} video`}
+                              className="video-poster"
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                borderRadius: '8px'
+                              }}
+                              onLoad={() => setVideoLoaded(true)}
+                            />
+                          ) : (
+                            <img
+                              src={avatarUrl}
+                              alt={tutor.name}
+                              className="video-poster"
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                borderRadius: '8px'
+                              }}
+                            />
+                          )}
+                          <div className="video-play-overlay">
+                            <svg className="play-icon" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M8 5v10l8-5-8-5z"/>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      // Show iframe when playing (like profile page)
+                      <div className="video-player">
+                        <iframe
+                          src={youtubeEmbedUrl}
+                          className="video-preview"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            minHeight: '216px',
+                            border: 'none',
+                            borderRadius: '8px'
+                          }}
+                          allow="autoplay; encrypted-media"
+                          allowFullScreen
+                          title={`${tutor.name} introduction video`}
+                          onLoad={() => setVideoLoaded(true)}
+                        />
+                      </div>
+                    )}
                   </div>
                 ) : (
                   // Direct Video File Handling with Controls
