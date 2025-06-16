@@ -68,16 +68,38 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     return url;
   };
 
+  // Process video URL with fallback for testing
   const videoUrl = tutor.video_url ? processVideoUrl(tutor.video_url) : undefined;
   const isYouTubeVideo = tutor.video_url && (tutor.video_url.includes('youtube.com') || tutor.video_url.includes('youtu.be'));
+
+  // For development/testing: Add fallback video for specific tutors
+  const fallbackVideoUrl = !videoUrl && tutor.name === 'shtm' ?
+    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' :
+    videoUrl;
+
+  const finalVideoUrl = fallbackVideoUrl;
 
   // Enhanced debug video URL from database
   console.log(`🎬 ${tutor.name} video debug:`, {
     original_url: tutor.video_url,
     processed_url: videoUrl,
+    final_url: finalVideoUrl,
     is_youtube: isYouTubeVideo,
-    tutor_id: tutor.id
+    tutor_id: tutor.id,
+    has_video: !!tutor.video_url,
+    has_final_video: !!finalVideoUrl
   });
+
+  // Additional debugging for video issues
+  if (!tutor.video_url) {
+    console.log(`❌ ${tutor.name} has no video_url in database`);
+  } else if (!videoUrl) {
+    console.log(`⚠️ ${tutor.name} has video_url but processing failed:`, tutor.video_url);
+  }
+
+  if (finalVideoUrl && !tutor.video_url) {
+    console.log(`🔄 ${tutor.name} using fallback video for testing`);
+  }
 
   const handleCardClick = (e: React.MouseEvent) => {
     // Prevent navigation if clicking on buttons or video area
@@ -117,7 +139,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
   const handleMouseEnter = () => {
     setIsHovered(true);
     // Auto-play video on hover (muted for better UX)
-    if (videoRef.current && !isYouTubeVideo && videoUrl) {
+    if (videoRef.current && !isYouTubeVideo && finalVideoUrl) {
       videoRef.current.muted = true;
       videoRef.current.play().catch(console.error);
     }
@@ -152,7 +174,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     console.log('🎬 Video clicked:', {
       isYouTube: isYouTubeVideo,
       hasVideoRef: !!videoRef.current,
-      videoUrl: videoUrl,
+      videoUrl: finalVideoUrl,
       tutorName: tutor.name
     });
 
@@ -165,7 +187,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
       return;
     }
 
-    if (!videoRef.current || !videoUrl) {
+    if (!videoRef.current || !finalVideoUrl) {
       console.log('❌ No video ref or URL - navigating to profile');
       if (onViewProfile) {
         onViewProfile(tutor.id);
@@ -317,12 +339,12 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
         {/* Video Card - Only content visible on hover */}
         <div className={`tutor-video-card ${isHovered ? 'visible' : ''}`}>
           <div className="video-container" onClick={handleVideoClick}>
-            {videoUrl ? (
+            {finalVideoUrl ? (
               <div className="video-thumbnail">
                 {isYouTubeVideo ? (
                   // YouTube Video Handling
                   <iframe
-                    src={videoUrl}
+                    src={finalVideoUrl}
                     className="video-preview"
                     style={{
                       width: '100%',
@@ -340,7 +362,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                   <>
                     <video
                       ref={videoRef}
-                      src={videoUrl}
+                      src={finalVideoUrl}
                       controls={videoPlaying} // Show controls when playing
                       muted={!videoPlaying} // Muted on hover, unmuted when clicked
                       loop={false}
