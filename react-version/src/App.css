@@ -39,6 +39,12 @@
     box-sizing: border-box;
 }
 
+html {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
@@ -46,6 +52,8 @@ body {
     background: var(--background);
     overflow-x: hidden;
     min-height: 100vh;
+    width: 100%;
+    max-width: 100vw;
 }
 
 /* Container System */
@@ -54,6 +62,15 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 1rem;
+    box-sizing: border-box;
+}
+
+/* Global container fixes for mobile */
+.container, .main-container, .page-container {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 @media (min-width: 768px) {
@@ -337,6 +354,9 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 4rem;
     align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .hero-title {
@@ -1139,68 +1159,148 @@ body {
 
     .marketplace-container {
         padding: 1rem;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
     }
 
     .tutors-list {
         display: flex;
         flex-direction: column;
         gap: 1rem;
-        padding: 1rem;
+        padding: 0;
+        width: 100%;
     }
 
     .tutors-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
+        width: 100%;
+        padding: 0;
+    }
+
+    /* Mobile Tutor Card - Rectangular Layout */
+    .tutor-card-container {
+        flex-direction: row;
+        gap: 0;
+        width: 100%;
+        min-height: 120px;
+        max-width: 100%;
+        overflow: hidden;
     }
 
     .tutor-card {
-        flex-direction: column;
+        flex-direction: row;
         padding: 1rem;
+        width: 100%;
+        min-height: 120px;
+        display: flex;
+        align-items: stretch;
     }
 
     .tutor-left-section {
         min-width: auto;
         width: 100%;
-        margin-bottom: 1rem;
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .tutor-avatar-container {
+        flex-shrink: 0;
+        width: 60px;
+        height: 60px;
+    }
+
+    .tutor-avatar {
+        width: 60px;
+        height: 60px;
+    }
+
+    .tutor-info-section {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .tutor-name-row {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .tutor-name {
+        font-size: 1rem;
+        margin: 0;
+    }
+
+    .tutor-subtitle {
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .tutor-stats-row {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-item {
+        font-size: 0.75rem;
+    }
+
+    .language-badges {
+        margin-bottom: 0.5rem;
+    }
+
+    .language-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .tutor-tags {
+        margin-bottom: 0.5rem;
+    }
+
+    .tag {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .tutor-pricing {
+        margin-top: auto;
+    }
+
+    .price-amount {
+        font-size: 1.25rem;
     }
 
     .tutor-right-section {
-        width: 100%;
-        align-items: stretch;
+        width: auto;
+        align-items: center;
+        justify-content: center;
+        padding-left: 1rem;
+        flex-shrink: 0;
     }
 
     .tutor-actions {
         flex-direction: column;
         gap: 0.5rem;
-        width: 100%;
+        width: auto;
+        min-width: 100px;
     }
 
     .tutor-actions .action-btn {
         width: 100%;
         min-height: 44px;
-        font-size: 1rem;
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
     }
 
-    /* Mobile Video Card Adjustments */
-    .tutor-video-card {
-        position: relative;
-        width: 100%;
-        max-width: none;
-        margin-top: 1rem;
-    }
-
-    .tutor-card-container {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .tutor-card-main {
-        width: 100%;
-    }
-
-    .tutor-card-video {
-        width: 100%;
-        position: static;
+    /* Mobile Video Card Adjustments - Hide video space on mobile */
+    .tutor-video-space {
+        display: none;
     }
 
     /* Disable video hover on mobile */
@@ -1339,6 +1439,10 @@ body {
         gap: 1.5rem;
         text-align: center;
         padding: 0 1rem;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     .hero-title {
@@ -2634,43 +2738,51 @@ body {
 }
 
 @media (max-width: 768px) {
+    /* Override for rectangular mobile layout */
     .tutor-card-content {
-        flex-direction: column;
+        flex-direction: row;
         gap: 16px;
+        align-items: stretch;
     }
 
     .tutor-left-section {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
+        flex-direction: row;
+        align-items: flex-start;
+        text-align: left;
         gap: 12px;
+        flex: 1;
     }
 
     .tutor-right-section {
         align-items: center;
         min-width: auto;
+        flex-shrink: 0;
+        justify-content: center;
     }
 
     .tutor-info-section {
-        align-items: center;
+        align-items: flex-start;
+        flex: 1;
+        min-width: 0;
     }
 
     .tutor-stats-row {
-        justify-content: center;
+        justify-content: flex-start;
         flex-wrap: wrap;
     }
 
     .language-badges {
-        justify-content: center;
+        justify-content: flex-start;
     }
 
     .tutor-pricing {
-        text-align: center;
+        text-align: left;
     }
 
     .tutor-actions {
-        width: 100%;
-        max-width: 300px;
+        width: auto;
+        max-width: 120px;
+        flex-direction: column;
     }
 }
 
@@ -5176,10 +5288,55 @@ body {
 
 /* Responsive Messages */
 @media (max-width: 768px) {
+    .messages-page {
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+        box-sizing: border-box;
+    }
+
+    .messages-container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+    }
+
     .messages-layout {
         margin: 0;
         border-radius: 0;
         height: calc(100vh - 80px);
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Fix navigation on mobile to prevent duplicate profile sections */
+    .nav-container {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .nav-content {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .nav-center {
+        flex: 1;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    .messages-title {
+        font-size: 1.25rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .message {
