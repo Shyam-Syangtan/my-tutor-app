@@ -12,7 +12,7 @@ import './App.css';
 function App() {
   return (
     <div className="App">
-      <Router basename="/my-tutor-app">
+      <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/home" element={<HomeDashboard />} />

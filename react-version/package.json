@@ -1,7 +1,7 @@
 {
   "name": "react-version",
   "version": "0.1.0",
-  "homepage": "https://shyam-syangtan.github.io/my-tutor-app",
+  "homepage": ".",
   "private": true,
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",

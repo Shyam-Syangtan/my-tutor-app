@@ -18,7 +18,7 @@ export const ROUTES = {
 
 // Helper function to get full URL for React routes
 export const getReactRoute = (route: string): string => {
-  const baseUrl = '/my-tutor-app';
+  const baseUrl = '';
   return route === '/' ? baseUrl : `${baseUrl}${route}`;
 };
 
