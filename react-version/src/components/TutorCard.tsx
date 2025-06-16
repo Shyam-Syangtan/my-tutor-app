@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 
 interface Tutor {
   id: string;
@@ -27,31 +27,7 @@ interface TutorCardProps {
 }
 
 const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const [videoLoaded, setVideoLoaded] = useState(false);
-  const [videoError, setVideoError] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
   const avatarUrl = tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff&size=80`;
-
-  // Helper function to convert YouTube URL to embed URL
-  const getYouTubeEmbedUrl = (url: string): string => {
-    if (!url) return '';
-
-    // Handle different YouTube URL formats
-    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-    const match = url.match(youtubeRegex);
-
-    if (match) {
-      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1&loop=1&playlist=${match[1]}&controls=0&showinfo=0&rel=0&modestbranding=1`;
-    }
-
-    // If it's not a YouTube URL, return the original URL for direct video files
-    return url;
-  };
-
-  const videoUrl = getYouTubeEmbedUrl(tutor.video_url || '');
-  const isYouTubeVideo = tutor.video_url && (tutor.video_url.includes('youtube.com') || tutor.video_url.includes('youtu.be'));
 
   const languages = tutor.languages_spoken && tutor.languages_spoken.length > 0 ?
     (typeof tutor.languages_spoken === 'string' ? JSON.parse(tutor.languages_spoken) : tutor.languages_spoken) :
@@ -95,58 +71,12 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     }
   };
 
-  // Video handling functions
-  const handleMouseEnter = () => {
-    // Only enable video preview on non-touch devices (desktop/tablet)
-    if (window.matchMedia('(hover: hover)').matches) {
-      setIsHovered(true);
 
-      // For YouTube videos, the iframe will be dynamically rendered when isHovered becomes true
-      // For direct video files, play the video element
-      if (!isYouTubeVideo && videoRef.current) {
-        // Small delay to ensure video element is ready
-        setTimeout(() => {
-          if (videoRef.current) {
-            videoRef.current.load();
-            videoRef.current.play().catch(() => {
-              // Ignore autoplay errors - this is expected in many browsers
-            });
-          }
-        }, 100);
-      }
-    }
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-
-    // For direct video files, pause the video
-    if (!isYouTubeVideo && videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
-    }
-    // For YouTube videos, the iframe will be completely removed when isHovered becomes false
-  };
-
-  const handleVideoLoad = () => {
-    setVideoLoaded(true);
-  };
-
-  const handleVideoError = () => {
-    setVideoError(true);
-  };
 
   return (
-    <div
-      className={`tutor-card ${isHovered ? 'hovered' : ''}`}
-      onClick={handleCardClick}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {/* Side-by-Side Layout: 70% Card + 30% Video */}
-        <div className="tutor-row-layout">
-          {/* Tutor Card - Dynamic width based on hover state */}
-          <div className={`tutor-card-section ${isHovered ? 'with-video' : 'full-width'}`}>
+    <div className="tutor-card" onClick={handleCardClick}>
+      <div className="tutor-row-layout">
+        <div className="tutor-card-section full-width">
             <div className="tutor-card-content">
               {/* Avatar & Basic Info */}
               <div className="tutor-left-info">
@@ -241,54 +171,6 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
               </div>
             </div>
           </div>
-
-          {/* Right 30%: Video Section - Only visible on hover */}
-          {isHovered && (
-            <div className="tutor-video-section">
-              <div className="video-container">
-                <div className="video-thumbnail" onClick={handleViewProfile}>
-                  {isYouTubeVideo ? (
-                    // YouTube Video Handling
-                    <iframe
-                      src={videoUrl}
-                      className="video-preview"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        border: 'none',
-                        borderRadius: '8px',
-                        objectFit: 'cover'
-                      }}
-                      allow="autoplay; encrypted-media"
-                      title={`${tutor.name} introduction video`}
-                    />
-                  ) : (
-                    // Direct Video File Handling
-                    <video
-                      ref={videoRef}
-                      src={videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
-                      muted
-                      loop
-                      playsInline
-                      preload="auto"
-                      onLoadedData={handleVideoLoad}
-                      onError={handleVideoError}
-                      className="video-preview"
-                      poster={avatarUrl}
-                      style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                    />
-                  )}
-
-                  {/* Loading spinner for direct videos */}
-                  {!isYouTubeVideo && !videoLoaded && (
-                    <div className="video-loading">
-                      <div className="loading-spinner"></div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
     </div>
   );
