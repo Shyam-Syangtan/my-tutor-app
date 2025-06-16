@@ -95,6 +95,13 @@ const TutorMarketplace: React.FC = () => {
       } else {
         setAllTutors(data || []);
         console.log('✅ Loaded tutors successfully:', data?.length || 0);
+
+        // Debug video URLs
+        const tutorsWithVideos = (data || []).filter(tutor => tutor.video_url);
+        console.log('🎬 Tutors with video URLs:', tutorsWithVideos.length);
+        tutorsWithVideos.forEach(tutor => {
+          console.log(`📹 ${tutor.name}: ${tutor.video_url}`);
+        });
       }
 
     } catch (error) {

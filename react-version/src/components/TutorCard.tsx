@@ -29,9 +29,8 @@ interface TutorCardProps {
 const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoError, setVideoError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-
-
 
   const avatarUrl = tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff&size=80`;
 
@@ -82,23 +81,12 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     // Only enable video preview on non-touch devices (desktop/tablet)
     if (window.matchMedia('(hover: hover)').matches) {
       setIsHovered(true);
-      if (tutor.video_url && videoRef.current) {
-        // Ensure video is ready to play
-        if (videoRef.current.readyState >= 2) { // HAVE_CURRENT_DATA
-          videoRef.current.play().catch(error => {
-            console.error('Video play failed:', error);
-            // Try to load the video first
-            videoRef.current?.load();
-          });
-        } else {
-          // Wait for video to be ready
-          const handleCanPlay = () => {
-            videoRef.current?.play().catch(error => console.error('Video play failed after load:', error));
-            videoRef.current?.removeEventListener('canplay', handleCanPlay);
-          };
-          videoRef.current?.addEventListener('canplay', handleCanPlay);
-          videoRef.current?.load();
-        }
+      if (videoRef.current) {
+        // Force load and play the video
+        videoRef.current.load();
+        videoRef.current.play().catch(() => {
+          // Ignore autoplay errors - this is expected in many browsers
+        });
       }
     }
   };
@@ -115,14 +103,8 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     setVideoLoaded(true);
   };
 
-  const handleVideoError = (error: any) => {
-    console.error('Video failed to load:', error);
-
-    // Try alternative video loading approach
-    if (videoRef.current && tutor.video_url) {
-      videoRef.current.src = tutor.video_url;
-      videoRef.current.load();
-    }
+  const handleVideoError = () => {
+    setVideoError(true);
   };
 
   return (
@@ -233,31 +215,22 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
 
           {/* Right 30%: Video Section */}
           <div className="tutor-video-section">
-
-
-            {tutor.video_url ? (
+            <div className="video-container">
               <div className="video-container">
                 <div className="video-thumbnail" onClick={handleViewProfile}>
                   <video
                     ref={videoRef}
-                    muted={true}
-                    loop={true}
-                    playsInline={true}
-                    preload="metadata"
+                    src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
                     onLoadedData={handleVideoLoad}
-                    onError={(e) => handleVideoError(e)}
-
+                    onError={handleVideoError}
                     className="video-preview"
                     poster={avatarUrl}
-                    controls={false}
-                    crossOrigin="anonymous"
-                    style={{ objectFit: 'cover' }}
-                  >
-                    <source src={tutor.video_url} type="video/mp4" />
-                    <source src={tutor.video_url} type="video/webm" />
-                    <source src={tutor.video_url} type="video/ogg" />
-                    Your browser does not support the video tag.
-                  </video>
+                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                  />
                   <div className="video-play-overlay">
                     <svg className="play-icon" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M8 5v10l8-5-8-5z"/>
@@ -275,19 +248,8 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                 >
                   View full schedule
                 </button>
-
               </div>
-            ) : (
-              <div className="video-placeholder">
-                <img src={avatarUrl} alt={tutor.name} className="placeholder-image" />
-                <button
-                  className="video-action-btn"
-                  onClick={handleViewProfile}
-                >
-                  View Profile
-                </button>
-              </div>
-            )}
+            </div>
           </div>
         </div>
     </div>
