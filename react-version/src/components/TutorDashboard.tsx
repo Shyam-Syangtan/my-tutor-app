@@ -347,7 +347,7 @@ const TutorDashboard: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <Footer />
+      <Footer variant="full" />
     </div>
   );
 };

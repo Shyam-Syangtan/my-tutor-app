@@ -336,7 +336,7 @@ const StudentDashboard: React.FC = () => {
       )}
 
       {/* Footer */}
-      <Footer />
+      <Footer variant="full" />
     </div>
   );
 };

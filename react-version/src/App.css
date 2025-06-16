@@ -5461,14 +5461,46 @@ body {
 .site-footer {
     background: var(--text-primary);
     color: #ffffff;
-    margin-top: auto;
+    margin-top: 4rem; /* Add proper spacing from page content */
     position: relative;
+    width: 100%; /* Ensure full width */
+    clear: both; /* Ensure footer clears any floated content */
 }
 
-.footer-container {
+/* Add spacing before footer on specific pages */
+.tutor-marketplace .marketplace-results,
+.dashboard-page .main-content,
+.messages-main,
+.tutor-profile-main {
+    margin-bottom: 2rem;
+}
+
+/* Full footer for dashboard pages */
+.site-footer.full .footer-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 1rem;
+}
+
+/* Minimal footer for other pages - full width */
+.site-footer.minimal .footer-container {
+    width: 100%;
+    padding: 0 1rem;
+}
+
+/* Ensure footer spans full width on all pages, especially TutorMarketplace */
+.tutor-marketplace .site-footer,
+.site-footer {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+}
+
+/* Override for pages that need contained footer */
+.site-footer.full {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 .footer-content {
@@ -5613,8 +5645,24 @@ body {
     color: var(--primary-color);
 }
 
+/* Minimal Footer Styles */
+.footer-minimal-content {
+    padding: 1.5rem 0;
+    text-align: center;
+}
+
+.site-footer.minimal .copyright {
+    color: #b0b0b0;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
 /* Mobile Footer Adjustments */
 @media (max-width: 767px) {
+    .site-footer {
+        margin-top: 2rem; /* Reduced margin on mobile */
+    }
+
     .footer-content {
         padding: 2rem 0 1.5rem;
         gap: 1.5rem;
@@ -5636,6 +5684,10 @@ body {
         gap: 1rem;
         flex-wrap: wrap;
         justify-content: center;
+    }
+
+    .footer-minimal-content {
+        padding: 1rem 0;
     }
 }
 

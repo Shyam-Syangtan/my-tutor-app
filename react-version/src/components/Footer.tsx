@@ -1,6 +1,10 @@
 import React from 'react';
 
-const Footer: React.FC = () => {
+interface FooterProps {
+  variant?: 'full' | 'minimal';
+}
+
+const Footer: React.FC<FooterProps> = ({ variant = 'minimal' }) => {
   const currentYear = new Date().getFullYear();
 
   // Social media links - these can be configured here or moved to a config file
@@ -71,8 +75,24 @@ const Footer: React.FC = () => {
     }
   ];
 
+  // Render minimal footer for most pages
+  if (variant === 'minimal') {
+    return (
+      <footer className="site-footer minimal">
+        <div className="footer-container">
+          <div className="footer-minimal-content">
+            <p className="copyright">
+              © {currentYear} IndianTutors. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
+    );
+  }
+
+  // Render full footer for dashboard pages
   return (
-    <footer className="site-footer">
+    <footer className="site-footer full">
       <div className="footer-container">
         {/* Main Footer Content */}
         <div className="footer-content">
@@ -80,10 +100,10 @@ const Footer: React.FC = () => {
           <div className="footer-section footer-brand">
             <h3 className="footer-logo">IndianTutors</h3>
             <p className="footer-description">
-              Connect with qualified tutors for personalized learning experiences. 
+              Connect with qualified tutors for personalized learning experiences.
               Learn languages, skills, and subjects from expert teachers worldwide.
             </p>
-            
+
             {/* Social Media Links */}
             <div className="footer-social">
               <span className="social-label">Follow us:</span>
