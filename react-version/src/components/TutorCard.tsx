@@ -101,13 +101,18 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     if (window.matchMedia('(hover: hover)').matches) {
       setIsHovered(true);
 
-      // For YouTube videos, the iframe will auto-load when isHovered becomes true
+      // For YouTube videos, the iframe will be dynamically rendered when isHovered becomes true
       // For direct video files, play the video element
       if (!isYouTubeVideo && videoRef.current) {
-        videoRef.current.load();
-        videoRef.current.play().catch(() => {
-          // Ignore autoplay errors - this is expected in many browsers
-        });
+        // Small delay to ensure video element is ready
+        setTimeout(() => {
+          if (videoRef.current) {
+            videoRef.current.load();
+            videoRef.current.play().catch(() => {
+              // Ignore autoplay errors - this is expected in many browsers
+            });
+          }
+        }, 100);
       }
     }
   };
@@ -120,7 +125,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
     }
-    // For YouTube videos, the iframe src will be cleared when isHovered becomes false
+    // For YouTube videos, the iframe will be completely removed when isHovered becomes false
   };
 
   const handleVideoLoad = () => {
@@ -240,11 +245,12 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
           {/* Right 30%: Video Section */}
           <div className="tutor-video-section">
             <div className="video-container">
-              <div className="video-container">
-                <div className="video-thumbnail" onClick={handleViewProfile}>
-                  {isYouTubeVideo ? (
+              <div className="video-thumbnail" onClick={handleViewProfile}>
+                {isYouTubeVideo ? (
+                  // YouTube Video Handling
+                  isHovered ? (
                     <iframe
-                      src={isHovered ? videoUrl : ''}
+                      src={videoUrl}
                       className="video-preview"
                       style={{
                         width: '100%',
@@ -257,38 +263,52 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
                       title={`${tutor.name} introduction video`}
                     />
                   ) : (
-                    <video
-                      ref={videoRef}
-                      src={videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
-                      muted
-                      loop
-                      playsInline
-                      preload="auto"
-                      onLoadedData={handleVideoLoad}
-                      onError={handleVideoError}
+                    <img
+                      src={avatarUrl}
+                      alt={tutor.name}
                       className="video-preview"
-                      poster={avatarUrl}
-                      style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                      style={{ objectFit: 'cover', width: '100%', height: '100%', borderRadius: '8px' }}
                     />
-                  )}
+                  )
+                ) : (
+                  // Direct Video File Handling
+                  <video
+                    ref={videoRef}
+                    src={videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
+                    muted
+                    loop
+                    playsInline
+                    preload="auto"
+                    onLoadedData={handleVideoLoad}
+                    onError={handleVideoError}
+                    className="video-preview"
+                    poster={avatarUrl}
+                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                  />
+                )}
+
+                {/* Play overlay - only show when not hovered or for direct videos */}
+                {(!isHovered || !isYouTubeVideo) && (
                   <div className="video-play-overlay">
                     <svg className="play-icon" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M8 5v10l8-5-8-5z"/>
                     </svg>
                   </div>
-                  {!videoLoaded && (
-                    <div className="video-loading">
-                      <div className="loading-spinner"></div>
-                    </div>
-                  )}
-                </div>
-                <button
-                  className="video-action-btn"
-                  onClick={handleViewProfile}
-                >
-                  View full schedule
-                </button>
+                )}
+
+                {/* Loading spinner for direct videos */}
+                {!isYouTubeVideo && !videoLoaded && (
+                  <div className="video-loading">
+                    <div className="loading-spinner"></div>
+                  </div>
+                )}
               </div>
+              <button
+                className="video-action-btn"
+                onClick={handleViewProfile}
+              >
+                View full schedule
+              </button>
             </div>
           </div>
         </div>
