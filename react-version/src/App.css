@@ -5463,8 +5463,21 @@ body {
     color: #ffffff;
     margin-top: 4rem; /* Add proper spacing from page content */
     position: relative;
-    width: 100%; /* Ensure full width */
+    width: 100vw; /* Force full viewport width */
     clear: both; /* Ensure footer clears any floated content */
+    box-sizing: border-box;
+}
+
+/* Ensure footer background spans full width */
+.site-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: calc(-50vw + 50%);
+    width: 100vw;
+    height: 100%;
+    background: var(--text-primary);
+    z-index: -1;
 }
 
 /* Add spacing before footer on specific pages */
@@ -5489,18 +5502,25 @@ body {
 }
 
 /* Ensure footer spans full width on all pages, especially TutorMarketplace */
-.tutor-marketplace .site-footer,
 .site-footer {
     width: 100vw;
     margin-left: calc(-50vw + 50%);
     margin-right: calc(-50vw + 50%);
+    position: relative;
+    left: 50%;
+    right: 50%;
+    transform: translateX(-50%);
 }
 
-/* Override for pages that need contained footer */
-.site-footer.full {
-    width: 100%;
-    margin-left: 0;
-    margin-right: 0;
+/* Specific full-width enforcement for marketplace */
+.tutor-marketplace .site-footer {
+    width: 100vw !important;
+    margin-left: calc(-50vw + 50%) !important;
+    margin-right: calc(-50vw + 50%) !important;
+    position: relative !important;
+    left: 50% !important;
+    right: 50% !important;
+    transform: translateX(-50%) !important;
 }
 
 /* Ensure full footer content is visible */
