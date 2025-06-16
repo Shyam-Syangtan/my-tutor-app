@@ -28,7 +28,7 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
       <Head>
         <title>{metadata.title as string}</title>
         <meta name="description" content={metadata.description} />
-        <meta name="keywords" content={metadata.keywords} />
+        <meta name="keywords" content={Array.isArray(metadata.keywords) ? metadata.keywords.join(', ') : metadata.keywords} />
         
         {/* Open Graph */}
         <meta property="og:title" content={metadata.title as string} />

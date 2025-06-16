@@ -23,7 +23,7 @@ export function generateMetadata({
 }: {
   title?: string
   description?: string
-  keywords?: string
+  keywords?: string | string[]
   image?: string
   path?: string
   noIndex?: boolean
