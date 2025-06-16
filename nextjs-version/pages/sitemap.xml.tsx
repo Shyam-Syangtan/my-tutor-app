@@ -1,39 +1,37 @@
-// Static Sitemap Generation for SEO
+// Simple Static Sitemap for SEO
 import { GetServerSideProps } from 'next'
 
-// This component doesn't render anything - it just generates the sitemap
 function Sitemap() {
   return null
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
-  const baseUrl = 'https://www.shyamsyangtan.com'
-
-  // Static pages for sitemap
-  const staticPages = [
-    '',
-    '/marketplace',
-    '/about',
-    '/contact',
-    '/privacy',
-    '/terms',
-    '/help'
-  ]
-
-  // Generate static sitemap (without database dependency for now)
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  ${staticPages
-    .map(
-      (page) => `
   <url>
-    <loc>${baseUrl}${page}</loc>
+    <loc>https://www.shyamsyangtan.com</loc>
     <lastmod>${new Date().toISOString()}</lastmod>
-    <changefreq>${page === '' ? 'daily' : page === '/marketplace' ? 'hourly' : 'weekly'}</changefreq>
-    <priority>${page === '' ? '1.0' : page === '/marketplace' ? '0.9' : '0.7'}</priority>
-  </url>`
-    )
-    .join('')}
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.shyamsyangtan.com/marketplace</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.shyamsyangtan.com/about</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.shyamsyangtan.com/contact</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>`
 
   res.setHeader('Content-Type', 'text/xml')
@@ -41,9 +39,7 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
   res.write(sitemap)
   res.end()
 
-  return {
-    props: {}
-  }
+  return { props: {} }
 }
 
 export default Sitemap
