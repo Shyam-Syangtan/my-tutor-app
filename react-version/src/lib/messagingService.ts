@@ -119,7 +119,6 @@ export class MessagingService {
 
       for (const chat of chats) {
         const participantId = chat.user1_id === this.currentUserId ? chat.user2_id : chat.user1_id;
-        console.log('Loading chat participant:', participantId);
 
         // Get participant info - try tutor first, then user
         let participantName = 'Unknown User';
@@ -127,7 +126,6 @@ export class MessagingService {
 
         try {
           // First try to get tutor info
-          console.log('Checking tutors table for user_id:', participantId);
           const { data: tutorData, error: tutorError } = await supabase
             .from('tutors')
             .select('name, photo_url')
@@ -135,30 +133,22 @@ export class MessagingService {
             .eq('approved', true)
             .single();
 
-          console.log('Tutor query result:', { tutorData, tutorError });
-
           if (tutorData && !tutorError) {
             participantName = tutorData.name;
             participantAvatar = tutorData.photo_url || '';
-            console.log('Found tutor:', participantName);
           } else {
             // If no tutor found, try users table
-            console.log('No tutor found, checking users table for id:', participantId);
             const { data: userData, error: userError } = await supabase
               .from('users')
               .select('full_name, avatar_url, email')
               .eq('id', participantId)
               .single();
 
-            console.log('User query result:', { userData, userError });
-
             if (userData && !userError) {
               participantName = userData.full_name || userData.email?.split('@')[0] || 'User';
               participantAvatar = userData.avatar_url || '';
-              console.log('Found user:', participantName);
             } else {
               // Last resort: try to get email from auth.users (if accessible)
-              console.log('No user profile found, trying auth.users table');
               const { data: authData, error: authError } = await supabase
                 .from('auth.users')
                 .select('email, raw_user_meta_data')
@@ -167,7 +157,6 @@ export class MessagingService {
 
               if (authData && !authError) {
                 participantName = authData.raw_user_meta_data?.full_name || authData.email?.split('@')[0] || 'User';
-                console.log('Found auth user:', participantName);
               }
             }
           }

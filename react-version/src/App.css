@@ -448,13 +448,7 @@ body {
     flex: 1;
 }
 
-.tutor-name {
-    height: 12px;
-    background: var(--text-primary);
-    border-radius: 6px;
-    margin-bottom: 0.5rem;
-    width: 80%;
-}
+/* Removed conflicting .tutor-name skeleton rule that was causing black bars */
 
 .tutor-lang {
     height: 8px;
