@@ -6,6 +6,9 @@ import TutorMarketplace from './components/TutorMarketplace';
 import StudentDashboard from './components/StudentDashboard';
 import MessagesPage from './components/MessagesPage';
 import ProfilePage from './components/ProfilePage';
+import BecomeTutorInfo from './components/BecomeTutorInfo';
+import BecomeTutor from './components/BecomeTutor';
+import TutorDashboard from './components/TutorDashboard';
 import NotFoundPage from './components/NotFoundPage';
 import './App.css';
 
@@ -21,6 +24,9 @@ function App() {
           <Route path="/student-dashboard" element={<StudentDashboard />} />
           <Route path="/messages" element={<MessagesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/become-tutor-info" element={<BecomeTutorInfo />} />
+          <Route path="/become-tutor" element={<BecomeTutor />} />
+          <Route path="/tutor-dashboard" element={<TutorDashboard />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Router>

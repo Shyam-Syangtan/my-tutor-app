@@ -11,6 +11,7 @@ export const ROUTES = {
 
   // Tutor-related routes
   BECOME_TUTOR_INFO: '/become-tutor-info',
+  BECOME_TUTOR: '/become-tutor',
   TUTOR_DASHBOARD: '/tutor-dashboard',
 
   // External links (if needed)
