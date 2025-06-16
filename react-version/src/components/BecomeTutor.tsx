@@ -21,6 +21,7 @@ const BecomeTutor: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [existingApplication, setExistingApplication] = useState<any>(null);
   
   const [formData, setFormData] = useState<FormData>({
@@ -79,37 +80,80 @@ const BecomeTutor: React.FC = () => {
     e.preventDefault();
     setSubmitting(true);
     setShowError(false);
+    setErrorMessage('');
 
     try {
+      // Validate required fields
+      if (!formData.fullName.trim()) {
+        throw new Error('Full name is required');
+      }
+      if (!formData.bio.trim()) {
+        throw new Error('Bio is required');
+      }
+      if (!formData.language) {
+        throw new Error('Language is required');
+      }
+      if (!formData.rate || parseInt(formData.rate) < 100) {
+        throw new Error('Valid hourly rate is required (minimum ₹100)');
+      }
+      if (!formData.experience.trim()) {
+        throw new Error('Teaching experience is required');
+      }
+
       const applicationData = {
         user_id: user.id,
-        name: formData.fullName,
+        name: formData.fullName.trim(),
         email: user.email,
-        bio: formData.bio,
+        bio: formData.bio.trim(),
         language: formData.language,
         rate: parseInt(formData.rate),
-        experience: formData.experience,
-        video_url: formData.videoUrl,
-        specialties: formData.specialties,
-        availability: formData.availability,
+        experience: formData.experience.trim(),
+        video_url: formData.videoUrl.trim() || null,
+        specialties: formData.specialties.trim() || null,
+        availability: formData.availability.trim() || null,
         approved: false,
-        photo_url: user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName)}&background=6366f1&color=fff&size=150`
+        photo_url: user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.fullName)}&background=6366f1&color=fff&size=150`,
+        // Add default values for required fields
+        native_language: formData.language,
+        languages_spoken: JSON.stringify([{ language: formData.language, proficiency: 'Native' }]),
+        tags: JSON.stringify(['Conversational', 'Grammar']),
+        country_flag: '🇮🇳',
+        total_students: 0,
+        total_lessons: 0,
+        is_professional: false,
+        rating: 4.5
       };
 
-      const { error } = await supabase
+      console.log('Submitting application data:', applicationData);
+
+      const { data, error } = await supabase
         .from('tutors')
-        .insert([applicationData]);
+        .insert([applicationData])
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
+      console.log('Application submitted successfully:', data);
       setShowSuccess(true);
       setTimeout(() => {
         navigate(ROUTES.HOME);
       }, 3000);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting application:', error);
       setShowError(true);
+
+      // Set specific error message
+      if (error.message) {
+        setErrorMessage(error.message);
+      } else if (error.details) {
+        setErrorMessage(error.details);
+      } else {
+        setErrorMessage('There was an error submitting your application. Please try again.');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -216,7 +260,7 @@ const BecomeTutor: React.FC = () => {
           
           {showError && (
             <div className="error-message">
-              There was an error submitting your application. Please try again.
+              {errorMessage || 'There was an error submitting your application. Please try again.'}
             </div>
           )}
           
