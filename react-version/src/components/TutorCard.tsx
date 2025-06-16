@@ -50,17 +50,32 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
   const rating = tutor.rating || 4.5;
   const ratingStars = '⭐'.repeat(Math.floor(rating));
 
-  // Enhanced video URL processing with database integration
+  // Enhanced video URL processing with better YouTube support
   const processVideoUrl = (url: string): string => {
     if (!url) return '';
 
-    // Handle YouTube URLs - convert to embed format
+    // Handle YouTube URLs - convert to embed format with better regex
     if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      // eslint-disable-next-line no-useless-escape
-      const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-      const match = url.match(youtubeRegex);
-      if (match) {
-        return `https://www.youtube.com/embed/${match[1]}?controls=1&showinfo=1&rel=0&modestbranding=1`;
+      let videoId = '';
+
+      // Handle different YouTube URL formats
+      if (url.includes('youtu.be/')) {
+        // Short URL format: https://youtu.be/VIDEO_ID
+        videoId = url.split('youtu.be/')[1]?.split('?')[0]?.split('&')[0];
+      } else if (url.includes('youtube.com/watch?v=')) {
+        // Standard URL format: https://www.youtube.com/watch?v=VIDEO_ID
+        videoId = url.split('v=')[1]?.split('&')[0];
+      } else if (url.includes('youtube.com/embed/')) {
+        // Already embed format: https://www.youtube.com/embed/VIDEO_ID
+        videoId = url.split('embed/')[1]?.split('?')[0]?.split('&')[0];
+      } else if (url.includes('youtube.com/v/')) {
+        // Old format: https://www.youtube.com/v/VIDEO_ID
+        videoId = url.split('v/')[1]?.split('?')[0]?.split('&')[0];
+      }
+
+      if (videoId && videoId.length === 11) {
+        // Return embed URL with enhanced parameters for better preview
+        return `https://www.youtube.com/embed/${videoId}?controls=1&showinfo=0&rel=0&modestbranding=1&autoplay=0&mute=1`;
       }
     }
 
@@ -68,9 +83,12 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     return url;
   };
 
-  // Process video URL with fallback for testing
+  // Process video URL with enhanced validation
   const videoUrl = tutor.video_url ? processVideoUrl(tutor.video_url) : undefined;
   const isYouTubeVideo = tutor.video_url && (tutor.video_url.includes('youtube.com') || tutor.video_url.includes('youtu.be'));
+
+  // Validate YouTube URL processing
+  const isValidYouTubeUrl = isYouTubeVideo && videoUrl && videoUrl.includes('/embed/') && videoUrl.split('/embed/')[1]?.length >= 11;
 
   // For development/testing: Add fallback video for specific tutors
   const fallbackVideoUrl = !videoUrl && tutor.name === 'shtm' ?
@@ -79,12 +97,20 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
 
   const finalVideoUrl = fallbackVideoUrl;
 
+  // Enhanced validation for final video URL
+  const hasValidVideo = finalVideoUrl && (
+    (isYouTubeVideo && isValidYouTubeUrl) ||
+    (!isYouTubeVideo && finalVideoUrl.length > 0)
+  );
+
   // Enhanced debug video URL from database
   console.log(`🎬 ${tutor.name} video debug:`, {
     original_url: tutor.video_url,
     processed_url: videoUrl,
     final_url: finalVideoUrl,
     is_youtube: isYouTubeVideo,
+    is_valid_youtube: isValidYouTubeUrl,
+    has_valid_video: hasValidVideo,
     tutor_id: tutor.id,
     has_video: !!tutor.video_url,
     has_final_video: !!finalVideoUrl
@@ -95,6 +121,8 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     console.log(`❌ ${tutor.name} has no video_url in database`);
   } else if (!videoUrl) {
     console.log(`⚠️ ${tutor.name} has video_url but processing failed:`, tutor.video_url);
+  } else if (isYouTubeVideo && !isValidYouTubeUrl) {
+    console.log(`⚠️ ${tutor.name} has invalid YouTube URL:`, tutor.video_url);
   }
 
   if (finalVideoUrl && !tutor.video_url) {
@@ -175,14 +203,21 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
       isYouTube: isYouTubeVideo,
       hasVideoRef: !!videoRef.current,
       videoUrl: finalVideoUrl,
-      tutorName: tutor.name
+      tutorName: tutor.name,
+      videoPlaying: videoPlaying
     });
 
-    if (isYouTubeVideo) {
-      // For YouTube videos, navigate to profile to watch full video
-      console.log('📺 YouTube video - navigating to profile');
-      if (onViewProfile) {
-        onViewProfile(tutor.id);
+    if (isYouTubeVideo && finalVideoUrl) {
+      // For YouTube videos, toggle between preview and playable iframe
+      if (!videoPlaying) {
+        console.log('📺 YouTube video - enabling playback');
+        setVideoPlaying(true);
+        // The iframe src will be updated in the render section based on videoPlaying state
+      } else {
+        console.log('📺 YouTube video - navigating to profile for full experience');
+        if (onViewProfile) {
+          onViewProfile(tutor.id);
+        }
       }
       return;
     }
@@ -232,6 +267,7 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
       <div
         className={`tutor-card ${isHovered ? 'hovered' : ''}`}
         onClick={handleCardClick}
+        data-has-video={hasValidVideo ? 'true' : 'false'}
       >
         <div className="tutor-card-content">
           {/* Left Section: Avatar & Basic Info */}
@@ -339,24 +375,46 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
         {/* Video Card - Only content visible on hover */}
         <div className={`tutor-video-card ${isHovered ? 'visible' : ''}`}>
           <div className="video-container" onClick={handleVideoClick}>
-            {finalVideoUrl ? (
+            {hasValidVideo ? (
               <div className="video-thumbnail">
                 {isYouTubeVideo ? (
-                  // YouTube Video Handling
-                  <iframe
-                    src={finalVideoUrl}
-                    className="video-preview"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      border: 'none',
-                      borderRadius: '8px',
-                      objectFit: 'cover',
-                      pointerEvents: 'none' // Prevent iframe from capturing clicks
-                    }}
-                    allow="autoplay; encrypted-media"
-                    title={`${tutor.name} introduction video`}
-                  />
+                  // YouTube Video Handling with enhanced playback
+                  <div className="youtube-video-container" style={{ position: 'relative', width: '100%', height: '100%' }}>
+                    <iframe
+                      src={videoPlaying ?
+                        finalVideoUrl.replace('autoplay=0', 'autoplay=1').replace('mute=1', 'mute=0') :
+                        finalVideoUrl
+                      }
+                      className="video-preview"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        border: 'none',
+                        borderRadius: '8px',
+                        objectFit: 'cover',
+                        pointerEvents: videoPlaying ? 'auto' : 'none' // Allow interaction when playing
+                      }}
+                      allow="autoplay; encrypted-media; fullscreen"
+                      allowFullScreen
+                      title={`${tutor.name} introduction video`}
+                    />
+
+                    {/* Play overlay for YouTube videos when not playing */}
+                    {!videoPlaying && (
+                      <div className="video-play-overlay" style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: 10,
+                        pointerEvents: 'none'
+                      }}>
+                        <svg className="play-icon" fill="currentColor" viewBox="0 0 20 20" style={{ width: '24px', height: '24px' }}>
+                          <path d="M8 5v10l8-5-8-5z"/>
+                        </svg>
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   // Direct Video File Handling with Controls
                   <>
