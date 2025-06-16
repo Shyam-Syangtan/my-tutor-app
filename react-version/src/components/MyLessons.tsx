@@ -69,7 +69,7 @@ const MyLessons: React.FC = () => {
       }
 
       // Get tutor info for each lesson
-      const tutorIds = [...new Set(lessonsData.map(lesson => lesson.tutor_id))];
+      const tutorIds = Array.from(new Set(lessonsData.map(lesson => lesson.tutor_id)));
       const { data: tutorsData, error: tutorsError } = await supabase
         .from('tutors')
         .select('user_id, name, photo_url')
