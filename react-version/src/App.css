@@ -5506,18 +5506,28 @@ body {
 /* Ensure full footer content is visible */
 .site-footer.full .footer-content {
     display: grid !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .site-footer.full .footer-section {
     display: flex !important;
+    visibility: visible !important;
 }
 
 .site-footer.full .social-links {
     display: flex !important;
+    visibility: visible !important;
 }
 
 .site-footer.full .footer-bottom {
     display: block !important;
+    visibility: visible !important;
+}
+
+/* Hide minimal footer content in full footer */
+.site-footer.full .footer-minimal-content {
+    display: none !important;
 }
 
 .footer-content {

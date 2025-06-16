@@ -7,9 +7,6 @@ interface FooterProps {
 const Footer: React.FC<FooterProps> = ({ variant = 'minimal' }) => {
   const currentYear = new Date().getFullYear();
 
-  // Debug logging
-  console.log('Footer component rendered with variant:', variant);
-
   // Social media links - these can be configured here or moved to a config file
   const socialLinks = [
     {
@@ -78,88 +75,81 @@ const Footer: React.FC<FooterProps> = ({ variant = 'minimal' }) => {
     }
   ];
 
-  // Render minimal footer for most pages
-  if (variant === 'minimal') {
-    console.log('Rendering minimal footer');
-    return (
-      <footer className="site-footer minimal">
-        <div className="footer-container">
+  return (
+    <footer className={`site-footer ${variant}`}>
+      <div className="footer-container">
+        {variant === 'minimal' ? (
+          // Minimal footer content
           <div className="footer-minimal-content">
             <p className="copyright">
               © {currentYear} IndianTutors. All rights reserved.
             </p>
           </div>
-        </div>
-      </footer>
-    );
-  }
+        ) : (
+          // Full footer content
+          <>
+            <div className="footer-content">
+              {/* Company Info Section */}
+              <div className="footer-section footer-brand">
+                <h3 className="footer-logo">IndianTutors</h3>
+                <p className="footer-description">
+                  Connect with qualified tutors for personalized learning experiences.
+                  Learn languages, skills, and subjects from expert teachers worldwide.
+                </p>
 
-  // Render full footer for dashboard pages
-  console.log('Rendering full footer');
-  return (
-    <footer className="site-footer full">
-      <div className="footer-container">
-        {/* Main Footer Content */}
-        <div className="footer-content">
-          {/* Company Info Section */}
-          <div className="footer-section footer-brand">
-            <h3 className="footer-logo">IndianTutors</h3>
-            <p className="footer-description">
-              Connect with qualified tutors for personalized learning experiences.
-              Learn languages, skills, and subjects from expert teachers worldwide.
-            </p>
+                {/* Social Media Links */}
+                <div className="footer-social">
+                  <span className="social-label">Follow us:</span>
+                  <div className="social-links">
+                    {socialLinks.map((social) => (
+                      <a
+                        key={social.name}
+                        href={social.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="social-link"
+                        aria-label={`Follow us on ${social.name}`}
+                        title={social.name}
+                      >
+                        {social.icon}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </div>
 
-            {/* Social Media Links */}
-            <div className="footer-social">
-              <span className="social-label">Follow us:</span>
-              <div className="social-links">
-                {socialLinks.map((social) => (
-                  <a
-                    key={social.name}
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="social-link"
-                    aria-label={`Follow us on ${social.name}`}
-                    title={social.name}
-                  >
-                    {social.icon}
-                  </a>
-                ))}
+              {/* Footer Navigation Links */}
+              {footerLinks.map((section) => (
+                <div key={section.title} className="footer-section">
+                  <h4 className="footer-section-title">{section.title}</h4>
+                  <ul className="footer-links">
+                    {section.links.map((link) => (
+                      <li key={link.name}>
+                        <a href={link.url} className="footer-link">
+                          {link.name}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer Bottom */}
+            <div className="footer-bottom">
+              <div className="footer-bottom-content">
+                <p className="copyright">
+                  © {currentYear} IndianTutors. All rights reserved.
+                </p>
+                <div className="footer-bottom-links">
+                  <a href="/privacy" className="footer-bottom-link">Privacy</a>
+                  <a href="/terms" className="footer-bottom-link">Terms</a>
+                  <a href="/sitemap" className="footer-bottom-link">Sitemap</a>
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Footer Navigation Links */}
-          {footerLinks.map((section) => (
-            <div key={section.title} className="footer-section">
-              <h4 className="footer-section-title">{section.title}</h4>
-              <ul className="footer-links">
-                {section.links.map((link) => (
-                  <li key={link.name}>
-                    <a href={link.url} className="footer-link">
-                      {link.name}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        {/* Footer Bottom */}
-        <div className="footer-bottom">
-          <div className="footer-bottom-content">
-            <p className="copyright">
-              © {currentYear} IndianTutors. All rights reserved.
-            </p>
-            <div className="footer-bottom-links">
-              <a href="/privacy" className="footer-bottom-link">Privacy</a>
-              <a href="/terms" className="footer-bottom-link">Terms</a>
-              <a href="/sitemap" className="footer-bottom-link">Sitemap</a>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </footer>
   );
