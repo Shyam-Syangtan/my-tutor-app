@@ -20,6 +20,10 @@ ADD COLUMN IF NOT EXISTS experience TEXT,
 ADD COLUMN IF NOT EXISTS specialties TEXT,
 ADD COLUMN IF NOT EXISTS availability TEXT;
 
+-- Ensure specialties column is TEXT type (not JSONB) to prevent malformed array literal errors
+ALTER TABLE public.tutors
+ALTER COLUMN specialties TYPE TEXT;
+
 -- Update existing records to have default values for new columns
 UPDATE public.tutors 
 SET 
@@ -80,17 +84,33 @@ BEGIN
     
     -- Check if languages_spoken column exists
     SELECT EXISTS (
-        SELECT 1 
-        FROM information_schema.columns 
-        WHERE table_schema = 'public' 
-        AND table_name = 'tutors' 
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+        AND table_name = 'tutors'
         AND column_name = 'languages_spoken'
     ) INTO column_exists;
-    
+
     IF column_exists THEN
         RAISE NOTICE '✅ languages_spoken column exists';
     ELSE
         RAISE NOTICE '❌ languages_spoken column missing';
+    END IF;
+
+    -- Check if specialties column is TEXT type
+    SELECT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+        AND table_name = 'tutors'
+        AND column_name = 'specialties'
+        AND data_type = 'text'
+    ) INTO column_exists;
+
+    IF column_exists THEN
+        RAISE NOTICE '✅ specialties column is TEXT type';
+    ELSE
+        RAISE NOTICE '❌ specialties column type issue';
     END IF;
 END $$;
 
@@ -98,7 +118,12 @@ END $$;
 DO $$
 BEGIN
     RAISE NOTICE '✅ TUTORS TABLE FIX COMPLETED!';
-    RAISE NOTICE 'Added missing columns:';
+    RAISE NOTICE 'Fixed the malformed array literal error by:';
+    RAISE NOTICE '- Ensuring specialties column is TEXT type (not JSONB)';
+    RAISE NOTICE '- Added all missing columns with proper defaults';
+    RAISE NOTICE '- Updated existing records with sensible defaults';
+    RAISE NOTICE '';
+    RAISE NOTICE 'Added/Fixed columns:';
     RAISE NOTICE '- is_professional (BOOLEAN)';
     RAISE NOTICE '- native_language (TEXT)';
     RAISE NOTICE '- languages_spoken (JSONB)';
@@ -111,8 +136,8 @@ BEGIN
     RAISE NOTICE '- teaching_style (TEXT)';
     RAISE NOTICE '- resume (TEXT)';
     RAISE NOTICE '- experience (TEXT)';
-    RAISE NOTICE '- specialties (TEXT)';
+    RAISE NOTICE '- specialties (TEXT) - Fixed type to prevent JSON errors';
     RAISE NOTICE '- availability (TEXT)';
     RAISE NOTICE '';
-    RAISE NOTICE 'Tutor application form should now work properly!';
+    RAISE NOTICE 'Tutor application form should now work without JSON errors!';
 END $$;

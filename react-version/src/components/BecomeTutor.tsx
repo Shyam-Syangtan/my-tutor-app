@@ -118,6 +118,7 @@ const BecomeTutor: React.FC = () => {
         applicationData.video_url = formData.videoUrl.trim();
       }
       if (formData.specialties.trim()) {
+        // Store specialties as plain text, not JSON
         applicationData.specialties = formData.specialties.trim();
       }
       if (formData.availability.trim()) {
@@ -128,7 +129,18 @@ const BecomeTutor: React.FC = () => {
       try {
         applicationData.native_language = formData.language;
         applicationData.languages_spoken = [{ language: formData.language, proficiency: 'Native' }];
-        applicationData.tags = ['Conversational', 'Grammar'];
+
+        // Handle specialties - convert to array if it's a string
+        if (formData.specialties.trim()) {
+          // Split by comma and clean up each specialty
+          const specialtiesArray = formData.specialties.split(',')
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+          applicationData.tags = specialtiesArray.length > 0 ? specialtiesArray : ['Conversational', 'Grammar'];
+        } else {
+          applicationData.tags = ['Conversational', 'Grammar'];
+        }
+
         applicationData.country_flag = '🇮🇳';
         applicationData.total_students = 0;
         applicationData.total_lessons = 0;
