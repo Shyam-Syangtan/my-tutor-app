@@ -34,6 +34,25 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
 
   const avatarUrl = tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff&size=80`;
 
+  // Helper function to convert YouTube URL to embed URL
+  const getYouTubeEmbedUrl = (url: string): string => {
+    if (!url) return '';
+
+    // Handle different YouTube URL formats
+    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(youtubeRegex);
+
+    if (match) {
+      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1&loop=1&playlist=${match[1]}&controls=0&showinfo=0&rel=0&modestbranding=1`;
+    }
+
+    // If it's not a YouTube URL, return the original URL for direct video files
+    return url;
+  };
+
+  const videoUrl = getYouTubeEmbedUrl(tutor.video_url || '');
+  const isYouTubeVideo = tutor.video_url && (tutor.video_url.includes('youtube.com') || tutor.video_url.includes('youtu.be'));
+
   const languages = tutor.languages_spoken && tutor.languages_spoken.length > 0 ?
     (typeof tutor.languages_spoken === 'string' ? JSON.parse(tutor.languages_spoken) : tutor.languages_spoken) :
     [{ language: tutor.native_language || tutor.language, proficiency: 'Native' }];
@@ -81,8 +100,10 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
     // Only enable video preview on non-touch devices (desktop/tablet)
     if (window.matchMedia('(hover: hover)').matches) {
       setIsHovered(true);
-      if (videoRef.current) {
-        // Force load and play the video
+
+      // For YouTube videos, the iframe will auto-load when isHovered becomes true
+      // For direct video files, play the video element
+      if (!isYouTubeVideo && videoRef.current) {
         videoRef.current.load();
         videoRef.current.play().catch(() => {
           // Ignore autoplay errors - this is expected in many browsers
@@ -93,10 +114,13 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
 
   const handleMouseLeave = () => {
     setIsHovered(false);
-    if (videoRef.current) {
+
+    // For direct video files, pause the video
+    if (!isYouTubeVideo && videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
     }
+    // For YouTube videos, the iframe src will be cleared when isHovered becomes false
   };
 
   const handleVideoLoad = () => {
@@ -218,19 +242,35 @@ const TutorCard: React.FC<TutorCardProps> = ({ tutor, onContact, onViewProfile }
             <div className="video-container">
               <div className="video-container">
                 <div className="video-thumbnail" onClick={handleViewProfile}>
-                  <video
-                    ref={videoRef}
-                    src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-                    muted
-                    loop
-                    playsInline
-                    preload="auto"
-                    onLoadedData={handleVideoLoad}
-                    onError={handleVideoError}
-                    className="video-preview"
-                    poster={avatarUrl}
-                    style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-                  />
+                  {isYouTubeVideo ? (
+                    <iframe
+                      src={isHovered ? videoUrl : ''}
+                      className="video-preview"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        border: 'none',
+                        borderRadius: '8px',
+                        objectFit: 'cover'
+                      }}
+                      allow="autoplay; encrypted-media"
+                      title={`${tutor.name} introduction video`}
+                    />
+                  ) : (
+                    <video
+                      ref={videoRef}
+                      src={videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"}
+                      muted
+                      loop
+                      playsInline
+                      preload="auto"
+                      onLoadedData={handleVideoLoad}
+                      onError={handleVideoError}
+                      className="video-preview"
+                      poster={avatarUrl}
+                      style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+                    />
+                  )}
                   <div className="video-play-overlay">
                     <svg className="play-icon" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M8 5v10l8-5-8-5z"/>

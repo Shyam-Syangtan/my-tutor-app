@@ -116,6 +116,25 @@ const TutorProfile: React.FC = () => {
     console.error('Video URL:', tutor?.video_url);
   };
 
+  // Helper function to convert YouTube URL to embed URL
+  const getYouTubeEmbedUrl = (url: string): string => {
+    if (!url) return '';
+
+    // Handle different YouTube URL formats
+    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(youtubeRegex);
+
+    if (match) {
+      return `https://www.youtube.com/embed/${match[1]}?controls=1&showinfo=1&rel=0&modestbranding=1`;
+    }
+
+    // If it's not a YouTube URL, return the original URL for direct video files
+    return url;
+  };
+
+  const videoUrl = getYouTubeEmbedUrl(tutor?.video_url || '');
+  const isYouTubeVideo = tutor?.video_url && (tutor.video_url.includes('youtube.com') || tutor.video_url.includes('youtu.be'));
+
   if (loading) {
     return (
       <div className="loading-screen">
@@ -307,22 +326,37 @@ const TutorProfile: React.FC = () => {
                     </div>
                   ) : (
                     <div className="video-player">
-                      <video
-                        ref={videoRef}
-                        controls
-                        muted={false}
-                        playsInline
-                        onLoadedData={handleVideoLoad}
-                        onError={handleVideoError}
-                        className="tutor-video"
-                        poster={avatarUrl}
-                        style={{ width: '100%', borderRadius: '8px' }}
-                      >
-                        <source src={tutor.video_url} type="video/mp4" />
-                        <source src={tutor.video_url} type="video/webm" />
-                        <source src={tutor.video_url} type="video/ogg" />
-                        Your browser does not support the video tag.
-                      </video>
+                      {isYouTubeVideo ? (
+                        <iframe
+                          src={videoUrl}
+                          className="tutor-video"
+                          style={{
+                            width: '100%',
+                            height: '300px',
+                            borderRadius: '8px',
+                            border: 'none'
+                          }}
+                          allow="autoplay; encrypted-media"
+                          title={`${tutor.name} introduction video`}
+                        />
+                      ) : (
+                        <video
+                          ref={videoRef}
+                          controls
+                          muted={false}
+                          playsInline
+                          onLoadedData={handleVideoLoad}
+                          onError={handleVideoError}
+                          className="tutor-video"
+                          poster={avatarUrl}
+                          style={{ width: '100%', borderRadius: '8px' }}
+                        >
+                          <source src={videoUrl} type="video/mp4" />
+                          <source src={videoUrl} type="video/webm" />
+                          <source src={videoUrl} type="video/ogg" />
+                          Your browser does not support the video tag.
+                        </video>
+                      )}
                       <button
                         className="btn btn-outline close-video-btn"
                         onClick={handleVideoToggle}
