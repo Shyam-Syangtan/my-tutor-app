@@ -1,25 +1,70 @@
 // Next.js App Component with Global Styles
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import '../styles/globals.css'
 
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter()
+  const [authInitialized, setAuthInitialized] = useState(false)
 
   useEffect(() => {
     // Handle authentication redirects
     const handleRouteChange = (url: string) => {
-      // Add any global route change logic here
       console.log('App is changing to: ', url)
     }
 
     router.events.on('routeChangeStart', handleRouteChange)
+
+    // Initialize authentication listener
+    const initAuth = async () => {
+      if (authInitialized) return
+
+      try {
+        const { supabase } = await import('../lib/supabase')
+
+        // Check for existing session
+        const { data: { session } } = await supabase.auth.getSession()
+        console.log('🔐 Initial session check:', session?.user?.email || 'No session')
+
+        // Set up auth state listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log('🔄 Auth state change:', event, session?.user?.email || 'No session')
+
+            if (event === 'SIGNED_IN' && session) {
+              console.log('✅ User signed in, redirecting to dashboard')
+              setTimeout(() => router.push('/dashboard'), 500)
+            } else if (event === 'SIGNED_OUT') {
+              console.log('👋 User signed out')
+              if (router.pathname !== '/' && router.pathname !== '/marketplace') {
+                router.push('/')
+              }
+            }
+          }
+        )
+
+        setAuthInitialized(true)
+        return subscription
+      } catch (error) {
+        console.error('❌ Auth initialization error:', error)
+        return null
+      }
+    }
+
+    let authSubscription: any = null
+    initAuth().then(subscription => {
+      authSubscription = subscription
+    })
+
     return () => {
       router.events.off('routeChangeStart', handleRouteChange)
+      if (authSubscription) {
+        authSubscription.unsubscribe()
+      }
     }
-  }, [router.events])
+  }, [router, authInitialized])
 
   return (
     <>

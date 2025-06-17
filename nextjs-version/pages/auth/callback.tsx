@@ -9,15 +9,15 @@ export default function AuthCallback() {
     const handleAuthCallback = async () => {
       try {
         console.log('🔄 Processing OAuth callback...')
-        
+
         // Dynamic import to avoid build-time issues
         const { supabase } = await import('../../lib/supabase')
-        
-        // Get the session from the URL hash
-        const { data: { session }, error } = await supabase.auth.getSession()
-        
-        console.log('📊 Callback session:', { session: !!session, error })
-        
+
+        // Handle the auth callback from URL
+        const { data, error } = await supabase.auth.getSession()
+
+        console.log('📊 Callback session:', { session: !!data.session, error })
+
         if (error) {
           console.error('❌ Auth callback error:', error)
           // Redirect to home with error
@@ -25,17 +25,39 @@ export default function AuthCallback() {
           return
         }
 
-        if (session) {
+        if (data.session) {
           console.log('✅ Authentication successful!')
-          console.log('👤 User:', session.user.email)
-          
-          // Redirect to dashboard
-          console.log('🚀 Redirecting to dashboard...')
-          router.push('/dashboard')
+          console.log('👤 User:', data.session.user.email)
+
+          // Small delay to ensure session is fully established
+          setTimeout(() => {
+            console.log('🚀 Redirecting to dashboard...')
+            router.push('/dashboard')
+          }, 1000)
         } else {
-          console.log('⚠️ No session found in callback')
-          // Redirect to home
-          router.push('/')
+          console.log('⚠️ No session found in callback, checking URL hash...')
+
+          // Try to get session from URL hash (for OAuth flow)
+          const hashParams = new URLSearchParams(window.location.hash.substring(1))
+          const accessToken = hashParams.get('access_token')
+
+          if (accessToken) {
+            console.log('🔑 Found access token in URL, waiting for session...')
+            // Wait a bit for Supabase to process the session
+            setTimeout(async () => {
+              const { data: sessionData } = await supabase.auth.getSession()
+              if (sessionData.session) {
+                console.log('✅ Session established after delay')
+                router.push('/dashboard')
+              } else {
+                console.log('❌ Still no session after delay')
+                router.push('/?error=session_failed')
+              }
+            }, 2000)
+          } else {
+            console.log('❌ No access token found, redirecting home')
+            router.push('/')
+          }
         }
       } catch (error) {
         console.error('💥 Callback processing error:', error)
