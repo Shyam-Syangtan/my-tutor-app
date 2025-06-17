@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { generateMetadata, generateMarketplaceStructuredData } from '../lib/seo'
-import { db } from '../lib/db'
 import { supabase } from '../lib/supabase'
 
 interface LandingPageProps {
@@ -252,9 +251,17 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
 // Static Site Generation for SEO
 export const getStaticProps: GetStaticProps = async () => {
   try {
-    // Fetch tutors data for SEO
-    const { data: tutors } = await db.getTutors()
-    
+    // Fetch tutors data for SEO using Supabase directly
+    const { data: tutors, error } = await supabase
+      .from('tutors')
+      .select('*')
+      .eq('approved', true)
+      .limit(10)
+
+    if (error) {
+      console.error('Error fetching tutors:', error)
+    }
+
     return {
       props: {
         tutors: tutors || [],
