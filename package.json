@@ -1,14 +1,26 @@
 {
-  "name": "my-tutor-app",
-  "version": "1.0.0",
+  "name": "indiantutors-nextjs",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "dev": "cd nextjs-version && npm run dev",
-    "build": "cd nextjs-version && npm run build",
-    "start": "cd nextjs-version && npm run start",
-    "install-deps": "cd nextjs-version && npm install"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "export": "next export"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "Indian Tutors - Language Learning Platform"
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.0",
+    "next": "14.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.5",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "eslint-config-next": "14.0.4"
+  }
 }
