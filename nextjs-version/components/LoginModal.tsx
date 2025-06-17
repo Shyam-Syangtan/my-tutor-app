@@ -7,15 +7,22 @@ interface LoginModalProps {
   showErrorMessage: (message: string) => void
 }
 
-export default function LoginModal({ 
-  isOpen, 
-  onClose, 
-  showSuccessMessage, 
-  showErrorMessage 
+export default function LoginModal({
+  isOpen,
+  onClose,
+  showSuccessMessage,
+  showErrorMessage
 }: LoginModalProps) {
   const [isLoading, setIsLoading] = useState(false)
 
-  if (!isOpen) return null
+  console.log('🔥 LoginModal render - isOpen:', isOpen)
+
+  if (!isOpen) {
+    console.log('🔥 LoginModal not open, returning null')
+    return null
+  }
+
+  console.log('🔥 LoginModal is open, rendering modal')
 
   const handleGoogleLogin = async () => {
     setIsLoading(true)

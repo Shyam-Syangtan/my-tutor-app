@@ -16,6 +16,16 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
+  // Debug logging
+  useEffect(() => {
+    console.log('🔥 LandingPage component mounted!')
+    console.log('🔥 showLoginModal state:', showLoginModal)
+  }, [])
+
+  useEffect(() => {
+    console.log('🔥 showLoginModal state changed:', showLoginModal)
+  }, [showLoginModal])
+
   const showSuccessMessage = (text: string) => {
     setMessage({ type: 'success', text })
     setTimeout(() => setMessage(null), 5000)
@@ -74,9 +84,14 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
             </Link>
             <div className="nav-links">
               <Link href="/marketplace" className="nav-link">Find a Teacher</Link>
-              <button 
+              <button
                 className="btn btn-primary"
-                onClick={() => setShowLoginModal(true)}
+                onClick={() => {
+                  console.log('🔥 LOGIN BUTTON CLICKED!')
+                  console.log('🔥 Current state:', showLoginModal)
+                  setShowLoginModal(true)
+                  console.log('🔥 State should now be true')
+                }}
               >
                 Log in
               </button>
@@ -102,9 +117,14 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
                 Flexible schedules and prices
               </li>
             </ul>
-            <button 
+            <button
               className="btn btn-primary cta-button"
-              onClick={() => setShowLoginModal(true)}
+              onClick={() => {
+                console.log('🔥 CTA BUTTON CLICKED!')
+                console.log('🔥 Current state:', showLoginModal)
+                setShowLoginModal(true)
+                console.log('🔥 State should now be true')
+              }}
             >
               <span className="google-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24">
