@@ -16,37 +16,76 @@ export default function LoginModal({
   const [isLoading, setIsLoading] = useState(false)
 
   console.log('🔥 LoginModal render - isOpen:', isOpen)
+  console.log('🔥 LoginModal props:', { isOpen, onClose, showSuccessMessage, showErrorMessage })
 
-  // SIMPLE TEST - Always render something when isOpen is true
+  // ALWAYS RENDER SOMETHING FOR DEBUGGING - Don't return null
   if (!isOpen) {
-    console.log('🔥 LoginModal not open, returning null')
-    return null
+    console.log('🔥 LoginModal not open, but still rendering debug div')
+    return (
+      <div style={{
+        position: 'fixed',
+        top: '10px',
+        right: '10px',
+        backgroundColor: 'orange',
+        color: 'black',
+        padding: '10px',
+        zIndex: 999999,
+        fontSize: '12px'
+      }}>
+        Modal component loaded but isOpen=false
+      </div>
+    )
   }
 
   console.log('🔥 LoginModal is open, rendering modal')
   console.log('🔥 About to render modal JSX')
 
-  // SIMPLE TEST MODAL - Just a big red box
+  // ULTRA AGGRESSIVE TEST MODAL - Should be impossible to miss
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(255, 0, 0, 0.9)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 99999,
-      fontSize: '24px',
-      color: 'white',
-      fontWeight: 'bold'
-    }} onClick={onClose}>
-      <div>
-        MODAL IS WORKING! Click anywhere to close.
+    <>
+      <div style={{
+        position: 'fixed',
+        top: '0px',
+        left: '0px',
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'red',
+        zIndex: 999999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '48px',
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        cursor: 'pointer'
+      }} onClick={onClose}>
+        <div>
+          🔥 MODAL IS WORKING! 🔥<br/>
+          Click anywhere to close.<br/>
+          State: {isOpen ? 'OPEN' : 'CLOSED'}
+        </div>
       </div>
-    </div>
+
+      {/* Also add a portal version in case there's a rendering context issue */}
+      <div style={{
+        position: 'absolute',
+        top: '50px',
+        left: '50px',
+        width: '300px',
+        height: '200px',
+        backgroundColor: 'blue',
+        color: 'white',
+        zIndex: 999999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '16px',
+        fontWeight: 'bold'
+      }}>
+        BACKUP MODAL VISIBLE
+      </div>
+    </>
   )
 }
 
