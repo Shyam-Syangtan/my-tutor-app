@@ -17,6 +17,19 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
   const [showLoginModal, setShowLoginModal] = useState(false)
   const router = useRouter()
 
+  // Test if React is working
+  useEffect(() => {
+    console.log('React component mounted successfully!')
+    console.log('Tutors data:', tutors)
+    console.log('Tutor count:', tutorCount)
+  }, [])
+
+  // Simple test function first
+  const testClick = () => {
+    alert('TEST: Button is working!')
+    console.log('TEST: Button clicked successfully')
+  }
+
   const handleGoogleLogin = async () => {
     console.log('Google login button clicked!')
     alert('Button clicked! Check console for details.')
@@ -96,7 +109,7 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
               <Link href="/marketplace" className="nav-link">Find a Teacher</Link>
               <button
                 className="btn btn-primary"
-                onClick={handleGoogleLogin}
+                onClick={testClick}
               >
                 Log in
               </button>
@@ -124,7 +137,7 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
             </ul>
             <button
               className="btn btn-primary cta-button"
-              onClick={handleGoogleLogin}
+              onClick={testClick}
             >
               <span className="google-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24">
