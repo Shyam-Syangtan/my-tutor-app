@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
 
-  // Image optimization for Vercel
+  // Image optimization for Vercel - NO STATIC EXPORT
   images: {
     domains: ['qbyyutebrgpxngvwenkd.supabase.co', 'lh3.googleusercontent.com']
   },
