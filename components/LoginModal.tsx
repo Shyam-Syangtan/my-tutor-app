@@ -29,31 +29,44 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   const handleGoogleLogin = async () => {
     setIsLoading(true)
-    console.log('Initiating Supabase Google login...')
+    console.log('🚀 Initiating Google OAuth login...')
 
     try {
       // Dynamic import to avoid build-time issues
       const { supabase } = await import('../lib/supabase')
 
+      console.log('📡 Calling Supabase OAuth with redirect:', `${window.location.origin}/dashboard`)
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       })
 
+      console.log('📊 OAuth response:', { data, error })
+
       if (error) {
-        console.error('Supabase auth error:', error)
+        console.error('❌ Supabase OAuth error:', error)
         showErrorMessage('Login failed: ' + error.message)
         setIsLoading(false)
       } else {
-        console.log('Google login initiated successfully')
+        console.log('✅ Google OAuth initiated successfully!')
+        console.log('🔗 OAuth URL:', data?.url)
+
+        // Close modal and show success message
         onClose()
-        showSuccessMessage('Redirecting to Google...')
+        showSuccessMessage('Opening Google login...')
+
+        // The browser should automatically redirect to Google
         // Don't set loading to false here as we're redirecting
       }
     } catch (error) {
-      console.error('Login error:', error)
+      console.error('💥 Login error:', error)
       showErrorMessage('Login failed. Please try again.')
       setIsLoading(false)
     }

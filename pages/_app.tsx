@@ -23,30 +23,46 @@ export default function App({ Component, pageProps }: AppProps) {
         // Dynamic import to avoid build-time issues
         const { supabase } = await import('../lib/supabase')
 
+        // Check for existing session first
+        const { data: { session: initialSession } } = await supabase.auth.getSession()
+        if (initialSession) {
+          console.log('Found existing session on app load:', initialSession.user.email)
+          // If we're on the landing page and user is logged in, redirect to dashboard
+          if (router.pathname === '/') {
+            console.log('Redirecting logged-in user to dashboard')
+            router.push('/dashboard')
+          }
+        }
+
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
-            console.log('Auth state change:', event, session?.user?.email)
+            console.log('🔐 Auth state change:', event, session?.user?.email)
 
             if (event === 'SIGNED_IN' && session) {
-              console.log('User signed in, redirecting to dashboard')
-              // Only redirect if we're on the landing page
-              if (router.pathname === '/') {
+              console.log('✅ User signed in successfully!')
+
+              // Small delay to ensure the session is fully established
+              setTimeout(() => {
+                console.log('🚀 Redirecting to dashboard...')
                 router.push('/dashboard')
-              }
+              }, 500)
+
             } else if (event === 'SIGNED_OUT') {
-              console.log('User signed out, redirecting to home')
+              console.log('👋 User signed out')
               // Only redirect if we're on a protected page
               if (router.pathname !== '/' && router.pathname !== '/marketplace') {
                 router.push('/')
               }
+            } else if (event === 'TOKEN_REFRESHED') {
+              console.log('🔄 Token refreshed')
             }
           }
         )
 
         return subscription
       } catch (error) {
-        console.error('Auth state change error:', error)
+        console.error('❌ Auth state change error:', error)
         return null
       }
     }
