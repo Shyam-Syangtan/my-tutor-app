@@ -23,7 +23,10 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
   }, [])
 
   useEffect(() => {
-    console.log('🔥 showLoginModal state changed:', showLoginModal)
+    console.log('🔥 showLoginModal state changed to:', showLoginModal)
+    if (showLoginModal) {
+      console.log('🔥 Modal should be visible now!')
+    }
   }, [showLoginModal])
 
   const showSuccessMessage = (text: string) => {
@@ -233,59 +236,76 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
         </footer>
 
         {/* Login Modal */}
-        {console.log('🔥 About to render LoginModal with isOpen:', showLoginModal)}
+        {console.log('🔥 RENDER: About to render with showLoginModal =', showLoginModal)}
 
-        {/* Test Modal - Simple version */}
-        {showLoginModal && (
+        {/* Test Modal - Simple version with more visibility */}
+        {showLoginModal ? (
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            key="test-modal"
             style={{
               position: 'fixed',
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              backgroundColor: 'rgba(255, 0, 0, 0.8)', // Red background to make it super obvious
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              zIndex: 9999
+              zIndex: 99999,
+              fontSize: '24px',
+              color: 'white',
+              fontWeight: 'bold'
+            }}
+            onClick={() => {
+              console.log('🔥 Clicking overlay to close')
+              setShowLoginModal(false)
             }}
           >
             <div
-              className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
               style={{
                 backgroundColor: 'white',
+                color: 'black',
                 borderRadius: '8px',
-                maxWidth: '400px',
-                width: '100%',
+                maxWidth: '500px',
+                width: '90%',
                 margin: '0 16px',
-                padding: '24px'
+                padding: '40px',
+                textAlign: 'center',
+                border: '5px solid red'
               }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <h2 style={{ marginBottom: '16px', fontSize: '20px', fontWeight: 'bold' }}>
-                Test Modal Working!
+              <h2 style={{ marginBottom: '20px', fontSize: '28px', fontWeight: 'bold', color: 'red' }}>
+                🎉 TEST MODAL IS WORKING! 🎉
               </h2>
-              <p style={{ marginBottom: '16px' }}>
-                If you can see this, the modal state is working correctly.
+              <p style={{ marginBottom: '20px', fontSize: '18px' }}>
+                State management is working correctly!<br/>
+                showLoginModal = {String(showLoginModal)}
               </p>
               <button
                 onClick={() => {
-                  console.log('🔥 Closing test modal')
+                  console.log('🔥 Closing test modal via button')
                   setShowLoginModal(false)
                 }}
                 style={{
                   backgroundColor: '#00C2B3',
                   color: 'white',
-                  padding: '8px 16px',
-                  borderRadius: '4px',
+                  padding: '12px 24px',
+                  borderRadius: '6px',
                   border: 'none',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
                 }}
               >
                 Close Test Modal
               </button>
             </div>
+          </div>
+        ) : (
+          <div key="no-modal" style={{ display: 'none' }}>
+            {console.log('🔥 RENDER: Modal should NOT be visible, showLoginModal =', showLoginModal)}
           </div>
         )}
 
