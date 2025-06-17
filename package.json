@@ -1,23 +1,14 @@
 {
-  "dependencies": {
-    "@supabase/supabase-js": "^2.50.0"
-  },
   "name": "my-tutor-app",
   "version": "1.0.0",
-  "main": "authService.js",
-  "devDependencies": {
-    "gh-pages": "^6.3.0",
-    "vite": "^6.3.5"
-  },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "deploy": "npm run build && gh-pages -d dist -r https://github.com/Shyam-Syangtan/my-tutor-app.git",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "cd nextjs-version && npm run dev",
+    "build": "cd nextjs-version && npm run build",
+    "start": "cd nextjs-version && npm run start",
+    "install-deps": "cd nextjs-version && npm install"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "Indian Tutors - Language Learning Platform"
 }
