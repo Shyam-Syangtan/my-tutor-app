@@ -2,22 +2,12 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  
-  // Enable static exports for better SEO
-  output: 'export',
-  trailingSlash: true,
-  
-  // Image optimization
+
+  // Image optimization for Vercel
   images: {
-    unoptimized: true, // Required for static export
     domains: ['qbyyutebrgpxngvwenkd.supabase.co', 'lh3.googleusercontent.com']
   },
-  
-  // SEO optimizations
-  async generateBuildId() {
-    return 'indiantutors-build'
-  },
-  
+
   // Environment variables
   env: {
     NEXT_PUBLIC_SUPABASE_URL: 'https://qbyyutebrgpxngvwenkd.supabase.co',

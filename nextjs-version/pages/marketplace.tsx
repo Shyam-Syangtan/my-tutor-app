@@ -329,8 +329,7 @@ export const getStaticProps: GetStaticProps = async () => {
       props: {
         tutors: sampleTutors,
         languages
-      },
-
+      }
     }
   } catch (error) {
     console.error('Error fetching tutors for marketplace:', error)
@@ -338,8 +337,7 @@ export const getStaticProps: GetStaticProps = async () => {
       props: {
         tutors: [],
         languages: []
-      },
-
+      }
     }
   }
 }
