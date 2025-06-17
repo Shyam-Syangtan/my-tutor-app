@@ -16,10 +16,54 @@ export default function App({ Component, pageProps }: AppProps) {
     }
 
     router.events.on('routeChangeStart', handleRouteChange)
+
+    // Handle authentication state changes
+    const handleAuthStateChange = async () => {
+      try {
+        // Dynamic import to avoid build-time issues
+        const { supabase } = await import('../lib/supabase')
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log('Auth state change:', event, session?.user?.email)
+
+            if (event === 'SIGNED_IN' && session) {
+              console.log('User signed in, redirecting to dashboard')
+              // Only redirect if we're on the landing page
+              if (router.pathname === '/') {
+                router.push('/dashboard')
+              }
+            } else if (event === 'SIGNED_OUT') {
+              console.log('User signed out, redirecting to home')
+              // Only redirect if we're on a protected page
+              if (router.pathname !== '/' && router.pathname !== '/marketplace') {
+                router.push('/')
+              }
+            }
+          }
+        )
+
+        return subscription
+      } catch (error) {
+        console.error('Auth state change error:', error)
+        return null
+      }
+    }
+
+    // Initialize auth listener
+    let authSubscription: any = null
+    handleAuthStateChange().then(subscription => {
+      authSubscription = subscription
+    })
+
     return () => {
       router.events.off('routeChangeStart', handleRouteChange)
+      if (authSubscription) {
+        authSubscription.unsubscribe()
+      }
     }
-  }, [router.events])
+  }, [router])
 
   return (
     <>

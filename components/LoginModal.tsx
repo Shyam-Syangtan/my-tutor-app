@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface LoginModalProps {
   isOpen: boolean
@@ -8,38 +8,103 @@ interface LoginModalProps {
 export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [isLoading, setIsLoading] = useState(false)
 
+  // Close modal on Escape key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape)
+      document.body.style.overflow = 'hidden'
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+      document.body.style.overflow = ''
+    }
+  }, [isOpen, onClose])
+
   const handleGoogleLogin = async () => {
     setIsLoading(true)
-    console.log('Google OAuth initiated from modal')
-    
+    console.log('Initiating Supabase Google login...')
+
     try {
       // Dynamic import to avoid build-time issues
       const { supabase } = await import('../lib/supabase')
-      
-      console.log('Attempting Supabase OAuth...')
-      
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/dashboard`
         }
       })
-      
-      console.log('OAuth response:', { data, error })
-      
+
       if (error) {
-        console.error('Login error:', error)
-        alert(`Login failed: ${error.message}`)
+        console.error('Supabase auth error:', error)
+        showErrorMessage('Login failed: ' + error.message)
         setIsLoading(false)
       } else {
-        console.log('OAuth initiated successfully - redirecting to Google...')
+        console.log('Google login initiated successfully')
+        onClose()
+        showSuccessMessage('Redirecting to Google...')
         // Don't set loading to false here as we're redirecting
       }
     } catch (error) {
       console.error('Login error:', error)
-      alert(`Login failed: ${error}`)
+      showErrorMessage('Login failed. Please try again.')
       setIsLoading(false)
     }
+  }
+
+  const showSuccessMessage = (message: string) => {
+    const successDiv = document.createElement('div')
+    successDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #38B000;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      z-index: 10000;
+      font-family: Inter, sans-serif;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `
+    successDiv.textContent = message
+    document.body.appendChild(successDiv)
+
+    setTimeout(() => {
+      if (document.body.contains(successDiv)) {
+        document.body.removeChild(successDiv)
+      }
+    }, 3000)
+  }
+
+  const showErrorMessage = (message: string) => {
+    const errorDiv = document.createElement('div')
+    errorDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #DC2626;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      z-index: 10000;
+      font-family: Inter, sans-serif;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `
+    errorDiv.textContent = message
+    document.body.appendChild(errorDiv)
+
+    setTimeout(() => {
+      if (document.body.contains(errorDiv)) {
+        document.body.removeChild(errorDiv)
+      }
+    }, 5000)
   }
 
   const handleOverlayClick = (e: React.MouseEvent) => {
