@@ -8,6 +8,8 @@ interface LoginModalProps {
 export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [isLoading, setIsLoading] = useState(false)
 
+  console.log('🔥 LoginModal render - isOpen:', isOpen)
+
   // Close modal on Escape key
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {

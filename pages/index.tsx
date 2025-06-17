@@ -24,8 +24,10 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
   }, [])
 
   const handleLoginClick = () => {
-    console.log('Login button clicked - opening modal')
+    console.log('🔥 LOGIN BUTTON CLICKED - Opening modal')
+    console.log('🔥 Current showLoginModal state:', showLoginModal)
     setShowLoginModal(true)
+    console.log('🔥 Modal state set to true')
   }
 
   const handleCloseModal = () => {
