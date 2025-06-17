@@ -1,4 +1,4 @@
-# IndianTutors - Next.js SEO-Optimized Version
+# IndianTutors - Next.js SEO-Optimized Version (Build Fix)
 
 This is the SEO-friendly Next.js version of the IndianTutors platform, designed for optimal search engine visibility and performance.
 
