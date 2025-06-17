@@ -330,8 +330,7 @@ export const getStaticProps: GetStaticProps = async () => {
         tutors: sampleTutors,
         languages
       },
-      // Revalidate every 30 minutes
-      revalidate: 1800
+
     }
   } catch (error) {
     console.error('Error fetching tutors for marketplace:', error)
@@ -340,7 +339,7 @@ export const getStaticProps: GetStaticProps = async () => {
         tutors: [],
         languages: []
       },
-      revalidate: 1800
+
     }
   }
 }

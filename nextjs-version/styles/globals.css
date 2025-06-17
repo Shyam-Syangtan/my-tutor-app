@@ -375,7 +375,7 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
-    align-items: end;
+    align-items: flex-end;
 }
 
 .filter-group, .search-group {

@@ -214,9 +214,7 @@ export const getStaticProps: GetStaticProps = async () => {
       props: {
         tutors: tutors || [],
         tutorCount: tutors?.length || 0
-      },
-      // Revalidate every hour
-      revalidate: 3600
+      }
     }
   } catch (error) {
     console.error('Error fetching tutors for landing page:', error)
@@ -224,8 +222,7 @@ export const getStaticProps: GetStaticProps = async () => {
       props: {
         tutors: [],
         tutorCount: 0
-      },
-      revalidate: 3600
+      }
     }
   }
 }

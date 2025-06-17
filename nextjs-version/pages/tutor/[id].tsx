@@ -313,8 +313,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       props: {
         tutor: sampleTutor
       },
-      // Revalidate every hour
-      revalidate: 3600
+
     }
   } catch (error) {
     console.error('Error fetching tutor:', error)
