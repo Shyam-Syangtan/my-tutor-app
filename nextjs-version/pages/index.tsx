@@ -233,9 +233,68 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
         </footer>
 
         {/* Login Modal */}
+        {console.log('🔥 About to render LoginModal with isOpen:', showLoginModal)}
+
+        {/* Test Modal - Simple version */}
+        {showLoginModal && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999
+            }}
+          >
+            <div
+              className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6"
+              style={{
+                backgroundColor: 'white',
+                borderRadius: '8px',
+                maxWidth: '400px',
+                width: '100%',
+                margin: '0 16px',
+                padding: '24px'
+              }}
+            >
+              <h2 style={{ marginBottom: '16px', fontSize: '20px', fontWeight: 'bold' }}>
+                Test Modal Working!
+              </h2>
+              <p style={{ marginBottom: '16px' }}>
+                If you can see this, the modal state is working correctly.
+              </p>
+              <button
+                onClick={() => {
+                  console.log('🔥 Closing test modal')
+                  setShowLoginModal(false)
+                }}
+                style={{
+                  backgroundColor: '#00C2B3',
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '4px',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                Close Test Modal
+              </button>
+            </div>
+          </div>
+        )}
+
         <LoginModal
           isOpen={showLoginModal}
-          onClose={() => setShowLoginModal(false)}
+          onClose={() => {
+            console.log('🔥 Closing modal')
+            setShowLoginModal(false)
+          }}
           showSuccessMessage={showSuccessMessage}
           showErrorMessage={showErrorMessage}
         />
