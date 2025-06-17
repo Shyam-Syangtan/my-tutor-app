@@ -2,6 +2,16 @@
 
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /dashboard
+Disallow: /student-dashboard
+Disallow: /tutor-dashboard
+Disallow: /messages
+Disallow: /become-tutor
+Disallow: /book-lesson
+
+Sitemap: https://your-vercel-domain.vercel.app/sitemap.xml
 
 # Important pages for SEO
 Allow: /marketplace

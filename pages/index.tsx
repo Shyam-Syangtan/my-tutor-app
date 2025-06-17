@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { generateMetadata, generateMarketplaceStructuredData } from '../lib/seo'
-import { db } from '../lib/supabase'
+import { db } from '../lib/db'
 import { supabase } from '../lib/supabase'
 
 interface LandingPageProps {
@@ -18,7 +18,13 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
   const router = useRouter()
 
   const handleGoogleLogin = async () => {
+    console.log('Google login button clicked!')
+    alert('Button clicked! Check console for details.')
+
     try {
+      console.log('Attempting Supabase OAuth...')
+      console.log('Supabase client:', supabase)
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -26,13 +32,17 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
         }
       })
 
+      console.log('OAuth response:', { data, error })
+
       if (error) {
         console.error('Login error:', error)
-        alert('Login failed. Please try again.')
+        alert(`Login failed: ${error.message}`)
+      } else {
+        console.log('OAuth initiated successfully')
       }
     } catch (error) {
       console.error('Login error:', error)
-      alert('Login failed. Please try again.')
+      alert(`Login failed: ${error}`)
     }
   }
 
