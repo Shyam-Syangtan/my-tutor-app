@@ -6,7 +6,7 @@ const nextConfig = {
   // Ensure Vercel builds from root directory
   distDir: '.next',
 
-  // Image optimization for Vercel - NO STATIC EXPORT
+  // Image optimization for Vercel - MIGRATED TO NEXT.JS
   images: {
     domains: ['qbyyutebrgpxngvwenkd.supabase.co', 'lh3.googleusercontent.com']
   },
