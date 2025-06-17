@@ -11,13 +11,87 @@ interface MarketplaceProps {
   languages: string[]
 }
 
-export default function Marketplace({ tutors, languages }: MarketplaceProps) {
-  const [filteredTutors, setFilteredTutors] = useState(tutors)
+export default function Marketplace({ tutors: initialTutors, languages }: MarketplaceProps) {
+  const [tutors, setTutors] = useState(initialTutors)
+  const [filteredTutors, setFilteredTutors] = useState(initialTutors)
+  const [loading, setLoading] = useState(false)
+  const [user, setUser] = useState<any>(null)
   const [filters, setFilters] = useState({
     language: '',
     priceRange: '',
     searchTerm: ''
   })
+
+  // Load real tutors from database on client side
+  useEffect(() => {
+    checkAuth()
+    loadRealTutors()
+  }, [])
+
+  const checkAuth = async () => {
+    try {
+      const { supabase } = await import('../lib/supabase')
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        setUser(session.user)
+      }
+    } catch (error) {
+      console.error('Auth check error:', error)
+    }
+  }
+
+  const loadRealTutors = async () => {
+    setLoading(true)
+    try {
+      console.log('🔍 Loading real tutors from database...')
+      const { supabase } = await import('../lib/supabase')
+
+      const { data, error } = await supabase
+        .from('tutors')
+        .select('*')
+        .eq('approved', true)
+        .order('rating', { ascending: false })
+
+      if (error) {
+        console.error('❌ Database error loading tutors:', error)
+        return
+      }
+
+      if (data && data.length > 0) {
+        console.log('✅ Loaded', data.length, 'real approved tutors')
+        setTutors(data)
+        setFilteredTutors(data)
+      } else {
+        console.log('No approved tutors found, keeping sample data')
+      }
+    } catch (error) {
+      console.error('Error loading real tutors:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSignOut = async () => {
+    try {
+      const { supabase } = await import('../lib/supabase')
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      window.location.href = '/'
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
+
+  const getUserName = () => {
+    if (!user) return null
+    return user.user_metadata?.full_name || user.email?.split('@')[0] || 'Student'
+  }
+
+  const getUserAvatar = () => {
+    if (!user) return null
+    const userName = getUserName()
+    return user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName || '')}&background=6366f1&color=fff&size=40`
+  }
 
   const metadata = generateMetadata({
     title: 'Find Your Perfect Language Tutor',
@@ -107,8 +181,32 @@ export default function Marketplace({ tutors, languages }: MarketplaceProps) {
             </Link>
             <div className="nav-links">
               <Link href="/marketplace" className="nav-link active">Find a Teacher</Link>
-              <Link href="/dashboard" className="nav-link">Dashboard</Link>
-              <button className="btn btn-primary">Log in</button>
+
+              {user ? (
+                <>
+                  <Link href="/dashboard" className="nav-link">Dashboard</Link>
+                  <div className="profile-dropdown">
+                    <div className="profile-trigger">
+                      <img
+                        src={getUserAvatar() || ''}
+                        alt={getUserName() || ''}
+                        className="profile-avatar"
+                      />
+                      <span>{getUserName()}</span>
+                    </div>
+                    <div className="profile-menu">
+                      <Link href="/dashboard" className="profile-menu-item">
+                        Dashboard
+                      </Link>
+                      <button onClick={handleSignOut} className="profile-menu-item">
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <Link href="/" className="btn btn-primary">Log in</Link>
+              )}
             </div>
           </div>
         </nav>
@@ -180,10 +278,23 @@ export default function Marketplace({ tutors, languages }: MarketplaceProps) {
 
         {/* Results */}
         <div className="marketplace-results">
-          {filteredTutors.length === 0 ? (
+          {loading ? (
+            <div className="loading-screen">
+              <div className="loading-content">
+                <div className="loading-spinner"></div>
+                <p className="loading-text">Loading tutors...</p>
+              </div>
+            </div>
+          ) : filteredTutors.length === 0 ? (
             <div className="no-results">
               <h3>No tutors found</h3>
               <p>Try adjusting your filters or search terms.</p>
+              <button
+                onClick={() => setFilters({ language: '', priceRange: '', searchTerm: '' })}
+                className="btn btn-primary"
+              >
+                Clear Filters
+              </button>
             </div>
           ) : (
             <div className="tutors-list">
@@ -194,7 +305,7 @@ export default function Marketplace({ tutors, languages }: MarketplaceProps) {
                       <div className="tutor-left-section">
                         <div className="tutor-header">
                           <img
-                            src={tutor.photo_url || '/default-avatar.jpg'}
+                            src={tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff`}
                             alt={tutor.name}
                             className="tutor-avatar"
                             loading="lazy"
@@ -202,11 +313,12 @@ export default function Marketplace({ tutors, languages }: MarketplaceProps) {
                           <div className="tutor-info">
                             <h3 className="tutor-name">{tutor.name}</h3>
                             <p className="tutor-language">
-                              {tutor.language} • {tutor.native_language}
+                              {tutor.language} Teacher
+                              {tutor.country_flag && <span> {tutor.country_flag}</span>}
                             </p>
                             <div className="tutor-stats">
                               <span className="rating">
-                                ⭐ {tutor.rating}
+                                ⭐ {tutor.rating || 4.5}
                               </span>
                               <span className="students">
                                 👥 {tutor.total_students || 0} students
@@ -214,12 +326,18 @@ export default function Marketplace({ tutors, languages }: MarketplaceProps) {
                               <span className="lessons">
                                 📚 {tutor.total_lessons || 0} lessons
                               </span>
+                              {tutor.is_professional && (
+                                <span className="professional">✅ Professional</span>
+                              )}
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="tutor-bio">
-                          <p>{tutor.bio_headline || tutor.bio?.substring(0, 150) + '...'}</p>
+                          <p>{tutor.bio?.substring(0, 150)}{tutor.bio?.length > 150 ? '...' : ''}</p>
+                          {tutor.experience && (
+                            <p className="experience">📚 {tutor.experience}</p>
+                          )}
                         </div>
                       </div>
 
@@ -236,9 +354,21 @@ export default function Marketplace({ tutors, languages }: MarketplaceProps) {
                           >
                             View Profile
                           </Link>
-                          <button className="btn btn-primary">
-                            Contact
-                          </button>
+                          {user ? (
+                            <Link
+                              href={`/messages?tutor=${tutor.id}`}
+                              className="btn btn-primary"
+                            >
+                              Contact
+                            </Link>
+                          ) : (
+                            <Link
+                              href="/"
+                              className="btn btn-primary"
+                            >
+                              Login to Contact
+                            </Link>
+                          )}
                         </div>
                       </div>
                     </div>

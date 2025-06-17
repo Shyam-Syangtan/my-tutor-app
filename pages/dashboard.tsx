@@ -110,30 +110,104 @@ export default function Dashboard({ initialTutors }: DashboardProps) {
 
   const loadDashboardData = async () => {
     try {
-      // Load upcoming lessons (mock data for now)
-      setLessons([
-        {
-          id: '1',
-          date: 'June 12',
-          time: '16:30',
-          language: 'Hindi',
-          duration: 60,
-          tutor_name: 'Rajesh Kumar'
-        },
-        {
-          id: '2',
-          date: 'June 14',
-          time: '18:00',
-          language: 'Tamil',
-          duration: 45,
-          tutor_name: 'Priya Sharma'
-        }
+      await Promise.all([
+        loadTopTutors(),
+        loadUpcomingLessons()
       ]);
-
       setLoading(false);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
       setLoading(false);
+    }
+  };
+
+  const loadTopTutors = async () => {
+    try {
+      console.log('🔍 Loading top 3 approved tutors...');
+
+      const { data: tutorsData, error } = await supabase
+        .from('tutors')
+        .select('*')
+        .eq('approved', true)
+        .order('rating', { ascending: false })
+        .limit(3);
+
+      if (error) {
+        console.error('Error loading tutors:', error);
+        return;
+      }
+
+      if (!tutorsData || tutorsData.length === 0) {
+        console.log('No approved tutors found');
+        setTeachers([]);
+        return;
+      }
+
+      const transformedTeachers: Teacher[] = tutorsData.map(tutor => ({
+        id: tutor.id,
+        name: tutor.name,
+        language: `${tutor.language} Teacher`,
+        rating: tutor.rating || 4.5,
+        rate: tutor.rate,
+        avatar_url: tutor.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(tutor.name)}&background=6366f1&color=fff`
+      }));
+
+      console.log('✅ Loaded', transformedTeachers.length, 'tutors');
+      setTeachers(transformedTeachers);
+    } catch (error) {
+      console.error('Error in loadTopTutors:', error);
+    }
+  };
+
+  const loadUpcomingLessons = async () => {
+    if (!user) return;
+
+    try {
+      console.log('🔍 Loading upcoming lessons for user:', user.id);
+
+      const { data: lessonsData, error } = await supabase
+        .from('lessons')
+        .select(`
+          *,
+          tutors (
+            name,
+            language
+          )
+        `)
+        .eq('student_id', user.id)
+        .eq('status', 'approved')
+        .gte('requested_date', new Date().toISOString().split('T')[0])
+        .order('requested_date', { ascending: true })
+        .order('requested_start', { ascending: true })
+        .limit(5);
+
+      if (error) {
+        console.error('Error loading lessons:', error);
+        return;
+      }
+
+      if (!lessonsData || lessonsData.length === 0) {
+        console.log('No upcoming lessons found');
+        setLessons([]);
+        return;
+      }
+
+      const transformedLessons: Lesson[] = lessonsData.map(lesson => ({
+        id: lesson.id,
+        date: new Date(lesson.requested_date).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric'
+        }),
+        time: lesson.requested_start,
+        language: lesson.tutors?.language || 'Language',
+        duration: 60, // Default duration
+        tutor_name: lesson.tutors?.name || 'Tutor'
+      }));
+
+      console.log('✅ Loaded', transformedLessons.length, 'upcoming lessons');
+      setLessons(transformedLessons);
+    } catch (error) {
+      console.error('Error in loadUpcomingLessons:', error);
     }
   };
 
