@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { generateMetadata, generateMarketplaceStructuredData } from '../lib/seo'
+import LoginModal from '../components/LoginModal'
 
 interface LandingPageProps {
   tutors: any[]
@@ -22,35 +23,13 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
     console.log('Tutor count:', tutorCount)
   }, [])
 
-  const handleGoogleLogin = async () => {
-    console.log('Google login button clicked!')
+  const handleLoginClick = () => {
+    console.log('Login button clicked - opening modal')
+    setShowLoginModal(true)
+  }
 
-    try {
-      // Dynamic import to avoid build-time issues
-      const { supabase } = await import('../lib/supabase')
-
-      console.log('Attempting Supabase OAuth...')
-      console.log('Supabase client:', supabase)
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`
-        }
-      })
-
-      console.log('OAuth response:', { data, error })
-
-      if (error) {
-        console.error('Login error:', error)
-        alert(`Login failed: ${error.message}`)
-      } else {
-        console.log('OAuth initiated successfully - redirecting to Google...')
-      }
-    } catch (error) {
-      console.error('Login error:', error)
-      alert(`Login failed: ${error}`)
-    }
+  const handleCloseModal = () => {
+    setShowLoginModal(false)
   }
 
   const metadata = generateMetadata({
@@ -103,7 +82,7 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
               <Link href="/marketplace" className="nav-link">Find a Teacher</Link>
               <button
                 className="btn btn-primary"
-                onClick={handleGoogleLogin}
+                onClick={handleLoginClick}
               >
                 Log in
               </button>
@@ -131,7 +110,7 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
             </ul>
             <button
               className="btn btn-primary cta-button"
-              onClick={handleGoogleLogin}
+              onClick={handleLoginClick}
             >
               <span className="google-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24">
@@ -239,6 +218,12 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
           </div>
         </footer>
       </div>
+
+      {/* Login Modal */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={handleCloseModal}
+      />
     </>
   )
 }
