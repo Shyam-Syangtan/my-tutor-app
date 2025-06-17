@@ -24,6 +24,9 @@ export default function LoginModal({
 
   console.log('🔥 LoginModal is open, rendering modal')
 
+  // Add a test to make sure we're actually rendering
+  console.log('🔥 About to render modal JSX')
+
   const handleGoogleLogin = async () => {
     setIsLoading(true)
     console.log('🚀 Initiating Google OAuth login...')
@@ -76,11 +79,11 @@ export default function LoginModal({
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 50
+      zIndex: 99999
     }}>
       <div style={{
         backgroundColor: 'white',
@@ -88,7 +91,8 @@ export default function LoginModal({
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         maxWidth: '28rem',
         width: '100%',
-        margin: '0 1rem'
+        margin: '0 1rem',
+        border: '5px solid red' // Temporary debug border
       }}>
         {/* Header */}
         <div style={{
