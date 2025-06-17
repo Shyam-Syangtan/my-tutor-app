@@ -1,4 +1,3 @@
-// Simple Static Sitemap for SEO
 import { GetServerSideProps } from 'next'
 
 function Sitemap() {
@@ -19,18 +18,6 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
     <lastmod>${new Date().toISOString()}</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.shyamsyangtan.com/about</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.shyamsyangtan.com/contact</loc>
-    <lastmod>${new Date().toISOString()}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
   </url>
 </urlset>`
 
