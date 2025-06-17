@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { generateMetadata, generateMarketplaceStructuredData } from '../lib/seo'
 import { db } from '../lib/supabase'
+import LoginModal from '../components/LoginModal'
 
 interface LandingPageProps {
   tutors: any[]
@@ -13,6 +14,17 @@ interface LandingPageProps {
 
 export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+
+  const showSuccessMessage = (text: string) => {
+    setMessage({ type: 'success', text })
+    setTimeout(() => setMessage(null), 5000)
+  }
+
+  const showErrorMessage = (text: string) => {
+    setMessage({ type: 'error', text })
+    setTimeout(() => setMessage(null), 5000)
+  }
 
   const metadata = generateMetadata({
     title: 'Learn Indian Languages with Expert Tutors',
@@ -199,6 +211,25 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
             </div>
           </div>
         </footer>
+
+        {/* Login Modal */}
+        <LoginModal
+          isOpen={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+          showSuccessMessage={showSuccessMessage}
+          showErrorMessage={showErrorMessage}
+        />
+
+        {/* Message Display */}
+        {message && (
+          <div className={`fixed top-4 right-4 z-50 p-4 rounded-md shadow-lg ${
+            message.type === 'success'
+              ? 'bg-green-100 border border-green-400 text-green-700'
+              : 'bg-red-100 border border-red-400 text-red-700'
+          }`}>
+            {message.text}
+          </div>
+        )}
       </div>
     </>
   )
