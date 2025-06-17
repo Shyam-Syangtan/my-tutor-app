@@ -3,8 +3,10 @@ import { GetStaticProps } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 import { generateMetadata, generateMarketplaceStructuredData } from '../lib/seo'
 import { db } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 
 interface LandingPageProps {
   tutors: any[]
@@ -13,6 +15,26 @@ interface LandingPageProps {
 
 export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const router = useRouter()
+
+  const handleGoogleLogin = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      })
+
+      if (error) {
+        console.error('Login error:', error)
+        alert('Login failed. Please try again.')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      alert('Login failed. Please try again.')
+    }
+  }
 
   const metadata = generateMetadata({
     title: 'Learn Indian Languages with Expert Tutors',
@@ -62,9 +84,9 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
             </Link>
             <div className="nav-links">
               <Link href="/marketplace" className="nav-link">Find a Teacher</Link>
-              <button 
+              <button
                 className="btn btn-primary"
-                onClick={() => setShowLoginModal(true)}
+                onClick={handleGoogleLogin}
               >
                 Log in
               </button>
@@ -90,9 +112,9 @@ export default function LandingPage({ tutors, tutorCount }: LandingPageProps) {
                 Flexible schedules and prices
               </li>
             </ul>
-            <button 
+            <button
               className="btn btn-primary cta-button"
-              onClick={() => setShowLoginModal(true)}
+              onClick={handleGoogleLogin}
             >
               <span className="google-icon">
                 <svg width="20" height="20" viewBox="0 0 24 24">
